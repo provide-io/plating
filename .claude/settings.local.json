@@ -3,7 +3,8 @@
     "allow": [
       "Bash(rm:*)",
       "Bash(mv:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(ruff format:*)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
