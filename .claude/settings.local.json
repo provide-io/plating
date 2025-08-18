@@ -17,7 +17,8 @@
       "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/test_garnish_bundle.py -xvs)",
       "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/test_garnish_discovery.py -xvs)",
       "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/test_garnish_discovery.py::TestGarnishDiscovery::test_discover_multi_component_bundles -xvs)",
-      "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/ -v --tb=short)"
+      "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/ -v --tb=short)",
+      "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/test_async_renderer.py -xvs)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
