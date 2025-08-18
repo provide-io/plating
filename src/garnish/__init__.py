@@ -8,9 +8,9 @@ HashiCorp's tfplugindocs tool. It extracts provider schemas, processes templates
 examples, and generates Terraform Registry-compliant documentation.
 """
 
-from .cli import main
-from .generator import DocsGenerator
-from .models import FunctionInfo, ProviderInfo, ResourceInfo
+from garnish.cli import main
+from garnish.generator import DocsGenerator
+from garnish.models import FunctionInfo, ProviderInfo, ResourceInfo
 
 __all__ = [
     "DocsGenerator",

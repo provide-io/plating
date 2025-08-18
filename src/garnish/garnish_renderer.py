@@ -6,8 +6,8 @@
 import importlib
 from pathlib import Path
 
-from .garnish import GarnishBundle, GarnishDiscovery
-from .template_functions import TemplateEngine, create_template_context
+from garnish.garnish import GarnishBundle, GarnishDiscovery
+from garnish.template_functions import TemplateEngine, create_template_context
 
 
 class GarnishRenderer:

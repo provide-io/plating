@@ -10,8 +10,8 @@ from jinja2 import DictLoader, Environment, select_autoescape
 
 from pyvider.telemetry import logger
 
-from .garnish import GarnishBundle, GarnishDiscovery
-from .schema import SchemaProcessor
+from garnish.garnish import GarnishBundle, GarnishDiscovery
+from garnish.schema import SchemaProcessor
 
 
 class AsyncGarnishRenderer:

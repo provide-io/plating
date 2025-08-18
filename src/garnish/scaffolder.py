@@ -8,7 +8,7 @@ from pathlib import Path
 
 from pyvider.hub import ComponentDiscovery, hub
 
-from .garnish import GarnishDiscovery
+from garnish.garnish import GarnishDiscovery
 
 
 class GarnishScaffolder:

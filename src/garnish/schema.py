@@ -13,7 +13,7 @@ import attrs
 
 from pyvider.hub import ComponentDiscovery, hub
 
-from .models import FunctionInfo, ProviderInfo, ResourceInfo
+from garnish.models import FunctionInfo, ProviderInfo, ResourceInfo
 
 if TYPE_CHECKING:
     from .generator import DocsGenerator
