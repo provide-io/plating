@@ -11,7 +11,8 @@
       "Bash(uv pip install:*)",
       "Bash(pytest:*)",
       "Bash(./workenv/garnish_darwin_arm64/bin/python -m pytest tests -xvs)",
-      "Bash(.venv/bin/python -m pytest tests -xvs)"
+      "Bash(.venv/bin/python -m pytest tests -xvs)",
+      "Bash(.venv/bin/pip install:*)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
