@@ -1,0 +1,473 @@
+"""
+Comprehensive tests for the schema module.
+"""
+from pathlib import Path
+from unittest.mock import Mock, patch, AsyncMock, MagicMock
+import pytest
+import json
+
+from garnish.schema import SchemaProcessor
+from garnish.models import ProviderInfo, ResourceInfo, FunctionInfo
+
+
+class TestSchemaProcessor:
+    """Test suite for SchemaProcessor."""
+
+    @pytest.fixture
+    def mock_generator(self):
+        """Create a mock DocsGenerator for testing."""
+        generator = Mock()
+        generator.provider_name = "test_provider"
+        generator.provider_dir = Path("/test/provider")
+        generator.rendered_provider_name = "Test Provider"
+        generator.ignore_deprecated = False
+        generator.provider_schema = None
+        generator.provider_info = None
+        generator.resources = {}
+        generator.data_sources = {}
+        generator.functions = {}
+        return generator
+
+    @pytest.fixture
+    def schema_processor(self, mock_generator):
+        """Create a SchemaProcessor instance."""
+        return SchemaProcessor(mock_generator)
+
+    def test_initialization(self, mock_generator):
+        """Test SchemaProcessor initialization."""
+        processor = SchemaProcessor(mock_generator)
+        assert processor.generator == mock_generator
+
+    @patch('garnish.schema.ComponentDiscovery')
+    @patch('garnish.schema.hub')
+    @patch('asyncio.run')
+    def test_extract_provider_schema(self, mock_asyncio_run, mock_hub, MockDiscovery, schema_processor):
+        """Test extract_provider_schema method."""
+        # Setup mock return value
+        mock_schema = {
+            "provider_schemas": {
+                "registry.terraform.io/local/providers/test_provider": {
+                    "provider": {},
+                    "resource_schemas": {},
+                    "data_source_schemas": {},
+                    "functions": {}
+                }
+            }
+        }
+        mock_asyncio_run.return_value = mock_schema
+        
+        result = schema_processor.extract_provider_schema()
+        
+        assert result == mock_schema
+        mock_asyncio_run.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_extract_schema_via_discovery(self, schema_processor):
+        """Test _extract_schema_via_discovery method."""
+        with patch('garnish.schema.ComponentDiscovery') as MockDiscovery:
+            with patch('garnish.schema.hub') as mock_hub:
+                # Setup mocks
+                mock_discovery = MockDiscovery.return_value
+                mock_discovery.discover_all = AsyncMock()
+                
+                mock_hub.list_components.return_value = {
+                    "provider": {"test_provider": Mock()},
+                    "resource": {"test_resource": Mock()},
+                    "data_source": {"test_data": Mock()},
+                    "function": {"test_func": Mock()}
+                }
+                
+                result = await schema_processor._extract_schema_via_discovery()
+                
+                assert "provider_schemas" in result
+                assert f"registry.terraform.io/local/providers/{schema_processor.generator.provider_name}" in result["provider_schemas"]
+                mock_discovery.discover_all.assert_called_once()
+
+    def test_get_provider_schema_empty(self, schema_processor):
+        """Test _get_provider_schema with empty providers."""
+        result = schema_processor._get_provider_schema({})
+        assert result == {"block": {"attributes": {}}}
+
+    def test_get_provider_schema_with_schema_method(self, schema_processor):
+        """Test _get_provider_schema with component having get_schema method."""
+        mock_provider = Mock()
+        mock_schema = Mock()
+        mock_provider.get_schema.return_value = mock_schema
+        
+        with patch('attrs.asdict') as mock_asdict:
+            mock_asdict.return_value = {"block": {"attributes": {"test": {}}}}
+            
+            result = schema_processor._get_provider_schema({"provider": mock_provider})
+            
+            mock_provider.get_schema.assert_called_once()
+            mock_asdict.assert_called_once_with(mock_schema)
+
+    def test_get_component_schemas_empty(self, schema_processor):
+        """Test _get_component_schemas with empty components."""
+        result = schema_processor._get_component_schemas({})
+        assert result == {}
+
+    def test_get_component_schemas_with_get_schema(self, schema_processor):
+        """Test _get_component_schemas with components having get_schema method."""
+        mock_component = Mock()
+        mock_schema = Mock()
+        mock_component.get_schema.return_value = mock_schema
+        
+        with patch('attrs.asdict') as mock_asdict:
+            mock_asdict.return_value = {"block": {"attributes": {}}}
+            
+            result = schema_processor._get_component_schemas({"test": mock_component})
+            
+            assert "test" in result
+            mock_component.get_schema.assert_called_once()
+
+    def test_get_component_schemas_with_pyvider_schema(self, schema_processor):
+        """Test _get_component_schemas with __pyvider_schema__ attribute."""
+        mock_component = Mock()
+        mock_component.__pyvider_schema__ = {"block": {"attributes": {}}}
+        del mock_component.get_schema  # Ensure it doesn't have get_schema
+        
+        result = schema_processor._get_component_schemas({"test": mock_component})
+        
+        assert "test" in result
+        assert result["test"] == mock_component.__pyvider_schema__
+
+    def test_get_function_schemas_empty(self, schema_processor):
+        """Test _get_function_schemas with empty functions."""
+        result = schema_processor._get_function_schemas({})
+        assert result == {}
+
+    def test_get_function_schemas_with_get_schema(self, schema_processor):
+        """Test _get_function_schemas with functions having get_schema method."""
+        mock_func = Mock()
+        mock_schema = Mock()
+        mock_func.get_schema.return_value = mock_schema
+        
+        with patch('attrs.asdict') as mock_asdict:
+            mock_asdict.return_value = {"signature": {}}
+            
+            result = schema_processor._get_function_schemas({"test_func": mock_func})
+            
+            assert "test_func" in result
+            mock_func.get_schema.assert_called_once()
+
+    def test_parse_function_signature_basic(self, schema_processor):
+        """Test _parse_function_signature with basic function."""
+        func_schema = {
+            "signature": {
+                "parameters": [
+                    {"name": "input", "type": "string"},
+                    {"name": "count", "type": "number"}
+                ],
+                "return_type": "list(string)"
+            }
+        }
+        
+        result = schema_processor._parse_function_signature(func_schema)
+        assert result == "function(input: string, count: number) -> list(string)"
+
+    def test_parse_function_signature_with_variadic(self, schema_processor):
+        """Test _parse_function_signature with variadic parameter."""
+        func_schema = {
+            "signature": {
+                "parameters": [
+                    {"name": "first", "type": "string"}
+                ],
+                "variadic_parameter": {
+                    "name": "rest",
+                    "type": "string"
+                },
+                "return_type": "string"
+            }
+        }
+        
+        result = schema_processor._parse_function_signature(func_schema)
+        assert result == "function(first: string, ...rest: string) -> string"
+
+    def test_parse_function_signature_no_signature(self, schema_processor):
+        """Test _parse_function_signature with no signature."""
+        result = schema_processor._parse_function_signature({})
+        assert result == ""
+
+    def test_parse_function_arguments(self, schema_processor):
+        """Test _parse_function_arguments."""
+        func_schema = {
+            "signature": {
+                "parameters": [
+                    {"name": "input", "type": "string", "description": "Input value"},
+                    {"name": "count", "type": "number", "description": "Number of items"}
+                ]
+            }
+        }
+        
+        result = schema_processor._parse_function_arguments(func_schema)
+        assert "- `input` (string) - Input value" in result
+        assert "- `count` (number) - Number of items" in result
+
+    def test_parse_variadic_argument(self, schema_processor):
+        """Test _parse_variadic_argument."""
+        func_schema = {
+            "signature": {
+                "variadic_parameter": {
+                    "name": "values",
+                    "type": "string",
+                    "description": "Variable number of string values"
+                }
+            }
+        }
+        
+        result = schema_processor._parse_variadic_argument(func_schema)
+        assert result == "- `values` (string) - Variable number of string values"
+
+    def test_parse_provider_schema(self, mock_generator):
+        """Test parse_provider_schema method."""
+        processor = SchemaProcessor(mock_generator)
+        
+        # Setup provider schema
+        mock_generator.provider_schema = {
+            "provider_schemas": {
+                f"registry.terraform.io/local/providers/{mock_generator.provider_name}": {
+                    "provider": {
+                        "description": "Test provider"
+                    },
+                    "resource_schemas": {
+                        "test_resource": {
+                            "description": "Test resource",
+                            "block": {
+                                "attributes": {
+                                    "id": {"type": "string", "computed": True}
+                                }
+                            }
+                        }
+                    },
+                    "data_source_schemas": {
+                        "test_data": {
+                            "description": "Test data source",
+                            "block": {
+                                "attributes": {
+                                    "name": {"type": "string", "required": True}
+                                }
+                            }
+                        }
+                    },
+                    "functions": {
+                        "test_func": {
+                            "description": "Test function",
+                            "signature": {
+                                "parameters": [],
+                                "return_type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        processor.parse_provider_schema()
+        
+        # Check provider info was created
+        assert mock_generator.provider_info is not None
+        assert mock_generator.provider_info.name == mock_generator.provider_name
+        
+        # Check resources were parsed
+        assert "test_resource" in mock_generator.resources
+        assert mock_generator.resources["test_resource"].name == "test_resource"
+        
+        # Check data sources were parsed
+        assert "test_data" in mock_generator.data_sources
+        assert mock_generator.data_sources["test_data"].name == "test_data"
+        
+        # Check functions were parsed
+        assert "test_func" in mock_generator.functions
+        assert mock_generator.functions["test_func"].name == "test_func"
+
+    def test_parse_provider_schema_ignore_deprecated(self, mock_generator):
+        """Test parse_provider_schema ignores deprecated resources when flag is set."""
+        processor = SchemaProcessor(mock_generator)
+        mock_generator.ignore_deprecated = True
+        
+        mock_generator.provider_schema = {
+            "provider_schemas": {
+                f"registry.terraform.io/local/providers/{mock_generator.provider_name}": {
+                    "provider": {},
+                    "resource_schemas": {
+                        "test_resource": {
+                            "deprecated": True,
+                            "block": {"attributes": {}}
+                        },
+                        "valid_resource": {
+                            "block": {"attributes": {}}
+                        }
+                    },
+                    "data_source_schemas": {},
+                    "functions": {}
+                }
+            }
+        }
+        
+        processor.parse_provider_schema()
+        
+        # Deprecated resource should not be included
+        assert "test_resource" not in mock_generator.resources
+        assert "valid_resource" in mock_generator.resources
+
+    def test_parse_schema_to_markdown_basic(self, schema_processor):
+        """Test _parse_schema_to_markdown with basic schema."""
+        schema = {
+            "block": {
+                "attributes": {
+                    "id": {
+                        "type": "string",
+                        "description": "The ID",
+                        "computed": True
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The name",
+                        "required": True
+                    },
+                    "tags": {
+                        "type": {"map": "string"},
+                        "description": "Tags",
+                        "optional": True
+                    }
+                }
+            }
+        }
+        
+        result = schema_processor._parse_schema_to_markdown(schema)
+        
+        assert "## Arguments" in result
+        assert "`id` (String, Computed)" in result
+        assert "`name` (String, Required)" in result
+        assert "`tags` (String, Optional)" in result
+
+    def test_parse_schema_to_markdown_with_blocks(self, schema_processor):
+        """Test _parse_schema_to_markdown with nested blocks."""
+        schema = {
+            "block": {
+                "attributes": {},
+                "block_types": {
+                    "config": {
+                        "description": "Configuration block",
+                        "block": {
+                            "attributes": {
+                                "enabled": {
+                                    "type": "bool",
+                                    "description": "Enable feature",
+                                    "optional": True
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        result = schema_processor._parse_schema_to_markdown(schema)
+        
+        assert "## Blocks" in result
+        assert "### config" in result
+        assert "Configuration block" in result
+        assert "`enabled` (bool) (Optional)" in result
+
+    def test_parse_schema_to_markdown_empty(self, schema_processor):
+        """Test _parse_schema_to_markdown with empty schema."""
+        assert schema_processor._parse_schema_to_markdown({}) == ""
+        assert schema_processor._parse_schema_to_markdown({"block": {}}) == ""
+
+    def test_format_type_string_simple(self, schema_processor):
+        """Test _format_type_string with simple types."""
+        assert schema_processor._format_type_string("string") == "String"
+        assert schema_processor._format_type_string("number") == "Number"
+        assert schema_processor._format_type_string("bool") == "Boolean"
+        assert schema_processor._format_type_string(None) == "String"
+
+    def test_format_type_string_with_dict(self, schema_processor):
+        """Test _format_type_string with dict types."""
+        assert schema_processor._format_type_string({}) == "String"
+        assert schema_processor._format_type_string({"type": "string"}) == "String"
+
+    @patch('subprocess.run')
+    @patch('shutil.rmtree')
+    def test_extract_schema_via_terraform(self, mock_rmtree, mock_run, schema_processor):
+        """Test _extract_schema_via_terraform fallback method."""
+        # Setup mock subprocess returns
+        mock_run.side_effect = [
+            Mock(returncode=0),  # build command
+            Mock(returncode=0),  # terraform init
+            Mock(returncode=0, stdout='{"provider_schemas": {}}')  # terraform schema
+        ]
+        
+        # Mock finding the binary
+        with patch.object(schema_processor, '_find_provider_binary') as mock_find:
+            mock_find.return_value = Path("/test/provider/binary")
+            
+            result = schema_processor._extract_schema_via_terraform()
+            
+            assert result == {"provider_schemas": {}}
+            assert mock_run.call_count == 3
+            mock_rmtree.assert_called_once()
+
+    @patch('glob.glob')
+    def test_find_provider_binary(self, mock_glob, schema_processor):
+        """Test _find_provider_binary method."""
+        mock_glob.return_value = ["/test/provider/terraform-provider-test"]
+        
+        result = schema_processor._find_provider_binary()
+        
+        assert result == Path("/test/provider/terraform-provider-test")
+
+    @patch('glob.glob')
+    def test_find_provider_binary_not_found(self, mock_glob, schema_processor):
+        """Test _find_provider_binary raises when binary not found."""
+        mock_glob.return_value = []
+        
+        with pytest.raises(FileNotFoundError):
+            schema_processor._find_provider_binary()
+
+
+class TestSchemaProcessorWithCTY:
+    """Test SchemaProcessor with CTY types."""
+
+    @pytest.fixture
+    def schema_processor(self):
+        """Create a SchemaProcessor instance."""
+        mock_generator = Mock()
+        mock_generator.provider_name = "test"
+        return SchemaProcessor(mock_generator)
+
+    @patch('garnish.schema.CtyString')
+    @patch('garnish.schema.CtyNumber')
+    @patch('garnish.schema.CtyBool')
+    def test_format_type_string_with_cty(
+        self, MockCtyBool, MockCtyNumber, MockCtyString, schema_processor
+    ):
+        """Test _format_type_string with CTY objects."""
+        # Test string type
+        mock_string = Mock()
+        mock_string.__class__ = MockCtyString
+        assert schema_processor._format_type_string(mock_string) == "String"
+        
+        # Test number type
+        mock_number = Mock()
+        mock_number.__class__ = MockCtyNumber
+        assert schema_processor._format_type_string(mock_number) == "Number"
+        
+        # Test bool type
+        mock_bool = Mock()
+        mock_bool.__class__ = MockCtyBool
+        assert schema_processor._format_type_string(mock_bool) == "Boolean"
+
+    @patch('garnish.schema.CtyList')
+    def test_format_type_string_with_cty_list(self, MockCtyList, schema_processor):
+        """Test _format_type_string with CTY list type."""
+        mock_list = Mock()
+        mock_list.__class__ = MockCtyList
+        mock_list.element_type = "string"
+        
+        # Mock recursive call for element type
+        with patch.object(schema_processor, '_format_type_string') as mock_format:
+            mock_format.return_value = "String"
+            result = schema_processor._format_type_string(mock_list)
+            assert result == "List of String"
