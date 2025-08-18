@@ -1,7 +1,7 @@
 #
 # garnish/renderer.py
 #
-"""Garnish documentation renderer."""
+"""Garnish documentation plater."""
 
 from pathlib import Path
 
@@ -13,14 +13,14 @@ from garnish.schema import SchemaProcessor
 
 
 class GarnishRenderer:
-    """Documentation renderer using .garnish bundles."""
+    """Documentation plater using .garnish bundles."""
 
     def __init__(
         self,
         bundles: list[GarnishBundle] | None = None,
         schema_processor: SchemaProcessor | None = None,
     ):
-        """Initialize renderer with bundles and optional schema processor.
+        """Initialize plater with bundles and optional schema processor.
         
         Args:
             bundles: List of GarnishBundle objects to render
@@ -36,24 +36,24 @@ class GarnishRenderer:
             except Exception as e:
                 logger.warning(f"Failed to extract provider schema: {e}")
 
-    def render(self, output_dir: Path, force: bool = False) -> None:
-        """Render all bundles to the output directory.
+    def plate(self, output_dir: Path, force: bool = False) -> None:
+        """Plate all bundles to the output directory.
         
         Args:
-            output_dir: Directory to write rendered documentation
-            force: Force rendering even if output exists
+            output_dir: Directory to write plated documentation
+            force: Force plating even if output exists
         """
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         
         for bundle in self.bundles:
             try:
-                self._render_bundle(bundle, output_dir, force)
+                self._plate_bundle(bundle, output_dir, force)
             except Exception as e:
-                logger.error(f"Failed to render bundle {bundle.name}: {e}")
+                logger.error(f"Failed to plate bundle {bundle.name}: {e}")
 
-    def _render_bundle(self, bundle: GarnishBundle, output_dir: Path, force: bool) -> None:
-        """Render a single bundle.
+    def _plate_bundle(self, bundle: GarnishBundle, output_dir: Path, force: bool) -> None:
+        """Plate a single bundle.
         
         Args:
             bundle: The GarnishBundle to render
@@ -69,8 +69,8 @@ class GarnishRenderer:
         examples = bundle.load_examples()
         partials = bundle.load_partials()
         
-        # Create render context
-        context = _create_render_context(
+        # Create plating context
+        context = _create_plating_context(
             bundle,
             self._get_schema_for_component(bundle),
             self.schema_processor.provider_name if self.schema_processor else "provider"
@@ -79,8 +79,8 @@ class GarnishRenderer:
         # Add examples to context
         context["examples"] = examples
         
-        # Render template
-        rendered = self._render_template(template_content, context, partials)
+        # Plate template
+        plated = self._plate_template(template_content, context, partials)
         
         # Determine output path
         subdir = _get_output_subdir(bundle.component_type)
@@ -93,8 +93,8 @@ class GarnishRenderer:
         
         # Write output
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(rendered)
-        logger.debug(f"Rendered {bundle.name} to {output_path}")
+        output_path.write_text(plated)
+        logger.debug(f"Plated {bundle.name} to {output_path}")
 
     def _get_schema_for_component(self, bundle: GarnishBundle) -> dict | None:
         """Get schema for a component from the provider schema.
@@ -137,13 +137,13 @@ class GarnishRenderer:
         
         return None
 
-    def _render_template(
+    def _plate_template(
         self,
         template_content: str,
         context: dict,
         partials: dict[str, str]
     ) -> str:
-        """Render a Jinja2 template with context.
+        """Plate a Jinja2 template with context.
         
         Args:
             template_content: The template string
@@ -151,7 +151,7 @@ class GarnishRenderer:
             partials: Partial templates dictionary
             
         Returns:
-            Rendered template string
+            Plated template string
         """
         # Set up Jinja2 environment
         templates = {"main.tmpl": template_content}
@@ -167,17 +167,17 @@ class GarnishRenderer:
         env.globals["example"] = lambda name: _format_example(context.get("examples", {}).get(name, ""))
         env.globals["include"] = lambda filename: partials.get(filename, "")
         
-        # Render template
+        # Plate template
         template = env.get_template("main.tmpl")
         return template.render(**context)
 
 
-def _create_render_context(
+def _create_plating_context(
     bundle: GarnishBundle,
     schema: dict | None,
     provider_name: str
 ) -> dict:
-    """Create rendering context for a bundle.
+    """Create plating context for a bundle.
     
     Args:
         bundle: The GarnishBundle
@@ -185,7 +185,7 @@ def _create_render_context(
         provider_name: Name of the provider
         
     Returns:
-        Context dictionary for template rendering
+        Context dictionary for template plating
     """
     context = {
         "name": bundle.name,
@@ -196,7 +196,7 @@ def _create_render_context(
     
     if schema:
         context["description"] = schema.get("description", "")
-        context["schema_markdown"] = _render_schema_markdown(schema)
+        context["schema_markdown"] = _plate_schema_markdown(schema)
         
         # Add function-specific fields
         if bundle.component_type == "function" and "signature" in schema:
@@ -252,8 +252,8 @@ def _format_example(example_code: str) -> str:
     return f"```terraform\n{example_code}\n```"
 
 
-def _render_schema_markdown(schema: dict) -> str:
-    """Render schema to markdown format.
+def _plate_schema_markdown(schema: dict) -> str:
+    """Plate schema to markdown format.
     
     Args:
         schema: Schema dictionary
@@ -457,9 +457,9 @@ def generate_docs(
         except Exception as e:
             logger.warning(f"Failed to initialize schema processor: {e}")
     
-    # Create renderer and render
+    # Create renderer and plate
     renderer = GarnishRenderer(bundles, schema_processor)
-    renderer.render(Path(output_dir), force)
+    renderer.plate(Path(output_dir), force)
     
     logger.info(f"Documentation generated in {output_dir}")
 
