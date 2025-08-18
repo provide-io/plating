@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/template_filters.py
+# garnish/template_filters.py
 #
 """Custom Jinja2 filters for documentation generation."""
 

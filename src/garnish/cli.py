@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# tofusoup/garnish/cli.py
+# garnish/cli.py
 #
 """CLI interface for documentation generation."""
 

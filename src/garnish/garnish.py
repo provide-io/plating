@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/garnish.py
+# garnish/garnish.py
 #
 """Garnish bundle discovery and management."""
 

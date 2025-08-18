@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/templates.py
+# garnish/templates.py
 #
 """Template processing and rendering for documentation generation."""
 

@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/garnish_renderer.py
+# garnish/garnish_renderer.py
 #
 """Garnish template rendering system."""
 

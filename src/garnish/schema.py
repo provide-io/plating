@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/schema.py
+# garnish/schema.py
 #
 """Schema extraction and processing for documentation generation."""
 

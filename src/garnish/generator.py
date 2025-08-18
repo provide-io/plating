@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/generator.py
+# garnish/generator.py
 #
 """Main documentation generator class and entry point."""
 
