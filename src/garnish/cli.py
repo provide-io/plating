@@ -12,13 +12,13 @@ from garnish.async_renderer import generate_docs
 from garnish.scaffolder import scaffold_garnish
 
 
-@click.group("garnish")
-def garnish_cli() -> None:
-    """Generate provider documentation from .garnish bundles."""
+@click.group()
+def main() -> None:
+    """Garnish - Documentation generator for Terraform/OpenTofu providers."""
     pass
 
 
-@garnish_cli.command("scaffold")
+@main.command("scaffold")
 @click.option(
     "--component-type",
     type=click.Choice(["resource", "data_source", "function"]),
@@ -52,7 +52,7 @@ def scaffold_command(component_type: tuple[str, ...]) -> None:
         raise click.Abort() from e
 
 
-@garnish_cli.command("render")
+@main.command("render")
 @click.option(
     "--output-dir",
     type=click.Path(file_okay=False, resolve_path=True),
@@ -148,7 +148,7 @@ def _is_provider_directory(path: Path) -> bool:
     return False
 
 
-@garnish_cli.command("test")
+@main.command("test")
 @click.option(
     "--component-type",
     type=click.Choice(["resource", "data_source", "function"]),
@@ -248,4 +248,8 @@ def test_command(
         raise click.Abort() from e
 
 
-# 🍲🥄🖥️🪄
+if __name__ == "__main__":
+    main()
+
+
+# 🥄📚🪄
