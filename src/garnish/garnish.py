@@ -114,8 +114,12 @@ class GarnishDiscovery:
         bundles = []
 
         # Find the package location
-        spec = importlib.util.find_spec(self.package_name)
-        if not spec or not spec.origin:
+        try:
+            spec = importlib.util.find_spec(self.package_name)
+            if not spec or not spec.origin:
+                return bundles
+        except (ModuleNotFoundError, ValueError):
+            # Package doesn't exist or invalid package name
             return bundles
 
         package_path = Path(spec.origin).parent
@@ -123,6 +127,10 @@ class GarnishDiscovery:
         # Search for .garnish directories
         for garnish_dir in package_path.rglob("*.garnish"):
             if not garnish_dir.is_dir():
+                continue
+            
+            # Skip hidden directories
+            if garnish_dir.name.startswith("."):
                 continue
 
             # Determine component type from path
