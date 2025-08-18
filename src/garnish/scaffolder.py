@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/scaffolder.py
+# garnish/scaffolder.py
 #
 """Scaffolding system for creating missing .garnish directories."""
 

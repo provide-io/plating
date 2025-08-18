@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/async_renderer.py
+# garnish/async_renderer.py
 #
 """Async garnish-based documentation renderer."""
 

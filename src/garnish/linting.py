@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/linting.py
+# garnish/linting.py
 #
 """Markdown linting integration for documentation generation."""
 

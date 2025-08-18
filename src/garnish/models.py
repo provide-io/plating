@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/models.py
+# garnish/models.py
 #
 """Data models for documentation generation."""
 

@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/test_runner.py
+# garnish/test_runner.py
 #
 """Test runner for garnish example files."""
 

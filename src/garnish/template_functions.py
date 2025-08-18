@@ -1,5 +1,5 @@
 #
-# tofusoup/garnish/template_functions.py
+# garnish/template_functions.py
 #
 """Custom Jinja2 template functions for .garnish rendering."""
 
