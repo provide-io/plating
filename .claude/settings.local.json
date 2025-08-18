@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm:*)",
+      "Bash(mv:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/tim/code/gh/provide-io"
+    ]
+  }
+}
