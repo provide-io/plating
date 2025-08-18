@@ -273,86 +273,148 @@ provider "pyvider" {
 """
 
 
-def _run_stir_tests(test_dir: Path, parallel: int) -> dict[str, any]:
-    """Run stir tests on the generated test suites.
-
+def _run_simple_tests(test_dir: Path) -> dict[str, any]:
+    """Run simple terraform tests without stir.
+    
+    Note: This is a simplified version without parallel execution or rich UI.
+    For advanced test running with rich UI, use tofusoup.
+    
     Args:
         test_dir: Directory containing test suites
-        parallel: Number of parallel tests
-
+    
     Returns:
         Dictionary with test results
     """
-    # Set max concurrent tests
-    original_max = stir.MAX_CONCURRENT_TESTS
-    stir.MAX_CONCURRENT_TESTS = parallel
-
-    try:
-        # Run stir main function
-        asyncio.run(stir.main(str(test_dir)))
-
-        # Parse results from test_statuses
-        total = len(stir.test_statuses)
-        passed = 0
-        failed = 0
-        warnings = 0
-        skipped = 0
-        failures = {}
-        test_details = {}
-
-        for test_name, status in stir.test_statuses.items():
-            # Calculate duration from start and end times
-            start_time = status.get("start_time", 0)
-            end_time = status.get("end_time", 0)
-            duration = end_time - start_time if start_time and end_time else 0
-
-            test_info = {
-                "name": test_name,
-                "success": status.get("success", False),
-                "skipped": status.get("skipped", False),
-                "duration": duration,
-                "resources": status.get("resources", 0),
-                "data_sources": status.get("data_sources", 0),
-                "functions": status.get("functions", 0),
-                "outputs": status.get("outputs", 0),
-                "last_log": status.get("last_log", ""),
-                "warnings": [],
-            }
-
-            # Check for warnings in the log files
-            log_dir = test_dir / test_name / ".soup" / "logs"
-            if log_dir.exists():
-                log_file = log_dir / "terraform.log"
-                if log_file.exists():
-                    test_info["warnings"] = _extract_warnings_from_log(log_file)
-                    if test_info["warnings"]:
-                        warnings += len(test_info["warnings"])
-
-            test_details[test_name] = test_info
-
-            if status.get("skipped"):
-                skipped += 1
-            elif status.get("success"):
-                passed += 1
-            else:
-                failed += 1
-                failures[test_name] = status.get("last_log", "Test failed")
-
-        return {
-            "total": total,
-            "passed": passed,
-            "failed": failed,
-            "warnings": warnings,
-            "skipped": skipped,
-            "failures": failures,
-            "test_details": test_details,
-            "timestamp": datetime.now().isoformat(),
+    import subprocess
+    
+    results = {
+        "total": 0,
+        "passed": 0,
+        "failed": 0,
+        "warnings": 0,
+        "skipped": 0,
+        "failures": {},
+        "test_details": {},
+        "timestamp": datetime.now().isoformat(),
+    }
+    
+    # Find all test directories
+    test_dirs = [d for d in test_dir.iterdir() if d.is_dir()]
+    results["total"] = len(test_dirs)
+    
+    # Get terraform binary
+    tf_binary = shutil.which("tofu") or shutil.which("terraform") or "terraform"
+    
+    for suite_dir in test_dirs:
+        test_name = suite_dir.name
+        console.print(f"Running test: {test_name}")
+        
+        test_info = {
+            "name": test_name,
+            "success": False,
+            "skipped": False,
+            "duration": 0,
+            "resources": 0,
+            "data_sources": 0,
+            "functions": 0,
+            "outputs": 0,
+            "last_log": "",
+            "warnings": [],
         }
-    finally:
-        # Restore original setting
-        stir.MAX_CONCURRENT_TESTS = original_max
-        # Clear test statuses for next run
-        stir.test_statuses.clear()
+        
+        start_time = datetime.now()
+        
+        try:
+            # Run terraform init
+            init_result = subprocess.run(
+                [tf_binary, "init"],
+                cwd=suite_dir,
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+            
+            if init_result.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    init_result.returncode, 
+                    init_result.args,
+                    init_result.stdout,
+                    init_result.stderr
+                )
+            
+            # Run terraform apply
+            apply_result = subprocess.run(
+                [tf_binary, "apply", "-auto-approve"],
+                cwd=suite_dir,
+                capture_output=True,
+                text=True,
+                timeout=120
+            )
+            
+            if apply_result.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    apply_result.returncode,
+                    apply_result.args,
+                    apply_result.stdout,
+                    apply_result.stderr
+                )
+            
+            # Parse output for resource counts
+            output = apply_result.stdout
+            if "Apply complete!" in output:
+                # Try to extract resource counts
+                import re
+                match = re.search(r'(\d+) added', output)
+                if match:
+                    test_info["resources"] = int(match.group(1))
+            
+            # Run terraform destroy
+            destroy_result = subprocess.run(
+                [tf_binary, "destroy", "-auto-approve"],
+                cwd=suite_dir,
+                capture_output=True,
+                text=True,
+                timeout=120
+            )
+            
+            if destroy_result.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    destroy_result.returncode,
+                    destroy_result.args,
+                    destroy_result.stdout,
+                    destroy_result.stderr
+                )
+            
+            test_info["success"] = True
+            results["passed"] += 1
+            console.print(f"  ✅ {test_name}: PASS")
+            
+        except subprocess.CalledProcessError as e:
+            test_info["success"] = False
+            test_info["last_log"] = str(e.stderr if e.stderr else e.stdout)
+            results["failed"] += 1
+            results["failures"][test_name] = test_info["last_log"]
+            console.print(f"  ❌ {test_name}: FAIL")
+            
+        except subprocess.TimeoutExpired:
+            test_info["success"] = False
+            test_info["last_log"] = "Test timed out"
+            results["failed"] += 1
+            results["failures"][test_name] = "Test timed out"
+            console.print(f"  ⏱️ {test_name}: TIMEOUT")
+            
+        except Exception as e:
+            test_info["success"] = False
+            test_info["last_log"] = str(e)
+            results["failed"] += 1
+            results["failures"][test_name] = str(e)
+            console.print(f"  ❌ {test_name}: ERROR")
+        
+        end_time = datetime.now()
+        test_info["duration"] = (end_time - start_time).total_seconds()
+        results["test_details"][test_name] = test_info
+    
+    return results
 
 
 def _extract_warnings_from_log(log_file: Path) -> list[dict[str, str]]:
