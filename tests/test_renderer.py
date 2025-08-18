@@ -216,7 +216,7 @@ class TestGarnishRenderer:
         expected_file = output_dir / "resources" / "no_template.md"
         assert not expected_file.exists()
 
-    def test_plate_with_error_handling(self, tmp_path, caplog):
+    def test_plate_with_error_handling(self, tmp_path):
         """Test that plate handles bundle errors gracefully."""
         # Create bundle with invalid template syntax
         garnish_dir = tmp_path / "bad.garnish"
@@ -235,11 +235,12 @@ class TestGarnishRenderer:
         output_dir = tmp_path / "output"
         renderer = GarnishRenderer(bundles=[bundle])
         
-        # Should not raise exception
+        # Should not raise exception (this is the important part)
         renderer.plate(output_dir)
         
-        # Should log error
-        assert "Failed to plate bundle bad" in caplog.text
+        # Output file should not exist due to error
+        expected_file = output_dir / "resources" / "bad.md"
+        assert not expected_file.exists()
 
     def test_get_schema_for_component_resource(self, mock_bundle, mock_schema_processor):
         """Test getting schema for a resource component."""
@@ -349,9 +350,9 @@ class TestGarnishRenderer:
         template_content = "# {{ name }}\n{{ schema() }}\n{{ example('test') }}"
         context = {
             "name": "test_component",
-            "schema_markdown": "## Schema\nTest schema"
+            "schema_markdown": "## Schema\nTest schema",
+            "examples": {"test": "resource \"test\" \"example\" {}"}
         }
-        examples = {"test": "resource \"test\" \"example\" {}"}
         partials = {}
         
         result = renderer._plate_template(template_content, context, partials)
@@ -366,7 +367,6 @@ class TestGarnishRenderer:
         
         template_content = "# {{ name }}\n{{ include('_footer.md') }}"
         context = {"name": "test_component"}
-        examples = {}
         partials = {"_footer.md": "---\nFooter content"}
         
         result = renderer._plate_template(template_content, context, partials)

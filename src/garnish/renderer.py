@@ -266,9 +266,6 @@ def _plate_schema_markdown(schema: dict) -> str:
     block = schema.get("block", {})
     attributes = block.get("attributes", {})
     
-    if not attributes:
-        return ""
-    
     # Separate attributes by type
     required_attrs = []
     optional_attrs = []
@@ -315,6 +312,10 @@ def _plate_schema_markdown(schema: dict) -> str:
             else:
                 lines.append(f"- `{block_name}` (Optional, List)")
         lines.append("")
+    
+    # Return empty string if no content was generated
+    if len(lines) == 2:  # Just "## Schema" and empty line
+        return ""
     
     return "\n".join(lines)
 
