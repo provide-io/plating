@@ -165,11 +165,17 @@ class GarnishDiscovery:
             # Check if this looks like a component directory
             docs_dir = item / "docs"
             if docs_dir.exists() and docs_dir.is_dir():
+                # Determine component type from subdirectory name
+                sub_component_type = item.name
+                if sub_component_type not in ["resource", "data_source", "function"]:
+                    # Fall back to parent component type if not a recognized type
+                    sub_component_type = component_type
+                
                 # This appears to be an individual component
                 bundle = GarnishBundle(
                     name=item.name,  # Use the directory name as component name
                     garnish_dir=item,  # Point to the individual component directory
-                    component_type=component_type,
+                    component_type=sub_component_type,
                 )
                 sub_bundles.append(bundle)
 
