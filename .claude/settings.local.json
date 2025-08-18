@@ -4,7 +4,9 @@
       "Bash(rm:*)",
       "Bash(mv:*)",
       "Bash(find:*)",
-      "Bash(ruff format:*)"
+      "Bash(ruff format:*)",
+      "Bash(source:*)",
+      "Bash(python -m pytest tests -xvs)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
