@@ -2,7 +2,7 @@
 name = "garnish"
 version = "0.1.0"
 description = "Documentation generation system for Terraform/OpenTofu providers"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 authors = [
