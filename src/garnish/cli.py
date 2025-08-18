@@ -8,8 +8,8 @@ from pathlib import Path
 
 import click
 
-from tofusoup.garnish.async_renderer import generate_docs
-from tofusoup.garnish.scaffolder import scaffold_garnish
+from garnish.async_renderer import generate_docs
+from garnish.scaffolder import scaffold_garnish
 
 
 @click.group("garnish")

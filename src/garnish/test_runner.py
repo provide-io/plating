@@ -15,8 +15,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from tofusoup import stir
-from tofusoup.garnish.garnish import GarnishBundle, GarnishDiscovery
+from garnish.garnish import GarnishBundle, GarnishDiscovery
 
 console = Console()
 
@@ -152,11 +151,11 @@ def run_garnish_tests(
             for tf_file in sorted(first_suite.glob("*.tf")):
                 console.print(f"  - {tf_file.name}")
 
-        # Run tests using stir
+        # Run tests using simple runner
         console.print(
-            f"\n[bold yellow]🚀 Running tests with {parallel} parallel workers...[/bold yellow]\n"
+            f"\n[bold yellow]🚀 Running tests...[/bold yellow]\n"
         )
-        results = _run_stir_tests(output_dir, parallel)
+        results = _run_simple_tests(output_dir)
 
         # Enrich results with bundle information
         results["bundles"] = {}
