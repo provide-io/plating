@@ -5,10 +5,10 @@
 
 from pathlib import Path
 
-from .garnish import GarnishDiscovery
-from .models import FunctionInfo, ProviderInfo, ResourceInfo
-from .schema import SchemaProcessor
-from .templates import TemplateProcessor
+from garnish.garnish import GarnishDiscovery
+from garnish.models import FunctionInfo, ProviderInfo, ResourceInfo
+from garnish.schema import SchemaProcessor
+from garnish.templates import TemplateProcessor
 
 
 class DocsGenerator:

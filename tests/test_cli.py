@@ -1,50 +1,63 @@
 """
-TDD Tests for the 'soup garnish' CLI command.
+Tests for the garnish CLI.
 """
 import pytest
 from click.testing import CliRunner
 from unittest.mock import patch, MagicMock
 
-from tofusoup.cli import main_cli
+from garnish.cli import main
 
-@pytest.mark.tdd
-class TestGarnishCliContract:
-    """Defines the contract for the `soup garnish` command."""
+
+class TestGarnishCli:
+    """Tests for the garnish CLI."""
 
     @pytest.fixture
     def runner(self) -> CliRunner:
         return CliRunner()
 
     def test_garnish_command_exists(self, runner: CliRunner):
-        """CONTRACT: The `soup garnish` command group must exist."""
-        result = runner.invoke(main_cli, ["garnish", "--help"])
+        """Test that the garnish command exists and shows help."""
+        result = runner.invoke(main, ["--help"])
         assert result.exit_code == 0
-        assert "Usage: tofusoup garnish [OPTIONS] COMMAND [ARGS]..." in result.output
+        assert "Garnish - Documentation generator" in result.output
         assert "scaffold" in result.output
         assert "render" in result.output
+        assert "test" in result.output
 
-    def test_docs_command_is_removed(self, runner: CliRunner):
-        """CONTRACT: The old `soup docs` command must NOT exist."""
-        result = runner.invoke(main_cli, ["docs", "--help"])
-        assert result.exit_code != 0
-        assert "No such command 'docs'" in result.output
+    def test_scaffold_command_exists(self, runner: CliRunner):
+        """Test that the scaffold subcommand exists."""
+        result = runner.invoke(main, ["scaffold", "--help"])
+        assert result.exit_code == 0
+        assert "Scaffold" in result.output
 
-    @patch("tofusoup.garnish.cli.scaffold_garnish")
-    def test_garnish_scaffold_invokes_correct_logic(self, mock_scaffold, runner: CliRunner):
-        """CONTRACT: `soup garnish scaffold` must invoke the scaffolding logic."""
+    def test_render_command_exists(self, runner: CliRunner):
+        """Test that the render subcommand exists."""
+        result = runner.invoke(main, ["render", "--help"])
+        assert result.exit_code == 0
+        assert "Render" in result.output
+
+    def test_test_command_exists(self, runner: CliRunner):
+        """Test that the test subcommand exists."""
+        result = runner.invoke(main, ["test", "--help"])
+        assert result.exit_code == 0
+        assert "Run all garnish example files" in result.output
+
+    @patch("garnish.cli.scaffold_garnish")
+    def test_scaffold_invokes_correct_logic(self, mock_scaffold, runner: CliRunner):
+        """Test that scaffold command invokes the scaffolding logic."""
         mock_scaffold.return_value = {"resource": 1}
-        result = runner.invoke(main_cli, ["garnish", "scaffold"])
+        result = runner.invoke(main, ["scaffold"])
         assert result.exit_code == 0
         mock_scaffold.assert_called_once()
         assert "Scaffolded 1 components" in result.output
 
-    @patch("tofusoup.garnish.cli.generate_docs")
-    def test_garnish_render_invokes_correct_logic(self, mock_render, runner: CliRunner):
-        """CONTRACT: `soup garnish render` must invoke the rendering logic."""
-        result = runner.invoke(main_cli, ["garnish", "render", "--force"])
+    @patch("garnish.cli.generate_docs")
+    def test_render_invokes_correct_logic(self, mock_render, runner: CliRunner):
+        """Test that render command invokes the rendering logic."""
+        result = runner.invoke(main, ["render", "--force"])
         assert result.exit_code == 0
         mock_render.assert_called_once()
         assert "Documentation generation completed successfully!" in result.output
 
 
-# 🍲🥄🧪🪄
+# 🥄🧪🪄
