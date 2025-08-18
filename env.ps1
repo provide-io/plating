@@ -1,6 +1,6 @@
-# env.ps1 - tofusoup Development Environment Setup
+# env.ps1 - garnish Development Environment Setup
 #
-# This script sets up a clean, isolated development environment for tofusoup
+# This script sets up a clean, isolated development environment for garnish
 # using 'uv' for high-performance virtual environment and dependency management.
 #
 # Usage: .\env.ps1
@@ -49,7 +49,7 @@ Write-Success "Cleared Python aliases and PYTHONPATH"
 # --- Project Validation ---
 if (-not (Test-Path "pyproject.toml")) {
     Write-Error "No 'pyproject.toml' found in current directory"
-    Write-Host "Please run this script from the tofusoup root directory"
+    Write-Host "Please run this script from the garnish root directory"
     exit 1
 }
 
@@ -99,9 +99,9 @@ $TFARCH = switch ([System.Environment]::Is64BitOperatingSystem) {
 }
 
 # Workenv directory setup
-$Profile = if ($env:TOFUSOUP_PROFILE) { $env:TOFUSOUP_PROFILE } else { "default" }
+$Profile = if ($env:GARNISH_PROFILE) { $env:GARNISH_PROFILE } else { "default" }
 if ($Profile -eq "default") {
-    $VenvDir = "workenv/tofusoup_${TFOS}_${TFARCH}"
+    $VenvDir = "workenv/garnish_${TFOS}_${TFARCH}"
 } else {
     $VenvDir = "workenv/${Profile}_${TFOS}_${TFARCH}"
 }
@@ -153,7 +153,7 @@ if (Test-Path $ActivateScript) {
 Write-Header "📦 Installing Dependencies"
 
 # Create log directory
-$LogDir = Join-Path $env:TEMP "tofusoup_setup"
+$LogDir = Join-Path $env:TEMP "garnish_setup"
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 
 Write-Host "Syncing dependencies..." -NoNewline
@@ -167,10 +167,10 @@ catch {
     exit 1
 }
 
-Write-Host "Installing tofusoup in editable mode..." -NoNewline
+Write-Host "Installing garnish in editable mode..." -NoNewline
 try {
     & uv pip install --no-deps -e . 2>&1 | Out-File -FilePath (Join-Path $LogDir "install.log")
-    Write-Success " tofusoup installed"
+    Write-Success " garnish installed"
 }
 catch {
     Write-Error " Installation failed"
@@ -319,11 +319,11 @@ Write-Host ("━" * 40)
 # --- Final Summary ---
 Write-Header "✅ Environment Ready!"
 
-Write-Host "`n$("tofusoup development environment activated" | Write-Host -ForegroundColor Green)"
+Write-Host "`n$("garnish development environment activated" | Write-Host -ForegroundColor Green)"
 Write-Host "Virtual environment: $VenvDir"
 Write-Host "Profile: $Profile"
 Write-Host "`nUseful commands:"
-Write-Host "  tofusoup --help  # tofusoup CLI"
+Write-Host "  garnish --help  # garnish CLI"
 Write-Host "  wrkenv status  # Check tool versions"
 Write-Host "  wrkenv container status  # Container status"
 Write-Host "  pytest  # Run tests"
