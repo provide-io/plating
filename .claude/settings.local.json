@@ -6,7 +6,8 @@
       "Bash(find:*)",
       "Bash(ruff format:*)",
       "Bash(source:*)",
-      "Bash(python -m pytest tests -xvs)"
+      "Bash(python -m pytest tests -xvs)",
+      "Bash(uv add:*)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
