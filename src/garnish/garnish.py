@@ -61,17 +61,18 @@ class GarnishBundle:
         return examples
 
     def load_partials(self) -> dict[str, str]:
-        """Load all partial files from docs directory (excluding main template)."""
+        """Load all partial files from docs directory.
+        
+        Partials are files starting with underscore (_) in the docs directory.
+        """
         partials = {}
 
         if not self.docs_dir.exists():
             return partials
 
-        # Load all files except the main template
-        main_template_name = f"{self.name}.tmpl.md"
-
-        for partial_file in self.docs_dir.glob("*"):
-            if partial_file.is_file() and partial_file.name != main_template_name:
+        # Load only files starting with underscore (partial convention)
+        for partial_file in self.docs_dir.glob("_*"):
+            if partial_file.is_file():
                 try:
                     partials[partial_file.name] = partial_file.read_text(
                         encoding="utf-8"
