@@ -21,7 +21,8 @@
       "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/test_async_renderer.py -xvs)",
       "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/test_renderer.py -xvs)",
       "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/test_renderer.py -v --tb=short)",
-      "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/test_plater.py -v --tb=short)"
+      "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/test_plater.py -v --tb=short)",
+      "Bash(mkdir:*)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
