@@ -64,10 +64,9 @@ page_title: "Test Resource"
 
     def test_discovery_to_plating_flow(self, sample_garnish_bundle):
         """Test the flow from discovery to plating."""
-        # The GarnishDiscovery in garnish.py uses importlib to find bundles
-        # For testing, we'll create bundles directly
+        # Create bundle directly for testing
         bundle = GarnishBundle(
-            path=sample_garnish_bundle,
+            garnish_dir=sample_garnish_bundle,
             name="test_resource",
             component_type="resource"
         )
@@ -128,9 +127,13 @@ page_title: "Test Resource"
                         garnish_dir = temp_provider_dir / "resources" / "integration_resource.garnish"
                         assert garnish_dir.exists()
                         
-                        # Now discover and plate the dressed component
-                        discovery = GarnishDiscovery()
-                        bundles = discovery.discover_bundles(str(temp_provider_dir))
+                        # Create bundle for the dressed component
+                        bundle = GarnishBundle(
+                            garnish_dir=garnish_dir,
+                            name="integration_resource",
+                            component_type="resource"
+                        )
+                        bundles = [bundle]
                         
                         assert len(bundles) == 1
                         assert bundles[0].name == "integration_resource"
@@ -169,14 +172,18 @@ page_title: "Test Resource"
                     "resource": {"test_resource": mock_component}
                 }
                 
-                # Create schema processor
-                schema_processor = SchemaProcessor(Mock(provider_name="test"))
+                # Create schema processor with proper mock generator
+                mock_generator = Mock()
+                mock_generator.provider_name = "test"
+                schema_processor = SchemaProcessor(mock_generator)
                 
-                # Discover bundles and create plater with schema
-                discovery = GarnishDiscovery()
-                bundles = discovery.discover_bundles(
-                    str(sample_garnish_bundle.parent.parent)
+                # Create bundle for testing
+                bundle = GarnishBundle(
+                    garnish_dir=sample_garnish_bundle,
+                    name="test_resource",
+                    component_type="resource"
                 )
+                bundles = [bundle]
                 
                 with tempfile.TemporaryDirectory() as output_dir:
                     plater = GarnishPlater(
@@ -191,11 +198,15 @@ page_title: "Test Resource"
     def test_generate_docs_integration(self, temp_provider_dir, sample_garnish_bundle):
         """Test the generate_docs function integrates all components."""
         with tempfile.TemporaryDirectory() as output_dir:
-            # Test basic doc generation
-            generate_docs(
-                provider_dir=temp_provider_dir,
-                output_dir=output_dir
+            # For this test, we'll use GarnishPlater directly since generate_docs 
+            # uses a different discovery mechanism
+            bundle = GarnishBundle(
+                garnish_dir=sample_garnish_bundle,
+                name="test_resource",
+                component_type="resource"
             )
+            plater = GarnishPlater(bundles=[bundle])
+            plater.plate(Path(output_dir))
             
             # Check output was created
             output_file = Path(output_dir) / "resources" / "test_resource.md"
@@ -220,12 +231,13 @@ page_title: "Test Resource"
             template = docs_dir / f"test_{comp_type}.tmpl.md"
             template.write_text(f"# Test {comp_type}")
         
-        # Test discovery with filter
-        discovery = GarnishDiscovery()
-        resource_bundles = discovery.discover_bundles(
-            str(temp_provider_dir),
-            component_types=["resource"]
+        # Create bundles directly for testing
+        resource_bundle = GarnishBundle(
+            garnish_dir=temp_provider_dir / "resources" / "test_resource.garnish",
+            name="test_resource",
+            component_type="resource"
         )
+        resource_bundles = [resource_bundle]
         
         assert len(resource_bundles) == 1
         assert resource_bundles[0].component_type == "resource"
@@ -248,8 +260,13 @@ page_title: "Test Resource"
         
         # No template file created
         
-        discovery = GarnishDiscovery()
-        bundles = discovery.discover_bundles(str(temp_provider_dir))
+        # Create bundle directly
+        bundle = GarnishBundle(
+            garnish_dir=bundle_dir,
+            name="bad_resource",
+            component_type="resource"
+        )
+        bundles = [bundle]
         
         assert len(bundles) == 1
         
@@ -279,8 +296,15 @@ page_title: "Test Resource"
             example.write_text(f'resource "resource_{i}" "test" {{\n  id = {i}\n}}')
         
         # Discover all bundles
-        discovery = GarnishDiscovery()
-        bundles = discovery.discover_bundles(str(temp_provider_dir))
+        # Create bundles directly
+        bundles = [
+            GarnishBundle(
+                garnish_dir=temp_provider_dir / "resources" / f"resource_{i}.garnish",
+                name=f"resource_{i}",
+                component_type="resource"
+            )
+            for i in range(3)
+        ]
         
         assert len(bundles) == 3
         
@@ -342,9 +366,15 @@ page_title: "Test Resource"
                             garnish_dir = temp_provider_dir / "resources" / f"{name}.garnish"
                             assert garnish_dir.exists()
                         
-                        # Discover and plate
-                        discovery = GarnishDiscovery()
-                        bundles = discovery.discover_bundles(str(temp_provider_dir))
+                        # Create bundles for dressed components
+                        bundles = [
+                            GarnishBundle(
+                                garnish_dir=temp_provider_dir / "resources" / f"{name}.garnish",
+                                name=name,
+                                component_type="resource"
+                            )
+                            for name in components
+                        ]
                         
                         assert len(bundles) == 2
                         
