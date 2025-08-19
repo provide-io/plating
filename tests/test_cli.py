@@ -20,15 +20,15 @@ class TestGarnishCli:
         result = runner.invoke(main, ["--help"])
         assert result.exit_code == 0
         assert "Garnish - Documentation generator" in result.output
-        assert "scaffold" in result.output
+        assert "dress" in result.output
         assert "render" in result.output
         assert "test" in result.output
 
-    def test_scaffold_command_exists(self, runner: CliRunner):
-        """Test that the scaffold subcommand exists."""
-        result = runner.invoke(main, ["scaffold", "--help"])
+    def test_dress_command_exists(self, runner: CliRunner):
+        """Test that the dress subcommand exists."""
+        result = runner.invoke(main, ["dress", "--help"])
         assert result.exit_code == 0
-        assert "Scaffold" in result.output
+        assert "Dress" in result.output
 
     def test_render_command_exists(self, runner: CliRunner):
         """Test that the render subcommand exists."""
@@ -42,14 +42,14 @@ class TestGarnishCli:
         assert result.exit_code == 0
         assert "Run all garnish example files" in result.output
 
-    @patch("garnish.cli.scaffold_garnish")
-    def test_scaffold_invokes_correct_logic(self, mock_scaffold, runner: CliRunner):
-        """Test that scaffold command invokes the scaffolding logic."""
-        mock_scaffold.return_value = {"resource": 1}
-        result = runner.invoke(main, ["scaffold"])
+    @patch("garnish.cli.dress_components")
+    def test_dress_invokes_correct_logic(self, mock_dress, runner: CliRunner):
+        """Test that dress command invokes the dressing logic."""
+        mock_dress.return_value = {"resource": 1}
+        result = runner.invoke(main, ["dress"])
         assert result.exit_code == 0
-        mock_scaffold.assert_called_once()
-        assert "Scaffolded 1 components" in result.output
+        mock_dress.assert_called_once()
+        assert "Dressed 1 components" in result.output
 
     @patch("garnish.cli.generate_docs")
     def test_render_invokes_correct_logic(self, mock_render, runner: CliRunner):
