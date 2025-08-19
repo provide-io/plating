@@ -21,7 +21,7 @@ class TestGarnishCli:
         assert result.exit_code == 0
         assert "Garnish - Documentation generator" in result.output
         assert "dress" in result.output
-        assert "render" in result.output
+        assert "plate" in result.output
         assert "test" in result.output
 
     def test_dress_command_exists(self, runner: CliRunner):
@@ -30,11 +30,11 @@ class TestGarnishCli:
         assert result.exit_code == 0
         assert "Dress" in result.output
 
-    def test_render_command_exists(self, runner: CliRunner):
-        """Test that the render subcommand exists."""
-        result = runner.invoke(main, ["render", "--help"])
+    def test_plate_command_exists(self, runner: CliRunner):
+        """Test that the plate subcommand exists."""
+        result = runner.invoke(main, ["plate", "--help"])
         assert result.exit_code == 0
-        assert "Render" in result.output
+        assert "Plate" in result.output
 
     def test_test_command_exists(self, runner: CliRunner):
         """Test that the test subcommand exists."""
@@ -52,12 +52,20 @@ class TestGarnishCli:
         assert "Dressed 1 components" in result.output
 
     @patch("garnish.cli.generate_docs")
-    def test_render_invokes_correct_logic(self, mock_render, runner: CliRunner):
-        """Test that render command invokes the rendering logic."""
-        result = runner.invoke(main, ["render", "--force"])
+    def test_plate_invokes_correct_logic(self, mock_render, runner: CliRunner):
+        """Test that plate command invokes the plating logic."""
+        result = runner.invoke(main, ["plate", "--force"])
         assert result.exit_code == 0
         mock_render.assert_called_once()
-        assert "Documentation generation completed successfully!" in result.output
+        assert "Documentation plated successfully!" in result.output
+
+    def test_render_backward_compatibility(self, runner: CliRunner):
+        """Test that render command still works but shows deprecation."""
+        with patch("garnish.cli.generate_docs"):
+            result = runner.invoke(main, ["render", "--force"])
+            assert result.exit_code == 0
+            assert "'render' is deprecated" in result.output
+            assert "use 'plate' instead" in result.output
 
 
 # 🥄🧪🪄
