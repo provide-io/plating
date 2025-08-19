@@ -1,7 +1,7 @@
 #
-# garnish/renderer.py
+# garnish/plater.py
 #
-"""Garnish documentation plater."""
+"""Garnish documentation plating system."""
 
 from pathlib import Path
 
@@ -12,7 +12,7 @@ from garnish.garnish import GarnishBundle, GarnishDiscovery
 from garnish.schema import SchemaProcessor
 
 
-class GarnishRenderer:
+class GarnishPlater:
     """Documentation plater using .garnish bundles."""
 
     def __init__(
@@ -459,8 +459,8 @@ def generate_docs(
             logger.warning(f"Failed to initialize schema processor: {e}")
     
     # Create renderer and plate
-    renderer = GarnishRenderer(bundles, schema_processor)
-    renderer.plate(Path(output_dir), force)
+    plater = GarnishPlater(bundles, schema_processor)
+    plater.plate(Path(output_dir), force)
     
     logger.info(f"Documentation generated in {output_dir}")
 

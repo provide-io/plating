@@ -8,7 +8,7 @@ from pathlib import Path
 
 import click
 
-from garnish.async_renderer import generate_docs
+from garnish.plater import generate_docs
 from garnish.scaffolder import scaffold_garnish
 
 
