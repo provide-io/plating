@@ -390,7 +390,8 @@ class TestSchemaProcessor:
 
     @patch('subprocess.run')
     @patch('shutil.rmtree')
-    def test_extract_schema_via_terraform(self, mock_rmtree, mock_run, schema_processor):
+    @patch('pathlib.Path.mkdir')
+    def test_extract_schema_via_terraform(self, mock_mkdir, mock_rmtree, mock_run, schema_processor):
         """Test _extract_schema_via_terraform fallback method."""
         # Setup mock subprocess returns
         mock_run.side_effect = [
@@ -437,9 +438,9 @@ class TestSchemaProcessorWithCTY:
         mock_generator.provider_name = "test"
         return SchemaProcessor(mock_generator)
 
-    @patch('garnish.schema.CtyString')
-    @patch('garnish.schema.CtyNumber')
-    @patch('garnish.schema.CtyBool')
+    @patch('pyvider.cty.CtyString')
+    @patch('pyvider.cty.CtyNumber')
+    @patch('pyvider.cty.CtyBool')
     def test_format_type_string_with_cty(
         self, MockCtyBool, MockCtyNumber, MockCtyString, schema_processor
     ):
@@ -459,7 +460,7 @@ class TestSchemaProcessorWithCTY:
         mock_bool.__class__ = MockCtyBool
         assert schema_processor._format_type_string(mock_bool) == "Boolean"
 
-    @patch('garnish.schema.CtyList')
+    @patch('pyvider.cty.CtyList')
     def test_format_type_string_with_cty_list(self, MockCtyList, schema_processor):
         """Test _format_type_string with CTY list type."""
         mock_list = Mock()
