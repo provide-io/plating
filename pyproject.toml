@@ -104,3 +104,8 @@ parallel = true
 show_missing = true
 skip_covered = true
 exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ == .__main__.:", "if TYPE_CHECKING:", "def __repr__", "def __str__", "pass"]
+
+[dependency-groups]
+dev = [
+    "pytest-asyncio>=1.1.0",
+]
