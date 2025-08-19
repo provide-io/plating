@@ -50,7 +50,8 @@
       "Bash(garnish:*)",
       "Bash(.venv_darwin_arm64/bin/python:*)",
       "Bash(.venv_darwin_arm64/bin/pip install -e ../garnish)",
-      "Bash(UV_PYTHON=.venv_darwin_arm64/bin/python uv pip install -e ../garnish)"
+      "Bash(UV_PYTHON=.venv_darwin_arm64/bin/python uv pip install -e ../garnish)",
+      "Bash(UV_PYTHON=workenv/tofusoup_darwin_arm64/bin/python uv pip install -e ../garnish)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
