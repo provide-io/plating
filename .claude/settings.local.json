@@ -47,7 +47,8 @@
       "Bash(python:*)",
       "Bash(uv sync:*)",
       "Bash(soup garnish:*)",
-      "Bash(garnish:*)"
+      "Bash(garnish:*)",
+      "Bash(.venv_darwin_arm64/bin/python:*)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
