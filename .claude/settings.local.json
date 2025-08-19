@@ -37,7 +37,9 @@
       "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest tests/test_schema.py::TestSchemaProcessor::test_extract_schema_via_terraform -xvs)",
       "Bash(./workenv/garnish_darwin_arm64/bin/python -m pytest tests/test_schema.py::TestSchemaProcessor::test_extract_schema_via_terraform -xvs)",
       "Bash(python -m pytest tests/test_schema.py::TestSchemaProcessor::test_extract_schema_via_terraform -xvs)",
-      "Bash(python -m pytest tests/ --tb=no -q)"
+      "Bash(python -m pytest tests/ --tb=no -q)",
+      "Bash(python -m pytest tests/test_integration.py -v --tb=short)",
+      "Bash(python -m pytest tests/test_integration.py::TestIntegration::test_discovery_to_plating_flow -xvs)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
