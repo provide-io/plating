@@ -12,11 +12,19 @@ class TemplateGenerator:
     ) -> str:
         """Generate template content based on component type."""
         # Get component description if available
-        doc = getattr(component_class, "__doc__", None)
-        # Check if it's a real docstring (not from Mock or other test objects)
-        if doc and not doc.startswith("Create a new"):
-            description = doc.strip().split("\n")[0]  # First line only
-        else:
+        try:
+            doc = component_class.__doc__
+            # Check if it's a real docstring (not from Mock or other test objects)
+            if doc:
+                doc_stripped = doc.strip()
+                if not doc_stripped.startswith("Create a new `Mock`"):
+                    description = doc_stripped.split("\n")[0]  # First line only
+                else:
+                    description = f"Terraform {component_type.replace('_', ' ')} for {name}"
+            else:
+                description = f"Terraform {component_type.replace('_', ' ')} for {name}"
+        except AttributeError:
+            # No docstring attribute
             description = f"Terraform {component_type.replace('_', ' ')} for {name}"
 
         if component_type == "resource":
