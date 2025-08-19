@@ -1,0 +1,36 @@
+# Environment
+.env
+.venv
+venv/
+env/
+workenv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+reports/
+
+# IDE
+.idea/
+.vscode/
+
+# Local Build Artifacts
+# Compiled helper binaries should not be version controlled.
+# They are built from source via `./helpers/build.sh`.
+helpers/bin/
+*.pspf
+*.psp
+target/
