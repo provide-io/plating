@@ -104,7 +104,7 @@ def render_command(
             raise click.Abort()
 
         print("🎨 Rendering documentation...")
-        generate_docs(provider_dir=provider_path, output_dir=output_dir)
+        generate_docs(output_dir=output_dir)
         click.secho("✅ Documentation generation completed successfully!", fg="green")
 
     except GarnishError as e:
