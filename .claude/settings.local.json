@@ -56,7 +56,8 @@
       "Bash(workenv/garnish_darwin_arm64/bin/garnish:*)",
       "Bash(/Users/tim/code/gh/provide-io/garnish/workenv/garnish_darwin_arm64/bin/garnish plate --output-dir ./docs/generated_plate)",
       "Bash(/Users/tim/code/gh/provide-io/garnish/workenv/garnish_darwin_arm64/bin/garnish render --output-dir ./docs/generated_render_test)",
-      "Bash(workenv/tofusoup_darwin_arm64/bin/soup:*)"
+      "Bash(workenv/tofusoup_darwin_arm64/bin/soup:*)",
+      "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest:*)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
