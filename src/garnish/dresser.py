@@ -1,7 +1,7 @@
 #
-# garnish/scaffolder.py
+# garnish/dresser.py
 #
-"""Scaffolding system for creating missing .garnish directories."""
+"""Dressing system for adding .garnish directories to components."""
 
 import asyncio
 from pathlib import Path
@@ -11,19 +11,19 @@ from pyvider.hub import ComponentDiscovery, hub
 from garnish.garnish import GarnishDiscovery
 
 
-class GarnishScaffolder:
-    """Creates missing .garnish directories for components."""
+class GarnishDresser:
+    """Dresses components with .garnish directories."""
 
     def __init__(self):
         self.garnish_discovery = GarnishDiscovery()
 
-    async def scaffold_missing(
+    async def dress_missing(
         self, component_types: list[str] = None
     ) -> dict[str, int]:
         """
-        Scaffold missing .garnish directories for discovered components.
+        Dress components with missing .garnish directories.
 
-        Returns a dictionary with counts of scaffolded components by type.
+        Returns a dictionary with counts of dressed components by type.
         """
         # Discover all components via hub
         discovery = ComponentDiscovery(hub)
@@ -36,29 +36,29 @@ class GarnishScaffolder:
         )
         existing_names = {bundle.name for bundle in existing_bundles}
 
-        # Track scaffolding results
-        scaffolded = {"resource": 0, "data_source": 0, "function": 0}
+        # Track dressing results
+        dressed = {"resource": 0, "data_source": 0, "function": 0}
 
         # Filter by component types if specified
         target_types = component_types or ["resource", "data_source", "function"]
 
-        # Scaffold missing components
+        # Dress missing components
         for component_type in target_types:
             if component_type in components:
                 for name, component_class in components[component_type].items():
                     if name not in existing_names:
-                        success = await self._scaffold_component(
+                        success = await self._dress_component(
                             name, component_type, component_class
                         )
                         if success:
-                            scaffolded[component_type] += 1
+                            dressed[component_type] += 1
 
-        return scaffolded
+        return dressed
 
-    async def _scaffold_component(
+    async def _dress_component(
         self, name: str, component_type: str, component_class
     ) -> bool:
-        """Scaffold a single component's .garnish directory."""
+        """Dress a single component with a .garnish directory."""
         try:
             # Find the component's source file location
             source_file = await self._find_component_source(component_class)
@@ -86,11 +86,11 @@ class GarnishScaffolder:
             example_file = examples_dir / "example.tf"
             await asyncio.to_thread(example_file.write_text, example_content)
 
-            print(f"✅ Scaffolded {component_type}: {name}")
+            print(f"✅ Dressed {component_type}: {name}")
             return True
 
         except Exception as e:
-            print(f"❌ Failed to scaffold {name}: {e}")
+            print(f"❌ Failed to dress {name}: {e}")
             return False
 
     async def _find_component_source(self, component_class) -> Path:
@@ -266,16 +266,16 @@ output "function_result" {{
 
 
 # Async entry point
-async def scaffold_missing_garnish(component_types: list[str] = None) -> dict[str, int]:
-    """Scaffold missing .garnish directories."""
-    scaffolder = GarnishScaffolder()
-    return await scaffolder.scaffold_missing(component_types)
+async def dress_missing_components(component_types: list[str] = None) -> dict[str, int]:
+    """Dress components with missing .garnish directories."""
+    dresser = GarnishDresser()
+    return await dresser.dress_missing(component_types)
 
 
 # Sync entry point
-def scaffold_garnish(component_types: list[str] = None) -> dict[str, int]:
-    """Sync entry point for scaffolding."""
-    return asyncio.run(scaffold_missing_garnish(component_types))
+def dress_components(component_types: list[str] = None) -> dict[str, int]:
+    """Sync entry point for dressing components."""
+    return asyncio.run(dress_missing_components(component_types))
 
 
 # 🍲🥄📄🪄
