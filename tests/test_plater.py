@@ -1,13 +1,13 @@
 """
-Comprehensive tests for the renderer module.
+Comprehensive tests for the plater module.
 """
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 import pytest
 
-from garnish.renderer import (
-    GarnishRenderer,
+from garnish.plater import (
+    GarnishPlater,
     generate_docs,
     _create_plating_context,
     _format_type_string,
@@ -21,8 +21,8 @@ from garnish.renderer import (
 from garnish.garnish import GarnishBundle
 
 
-class TestGarnishRenderer:
-    """Test suite for GarnishRenderer."""
+class TestGarnishPlater:
+    """Test suite for GarnishPlater."""
 
     @pytest.fixture
     def mock_bundle(self, tmp_path):
@@ -81,60 +81,60 @@ class TestGarnishRenderer:
         return processor
 
     def test_renderer_initialization_without_bundles(self):
-        """Test GarnishRenderer initialization without bundles."""
-        renderer = GarnishRenderer()
+        """Test GarnishPlater initialization without bundles."""
+        plater = GarnishPlater()
         
-        assert renderer.bundles == []
-        assert renderer.schema_processor is None
-        assert renderer.provider_schema is None
+        assert plater.bundles == []
+        assert plater.schema_processor is None
+        assert plater.provider_schema is None
 
     def test_renderer_initialization_with_bundles(self, mock_bundle):
-        """Test GarnishRenderer initialization with bundles."""
-        renderer = GarnishRenderer(bundles=[mock_bundle])
+        """Test GarnishPlater initialization with bundles."""
+        plater = GarnishPlater(bundles=[mock_bundle])
         
-        assert len(renderer.bundles) == 1
-        assert renderer.bundles[0] == mock_bundle
+        assert len(plater.bundles) == 1
+        assert plater.bundles[0] == mock_bundle
 
     def test_renderer_initialization_with_schema_processor(self, mock_bundle, mock_schema_processor):
-        """Test GarnishRenderer initialization with schema processor."""
-        renderer = GarnishRenderer(
+        """Test GarnishPlater initialization with schema processor."""
+        plater = GarnishPlater(
             bundles=[mock_bundle],
             schema_processor=mock_schema_processor
         )
         
-        assert renderer.schema_processor == mock_schema_processor
-        assert renderer.provider_schema is not None
+        assert plater.schema_processor == mock_schema_processor
+        assert plater.provider_schema is not None
         mock_schema_processor.extract_provider_schema.assert_called_once()
 
     def test_renderer_with_failed_schema_extraction(self, mock_bundle):
-        """Test renderer handles failed schema extraction gracefully."""
+        """Test plater handles failed schema extraction gracefully."""
         mock_processor = Mock()
         mock_processor.extract_provider_schema.side_effect = Exception("Schema error")
         
         # Should not raise exception
-        renderer = GarnishRenderer(
+        plater = GarnishPlater(
             bundles=[mock_bundle],
             schema_processor=mock_processor
         )
         
-        assert renderer.provider_schema is None
+        assert plater.provider_schema is None
 
     def test_plate_creates_output_directory(self, mock_bundle, tmp_path):
         """Test that plate creates output directory if it doesn't exist."""
         output_dir = tmp_path / "output"
         assert not output_dir.exists()
         
-        renderer = GarnishRenderer(bundles=[mock_bundle])
-        renderer.plate(output_dir)
+        plater = GarnishPlater(bundles=[mock_bundle])
+        plater.plate(output_dir)
         
         assert output_dir.exists()
 
     def test_plate_single_bundle(self, mock_bundle, tmp_path):
         """Test plating a single bundle."""
         output_dir = tmp_path / "output"
-        renderer = GarnishRenderer(bundles=[mock_bundle])
+        plater = GarnishPlater(bundles=[mock_bundle])
         
-        renderer.plate(output_dir)
+        plater.plate(output_dir)
         
         # Check output file was created
         expected_file = output_dir / "resources" / "test.md"
@@ -163,9 +163,9 @@ class TestGarnishRenderer:
             bundles.append(bundle)
         
         output_dir = tmp_path / "output"
-        renderer = GarnishRenderer(bundles=bundles)
+        plater = GarnishPlater(bundles=bundles)
         
-        renderer.plate(output_dir)
+        plater.plate(output_dir)
         
         # Check all files were created
         for i in range(3):
@@ -184,14 +184,14 @@ class TestGarnishRenderer:
         existing_file.parent.mkdir(parents=True)
         existing_file.write_text("OLD CONTENT")
         
-        renderer = GarnishRenderer(bundles=[mock_bundle])
+        plater = GarnishPlater(bundles=[mock_bundle])
         
         # Without force, should skip
-        renderer.plate(output_dir, force=False)
+        plater.plate(output_dir, force=False)
         assert "OLD CONTENT" in existing_file.read_text()
         
         # With force, should overwrite
-        renderer.plate(output_dir, force=True)
+        plater.plate(output_dir, force=True)
         assert "OLD CONTENT" not in existing_file.read_text()
         assert "# test" in existing_file.read_text()
 
@@ -207,10 +207,10 @@ class TestGarnishRenderer:
         )
         
         output_dir = tmp_path / "output"
-        renderer = GarnishRenderer(bundles=[bundle])
+        plater = GarnishPlater(bundles=[bundle])
         
         # Should not raise exception
-        renderer.plate(output_dir)
+        plater.plate(output_dir)
         
         # No file should be created
         expected_file = output_dir / "resources" / "no_template.md"
@@ -233,10 +233,10 @@ class TestGarnishRenderer:
         )
         
         output_dir = tmp_path / "output"
-        renderer = GarnishRenderer(bundles=[bundle])
+        plater = GarnishPlater(bundles=[bundle])
         
         # Should not raise exception (this is the important part)
-        renderer.plate(output_dir)
+        plater.plate(output_dir)
         
         # Output file should not exist due to error
         expected_file = output_dir / "resources" / "bad.md"
@@ -244,12 +244,12 @@ class TestGarnishRenderer:
 
     def test_get_schema_for_component_resource(self, mock_bundle, mock_schema_processor):
         """Test getting schema for a resource component."""
-        renderer = GarnishRenderer(
+        plater = GarnishPlater(
             bundles=[mock_bundle],
             schema_processor=mock_schema_processor
         )
         
-        schema = renderer._get_schema_for_component(mock_bundle)
+        schema = plater._get_schema_for_component(mock_bundle)
         
         assert schema is not None
         assert "block" in schema
@@ -275,12 +275,12 @@ class TestGarnishRenderer:
             component_type="resource"
         )
         
-        renderer = GarnishRenderer(
+        plater = GarnishPlater(
             bundles=[bundle],
             schema_processor=mock_schema_processor
         )
         
-        schema = renderer._get_schema_for_component(bundle)
+        schema = plater._get_schema_for_component(bundle)
         assert schema is not None
 
     def test_get_schema_for_data_source(self, mock_schema_processor):
@@ -303,12 +303,12 @@ class TestGarnishRenderer:
             component_type="data_source"
         )
         
-        renderer = GarnishRenderer(
+        plater = GarnishPlater(
             bundles=[bundle],
             schema_processor=mock_schema_processor
         )
         
-        schema = renderer._get_schema_for_component(bundle)
+        schema = plater._get_schema_for_component(bundle)
         assert schema is not None
 
     def test_get_schema_for_function(self, mock_schema_processor):
@@ -334,18 +334,18 @@ class TestGarnishRenderer:
             component_type="function"
         )
         
-        renderer = GarnishRenderer(
+        plater = GarnishPlater(
             bundles=[bundle],
             schema_processor=mock_schema_processor
         )
         
-        schema = renderer._get_schema_for_component(bundle)
+        schema = plater._get_schema_for_component(bundle)
         assert schema is not None
         assert "signature" in schema
 
     def test_plate_template_with_custom_functions(self, mock_bundle):
         """Test _plate_template with custom template functions."""
-        renderer = GarnishRenderer(bundles=[mock_bundle])
+        plater = GarnishPlater(bundles=[mock_bundle])
         
         template_content = "# {{ name }}\n{{ schema() }}\n{{ example('test') }}"
         context = {
@@ -355,7 +355,7 @@ class TestGarnishRenderer:
         }
         partials = {}
         
-        result = renderer._plate_template(template_content, context, partials)
+        result = plater._plate_template(template_content, context, partials)
         
         assert "# test_component" in result
         assert "## Schema" in result
@@ -363,13 +363,13 @@ class TestGarnishRenderer:
 
     def test_plate_template_with_partials(self, mock_bundle):
         """Test _plate_template with partial templates."""
-        renderer = GarnishRenderer(bundles=[mock_bundle])
+        plater = GarnishPlater(bundles=[mock_bundle])
         
         template_content = "# {{ name }}\n{{ include('_footer.md') }}"
         context = {"name": "test_component"}
         partials = {"_footer.md": "---\nFooter content"}
         
-        result = renderer._plate_template(template_content, context, partials)
+        result = plater._plate_template(template_content, context, partials)
         
         assert "# test_component" in result
         assert "Footer content" in result
@@ -594,16 +594,16 @@ class TestHelperFunctions:
 class TestGenerateDocsFunction:
     """Test the generate_docs main entry point."""
 
-    @patch('garnish.renderer.GarnishDiscovery')
-    @patch('garnish.renderer.GarnishRenderer')
-    def test_generate_docs_basic(self, MockRenderer, MockDiscovery, tmp_path):
+    @patch('garnish.plater.GarnishDiscovery')
+    @patch('garnish.plater.GarnishPlater')
+    def test_generate_docs_basic(self, MockPlater, MockDiscovery, tmp_path):
         """Test generate_docs with basic parameters."""
         # Set up mocks
         mock_bundle = Mock()
         mock_discovery = MockDiscovery.return_value
         mock_discovery.discover_bundles.return_value = [mock_bundle]
         
-        mock_renderer = MockRenderer.return_value
+        mock_plater = MockPlater.return_value
         
         # Call generate_docs
         output_dir = tmp_path / "docs"
@@ -612,14 +612,14 @@ class TestGenerateDocsFunction:
         # Verify calls
         MockDiscovery.assert_called_once_with("pyvider.components")
         mock_discovery.discover_bundles.assert_called_once_with(None)
-        MockRenderer.assert_called_once_with([mock_bundle], None)
-        mock_renderer.plate.assert_called_once_with(Path(output_dir), False)
+        MockPlater.assert_called_once_with([mock_bundle], None)
+        mock_plater.plate.assert_called_once_with(Path(output_dir), False)
 
-    @patch('garnish.renderer.GarnishDiscovery')
-    @patch('garnish.renderer.GarnishRenderer')
-    @patch('garnish.renderer.SchemaProcessor')
+    @patch('garnish.plater.GarnishDiscovery')
+    @patch('garnish.plater.GarnishPlater')
+    @patch('garnish.plater.SchemaProcessor')
     def test_generate_docs_with_provider_name(
-        self, MockSchemaProcessor, MockRenderer, MockDiscovery, tmp_path
+        self, MockSchemaProcessor, MockPlater, MockDiscovery, tmp_path
     ):
         """Test generate_docs with provider name for schema extraction."""
         # Set up mocks
@@ -628,7 +628,7 @@ class TestGenerateDocsFunction:
         mock_discovery.discover_bundles.return_value = [mock_bundle]
         
         mock_schema_processor = MockSchemaProcessor.return_value
-        mock_renderer = MockRenderer.return_value
+        mock_plater = MockPlater.return_value
         
         # Call generate_docs
         output_dir = tmp_path / "docs"
@@ -639,10 +639,10 @@ class TestGenerateDocsFunction:
         
         # Verify schema processor was created
         MockSchemaProcessor.assert_called_once()
-        MockRenderer.assert_called_once_with([mock_bundle], mock_schema_processor)
+        MockPlater.assert_called_once_with([mock_bundle], mock_schema_processor)
 
-    @patch('garnish.renderer.GarnishDiscovery')
-    @patch('garnish.renderer.logger')
+    @patch('garnish.plater.GarnishDiscovery')
+    @patch('garnish.plater.logger')
     def test_generate_docs_no_bundles(self, mock_logger, MockDiscovery, tmp_path):
         """Test generate_docs when no bundles are found."""
         # Set up mocks
@@ -656,10 +656,10 @@ class TestGenerateDocsFunction:
         # Should log warning
         mock_logger.warning.assert_called_once()
 
-    @patch('garnish.renderer.GarnishDiscovery')
-    @patch('garnish.renderer.GarnishRenderer')
+    @patch('garnish.plater.GarnishDiscovery')
+    @patch('garnish.plater.GarnishPlater')
     def test_generate_docs_with_component_type_filter(
-        self, MockRenderer, MockDiscovery, tmp_path
+        self, MockPlater, MockDiscovery, tmp_path
     ):
         """Test generate_docs with component type filter."""
         # Set up mocks
@@ -677,10 +677,10 @@ class TestGenerateDocsFunction:
         # Verify discovery was called with filter
         mock_discovery.discover_bundles.assert_called_once_with("resource")
 
-    @patch('garnish.renderer.GarnishDiscovery')
-    @patch('garnish.renderer.GarnishRenderer')
+    @patch('garnish.plater.GarnishDiscovery')
+    @patch('garnish.plater.GarnishPlater')
     def test_generate_docs_with_force_flag(
-        self, MockRenderer, MockDiscovery, tmp_path
+        self, MockPlater, MockDiscovery, tmp_path
     ):
         """Test generate_docs with force flag."""
         # Set up mocks
@@ -688,7 +688,7 @@ class TestGenerateDocsFunction:
         mock_discovery = MockDiscovery.return_value
         mock_discovery.discover_bundles.return_value = [mock_bundle]
         
-        mock_renderer = MockRenderer.return_value
+        mock_plater = MockPlater.return_value
         
         # Call generate_docs
         output_dir = tmp_path / "docs"
@@ -698,4 +698,4 @@ class TestGenerateDocsFunction:
         )
         
         # Verify plate was called with force=True
-        mock_renderer.plate.assert_called_once_with(Path(output_dir), True)
+        mock_plater.plate.assert_called_once_with(Path(output_dir), True)
