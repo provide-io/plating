@@ -48,11 +48,11 @@ page_title: "Resource: my_resource"
 
 # my_resource
 
-{{ "{{ example('basic') }}" }}
+{{ example('basic') }}
 
 ## Schema
 
-{{ "{{ schema() }}" }}
+{{ schema() }}
 ```
 
 ### 3. Generate Documentation
@@ -87,10 +87,10 @@ my_resource.garnish/
 
 Garnish provides powerful template functions:
 
-- `{{ "{{ example('name') }}" }}` - Include an example file
-- `{{ "{{ schema() }}" }}` - Render component schema
-- `{{ "{{ partial('name') }}" }}` - Include a partial template
-- `{{ "{{ anchor('text') }}" }}` - Create header anchors
+- `{{ example('name') }}` - Include an example file
+- `{{ schema() }}` - Render component schema
+- `{{ partial('name') }}` - Include a partial template
+- `{{ anchor('text') }}` - Create header anchors
 
 ## 🧪 Testing
 
