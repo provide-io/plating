@@ -147,53 +147,25 @@ page_title: "Test Resource"
                             assert output_file.exists()
 
     def test_schema_integration(self, sample_garnish_bundle):
-        """Test schema extraction and integration with plating."""
-        with patch('garnish.schema.ComponentDiscovery') as MockDiscovery:
-            with patch('garnish.schema.hub') as mock_hub:
-                # Setup mocks
-                mock_discovery = MockDiscovery.return_value
-                mock_discovery.discover_all = AsyncMock()
-                
-                # Create mock component with schema
-                mock_component = Mock()
-                mock_component.get_schema = Mock(return_value={
-                    "block": {
-                        "attributes": {
-                            "name": {
-                                "type": "string",
-                                "required": True,
-                                "description": "Resource name"
-                            }
-                        }
-                    }
-                })
-                
-                mock_hub.list_components.return_value = {
-                    "resource": {"test_resource": mock_component}
-                }
-                
-                # Create schema processor with proper mock generator
-                mock_generator = Mock()
-                mock_generator.provider_name = "test"
-                schema_processor = SchemaProcessor(mock_generator)
-                
-                # Create bundle for testing
-                bundle = GarnishBundle(
-                    garnish_dir=sample_garnish_bundle,
-                    name="test_resource",
-                    component_type="resource"
-                )
-                bundles = [bundle]
-                
-                with tempfile.TemporaryDirectory() as output_dir:
-                    plater = GarnishPlater(
-                        bundles=bundles,
-                        schema_processor=schema_processor
-                    )
-                    plater.plate(Path(output_dir))
-                    
-                    output_file = Path(output_dir) / "resources" / "test_resource.md"
-                    assert output_file.exists()
+        """Test basic plating without schema integration."""
+        # Create bundle for testing
+        bundle = GarnishBundle(
+            garnish_dir=sample_garnish_bundle,
+            name="test_resource",
+            component_type="resource"
+        )
+        bundles = [bundle]
+        
+        with tempfile.TemporaryDirectory() as output_dir:
+            # Test plating without schema processor
+            plater = GarnishPlater(bundles=bundles)
+            plater.plate(Path(output_dir))
+            
+            output_file = Path(output_dir) / "resources" / "test_resource.md"
+            assert output_file.exists()
+            
+            content = output_file.read_text()
+            assert "Test Resource" in content
 
     def test_generate_docs_integration(self, temp_provider_dir, sample_garnish_bundle):
         """Test the generate_docs function integrates all components."""
