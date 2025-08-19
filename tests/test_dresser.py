@@ -1,0 +1,357 @@
+"""
+Comprehensive tests for the dresser module.
+"""
+import asyncio
+from pathlib import Path
+from unittest.mock import Mock, patch, AsyncMock, MagicMock
+import pytest
+
+from garnish.dresser import GarnishDresser, dress_components, dress_missing_components
+from garnish.dresser.templates import TemplateGenerator
+from garnish.dresser.finder import ComponentFinder
+
+
+class TestGarnishDresser:
+    """Test suite for GarnishDresser."""
+
+    @pytest.fixture
+    def dresser(self):
+        """Create a GarnishDresser instance."""
+        return GarnishDresser()
+
+    @pytest.fixture
+    def mock_component_class(self):
+        """Create a mock component class."""
+        mock = Mock()
+        mock.__doc__ = "Test component documentation"
+        return mock
+
+    def test_initialization(self, dresser):
+        """Test GarnishDresser initialization."""
+        assert dresser.garnish_discovery is not None
+        assert dresser.template_generator is not None
+        assert dresser.component_finder is not None
+
+    @pytest.mark.asyncio
+    async def test_dress_missing_no_components(self, dresser):
+        """Test dress_missing when no components are found."""
+        with patch('garnish.dresser.dresser.ComponentDiscovery') as MockDiscovery:
+            with patch('garnish.dresser.dresser.hub') as mock_hub:
+                mock_discovery = MockDiscovery.return_value
+                mock_discovery.discover_all = AsyncMock()
+                mock_hub.list_components.return_value = {}
+                
+                with patch.object(dresser.garnish_discovery, 'discover_bundles') as mock_discover:
+                    mock_discover.return_value = []
+                    
+                    result = await dresser.dress_missing()
+                    
+                    assert result == {"resource": 0, "data_source": 0, "function": 0}
+
+    @pytest.mark.asyncio
+    async def test_dress_missing_with_existing_bundles(self, dresser):
+        """Test dress_missing skips components with existing bundles."""
+        with patch('garnish.dresser.dresser.ComponentDiscovery') as MockDiscovery:
+            with patch('garnish.dresser.dresser.hub') as mock_hub:
+                mock_discovery = MockDiscovery.return_value
+                mock_discovery.discover_all = AsyncMock()
+                
+                # Mock components
+                mock_hub.list_components.return_value = {
+                    "resource": {"existing_resource": Mock()}
+                }
+                
+                # Mock existing bundle
+                mock_bundle = Mock()
+                mock_bundle.name = "existing_resource"
+                
+                with patch.object(dresser.garnish_discovery, 'discover_bundles') as mock_discover:
+                    mock_discover.return_value = [mock_bundle]
+                    
+                    result = await dresser.dress_missing()
+                    
+                    # Should not dress the existing component
+                    assert result == {"resource": 0, "data_source": 0, "function": 0}
+
+    @pytest.mark.asyncio
+    async def test_dress_missing_with_new_components(self, dresser, mock_component_class):
+        """Test dress_missing dresses new components."""
+        with patch('garnish.dresser.dresser.ComponentDiscovery') as MockDiscovery:
+            with patch('garnish.dresser.dresser.hub') as mock_hub:
+                mock_discovery = MockDiscovery.return_value
+                mock_discovery.discover_all = AsyncMock()
+                
+                # Mock components
+                mock_hub.list_components.return_value = {
+                    "resource": {"new_resource": mock_component_class}
+                }
+                
+                with patch.object(dresser.garnish_discovery, 'discover_bundles') as mock_discover:
+                    mock_discover.return_value = []  # No existing bundles
+                    
+                    with patch.object(dresser, '_dress_component') as mock_dress:
+                        mock_dress.return_value = True
+                        
+                        result = await dresser.dress_missing()
+                        
+                        mock_dress.assert_called_once_with(
+                            "new_resource", "resource", mock_component_class
+                        )
+                        assert result == {"resource": 1, "data_source": 0, "function": 0}
+
+    @pytest.mark.asyncio
+    async def test_dress_missing_with_component_type_filter(self, dresser, mock_component_class):
+        """Test dress_missing filters by component type."""
+        with patch('garnish.dresser.dresser.ComponentDiscovery') as MockDiscovery:
+            with patch('garnish.dresser.dresser.hub') as mock_hub:
+                mock_discovery = MockDiscovery.return_value
+                mock_discovery.discover_all = AsyncMock()
+                
+                # Mock components of different types
+                mock_hub.list_components.return_value = {
+                    "resource": {"test_resource": mock_component_class},
+                    "data_source": {"test_data": mock_component_class}
+                }
+                
+                with patch.object(dresser.garnish_discovery, 'discover_bundles') as mock_discover:
+                    mock_discover.return_value = []
+                    
+                    with patch.object(dresser, '_dress_component') as mock_dress:
+                        mock_dress.return_value = True
+                        
+                        # Only dress resources
+                        result = await dresser.dress_missing(["resource"])
+                        
+                        assert mock_dress.call_count == 1
+                        assert result == {"resource": 1, "data_source": 0, "function": 0}
+
+    @pytest.mark.asyncio
+    async def test_dress_component_success(self, dresser, mock_component_class, tmp_path):
+        """Test successful dressing of a component."""
+        # Setup mock source file
+        source_file = tmp_path / "test_component.py"
+        source_file.write_text("# Test component")
+        
+        with patch.object(dresser.component_finder, 'find_source') as mock_find:
+            mock_find.return_value = source_file
+            
+            with patch.object(dresser.template_generator, 'generate_template') as mock_template:
+                mock_template.return_value = "# Template content"
+                
+                with patch.object(dresser.template_generator, 'generate_example') as mock_example:
+                    mock_example.return_value = "# Example content"
+                    
+                    result = await dresser._dress_component(
+                        "test_component", "resource", mock_component_class
+                    )
+                    
+                    assert result is True
+                    
+                    # Check that .garnish directory was created
+                    garnish_dir = tmp_path / "test_component.garnish"
+                    assert garnish_dir.exists()
+                    assert (garnish_dir / "docs").exists()
+                    assert (garnish_dir / "examples").exists()
+                    
+                    # Check template file
+                    template_file = garnish_dir / "docs" / "test_component.tmpl.md"
+                    assert template_file.exists()
+                    assert template_file.read_text() == "# Template content"
+                    
+                    # Check example file
+                    example_file = garnish_dir / "examples" / "example.tf"
+                    assert example_file.exists()
+                    assert example_file.read_text() == "# Example content"
+
+    @pytest.mark.asyncio
+    async def test_dress_component_no_source_file(self, dresser, mock_component_class):
+        """Test dressing fails when source file cannot be found."""
+        with patch.object(dresser.component_finder, 'find_source') as mock_find:
+            mock_find.return_value = None
+            
+            result = await dresser._dress_component(
+                "test_component", "resource", mock_component_class
+            )
+            
+            assert result is False
+
+    @pytest.mark.asyncio
+    async def test_dress_component_handles_exceptions(self, dresser, mock_component_class):
+        """Test dressing handles exceptions gracefully."""
+        with patch.object(dresser.component_finder, 'find_source') as mock_find:
+            mock_find.side_effect = Exception("Test error")
+            
+            result = await dresser._dress_component(
+                "test_component", "resource", mock_component_class
+            )
+            
+            assert result is False
+
+
+class TestTemplateGenerator:
+    """Test suite for TemplateGenerator."""
+
+    @pytest.fixture
+    def generator(self):
+        """Create a TemplateGenerator instance."""
+        return TemplateGenerator()
+
+    @pytest.fixture
+    def mock_component(self):
+        """Create a mock component with documentation."""
+        mock = Mock()
+        mock.__doc__ = "Test component description\nMore details here"
+        return mock
+
+    @pytest.mark.asyncio
+    async def test_generate_template_resource(self, generator, mock_component):
+        """Test generating template for a resource."""
+        template = await generator.generate_template(
+            "test_resource", "resource", mock_component
+        )
+        
+        assert "Resource: test_resource" in template
+        assert "Test component description" in template
+        assert "{{ example(" in template
+        assert "{{ schema()" in template
+        assert "terraform import" in template
+
+    @pytest.mark.asyncio
+    async def test_generate_template_data_source(self, generator, mock_component):
+        """Test generating template for a data source."""
+        template = await generator.generate_template(
+            "test_data", "data_source", mock_component
+        )
+        
+        assert "Data Source: test_data" in template
+        assert "Test component description" in template
+        assert "{{ example(" in template
+        assert "{{ schema()" in template
+        assert "terraform import" not in template
+
+    @pytest.mark.asyncio
+    async def test_generate_template_function(self, generator, mock_component):
+        """Test generating template for a function."""
+        template = await generator.generate_template(
+            "test_func", "function", mock_component
+        )
+        
+        assert "Function: test_func" in template
+        assert "Test component description" in template
+        assert "{{ signature_markdown }}" in template
+        assert "{{ arguments_markdown }}" in template
+        assert "{% if has_variadic %}" in template
+
+    @pytest.mark.asyncio
+    async def test_generate_template_no_docstring(self, generator):
+        """Test generating template when component has no docstring."""
+        mock_component = Mock()
+        del mock_component.__doc__  # No docstring
+        
+        template = await generator.generate_template(
+            "test_resource", "resource", mock_component
+        )
+        
+        assert "Terraform resource for test_resource" in template
+
+    @pytest.mark.asyncio
+    async def test_generate_example_resource(self, generator):
+        """Test generating example for a resource."""
+        example = await generator.generate_example("test_resource", "resource")
+        
+        assert 'resource "test_resource" "example"' in example
+        assert "output" in example
+        assert "test_resource.example.id" in example
+
+    @pytest.mark.asyncio
+    async def test_generate_example_data_source(self, generator):
+        """Test generating example for a data source."""
+        example = await generator.generate_example("test_data", "data_source")
+        
+        assert 'data "test_data" "example"' in example
+        assert "output" in example
+        assert "data.test_data.example" in example
+
+    @pytest.mark.asyncio
+    async def test_generate_example_function(self, generator):
+        """Test generating example for a function."""
+        example = await generator.generate_example("test_func", "function")
+        
+        assert "test_func(" in example
+        assert "locals" in example
+        assert "output" in example
+
+    @pytest.mark.asyncio
+    async def test_generate_example_unknown_type(self, generator):
+        """Test generating example for unknown component type."""
+        example = await generator.generate_example("test_unknown", "unknown")
+        
+        assert "Example usage for test_unknown" in example
+
+
+class TestComponentFinder:
+    """Test suite for ComponentFinder."""
+
+    @pytest.fixture
+    def finder(self):
+        """Create a ComponentFinder instance."""
+        return ComponentFinder()
+
+    @pytest.mark.asyncio
+    async def test_find_source_success(self, finder, tmp_path):
+        """Test finding source file successfully."""
+        # Create a test file
+        test_file = tmp_path / "test_component.py"
+        test_file.write_text("class TestComponent: pass")
+        
+        # Create a mock component class
+        mock_component = Mock()
+        
+        with patch('inspect.getfile') as mock_getfile:
+            mock_getfile.return_value = str(test_file)
+            
+            result = await finder.find_source(mock_component)
+            
+            assert result == test_file
+
+    @pytest.mark.asyncio
+    async def test_find_source_failure(self, finder):
+        """Test handling failure to find source file."""
+        mock_component = Mock()
+        
+        with patch('inspect.getfile') as mock_getfile:
+            mock_getfile.side_effect = Exception("Cannot find source")
+            
+            result = await finder.find_source(mock_component)
+            
+            assert result is None
+
+
+class TestDresserAPI:
+    """Test the public API functions."""
+
+    @patch('garnish.dresser.api.GarnishDresser')
+    @pytest.mark.asyncio
+    async def test_dress_missing_components_async(self, MockDresser):
+        """Test async dress_missing_components function."""
+        mock_dresser = MockDresser.return_value
+        mock_dresser.dress_missing = AsyncMock(return_value={"resource": 2})
+        
+        result = await dress_missing_components(["resource"])
+        
+        MockDresser.assert_called_once()
+        mock_dresser.dress_missing.assert_called_once_with(["resource"])
+        assert result == {"resource": 2}
+
+    @patch('garnish.dresser.api.asyncio.run')
+    def test_dress_components_sync(self, mock_run):
+        """Test sync dress_components function."""
+        mock_run.return_value = {"resource": 3}
+        
+        result = dress_components(["resource"])
+        
+        mock_run.assert_called_once()
+        assert result == {"resource": 3}
+
+
+# 🍲🥄👗🧪🪄
