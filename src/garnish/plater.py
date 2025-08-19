@@ -8,6 +8,7 @@ from pathlib import Path
 from jinja2 import DictLoader, Environment, select_autoescape
 from pyvider.telemetry import logger
 
+from garnish.errors import PlatingError, TemplateError, handle_error
 from garnish.garnish import GarnishBundle, GarnishDiscovery
 from garnish.schema import SchemaProcessor
 
@@ -34,6 +35,7 @@ class GarnishPlater:
             try:
                 self.provider_schema = self.schema_processor.extract_provider_schema()
             except Exception as e:
+                handle_error(e, logger)
                 logger.warning(f"Failed to extract provider schema: {e}")
 
     def plate(self, output_dir: Path, force: bool = False) -> None:
@@ -49,7 +51,11 @@ class GarnishPlater:
         for bundle in self.bundles:
             try:
                 self._plate_bundle(bundle, output_dir, force)
+            except PlatingError:
+                raise  # Re-raise our custom errors
             except Exception as e:
+                error = PlatingError(bundle.name, str(e))
+                handle_error(error, logger)
                 logger.error(f"Failed to plate bundle {bundle.name}: {e}")
 
     def _plate_bundle(self, bundle: GarnishBundle, output_dir: Path, force: bool) -> None:
@@ -61,6 +67,7 @@ class GarnishPlater:
             force: Force overwrite existing files
         """
         # Load bundle assets
+        logger.trace(f"Loading assets for bundle {bundle.name}")
         template_content = bundle.load_main_template()
         if not template_content:
             logger.debug(f"No template found for {bundle.name}, skipping")
@@ -80,7 +87,10 @@ class GarnishPlater:
         context["examples"] = examples
         
         # Plate template
-        plated = self._plate_template(template_content, context, partials)
+        try:
+            plated = self._plate_template(template_content, context, partials)
+        except Exception as e:
+            raise TemplateError(bundle.name, f"Template rendering failed: {e}")
         
         # Determine output path
         subdir = _get_output_subdir(bundle.component_type)
@@ -92,9 +102,12 @@ class GarnishPlater:
             return
         
         # Write output
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(plated)
-        logger.debug(f"Plated {bundle.name} to {output_path}")
+        try:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(plated)
+            logger.info(f"Successfully plated {bundle.name} to {output_path}")
+        except (OSError, IOError) as e:
+            raise PlatingError(bundle.name, f"Failed to write output file: {e}")
 
     def _get_schema_for_component(self, bundle: GarnishBundle) -> dict | None:
         """Get schema for a component from the provider schema.
