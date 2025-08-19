@@ -41,7 +41,9 @@
       "Bash(python -m pytest tests/test_integration.py -v --tb=short)",
       "Bash(python -m pytest tests/test_integration.py::TestIntegration::test_discovery_to_plating_flow -xvs)",
       "Bash(python -m pytest tests/test_integration.py::TestIntegration::test_schema_integration -xvs)",
-      "Bash(python -m pytest tests/test_integration.py -v --tb=no)"
+      "Bash(python -m pytest tests/test_integration.py -v --tb=no)",
+      "Bash(python -m pytest tests/test_end_to_end.py -v --tb=short)",
+      "Bash(python -m pytest tests/test_end_to_end.py -v --tb=no)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
