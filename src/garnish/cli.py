@@ -9,7 +9,7 @@ from pathlib import Path
 import click
 
 from garnish.plater import generate_docs
-from garnish.scaffolder import scaffold_garnish
+from garnish.dresser import dress_components
 
 
 @click.group()
@@ -18,36 +18,36 @@ def main() -> None:
     pass
 
 
-@main.command("scaffold")
+@main.command("dress")
 @click.option(
     "--component-type",
     type=click.Choice(["resource", "data_source", "function"]),
     multiple=True,
     help="Filter by component type (can be used multiple times).",
 )
-def scaffold_command(component_type: tuple[str, ...]) -> None:
-    """Scaffold new, missing .garnish directories for components."""
+def dress_command(component_type: tuple[str, ...]) -> None:
+    """Dress components with missing .garnish directories."""
     try:
-        print("🏗️ Scaffolding missing .garnish directories...")
+        print("👗 Dressing components with .garnish directories...")
 
         component_types = list(component_type) if component_type else None
-        results = scaffold_garnish(component_types)
+        results = dress_components(component_types)
 
         total = sum(results.values())
         if total > 0:
-            print(f"✅ Scaffolded {total} components:")
+            print(f"✅ Dressed {total} components:")
             for comp_type, count in results.items():
                 if count > 0:
                     print(f"  - {count} {comp_type}{'s' if count != 1 else ''}")
         else:
             print("ℹ️ No missing .garnish directories found")
 
-        click.secho("✅ Scaffolding completed successfully!", fg="green")
+        click.secho("✅ Dressing completed successfully!", fg="green")
 
     except Exception as e:
         import traceback
 
-        click.secho(f"❌ Scaffolding failed: {e}", fg="red", err=True)
+        click.secho(f"❌ Dressing failed: {e}", fg="red", err=True)
         click.secho(f"Stack trace:\n{traceback.format_exc()}", fg="red", err=True)
         raise click.Abort() from e
 
