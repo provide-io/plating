@@ -60,12 +60,12 @@ def dress_command(component_type: tuple[str, ...]) -> None:
         raise click.Abort() from e
 
 
-@main.command("render")
+@main.command("plate")
 @click.option(
     "--output-dir",
     type=click.Path(file_okay=False, resolve_path=True),
     default="docs",
-    help="Output directory for generated documentation.",
+    help="Output directory for plated documentation.",
 )
 @click.option(
     "--provider-dir",
@@ -85,10 +85,10 @@ def dress_command(component_type: tuple[str, ...]) -> None:
     default=False,
     help="Force documentation generation even if not in a provider directory.",
 )
-def render_command(
+def plate_command(
     output_dir: str, provider_dir: str, component_type: tuple[str, ...], force: bool
 ) -> None:
-    """Render all existing templates into final documentation."""
+    """Plate all garnish bundles into final documentation."""
     try:
         provider_path = Path(provider_dir)
 
@@ -103,20 +103,20 @@ def render_command(
             )
             raise click.Abort()
 
-        print("🎨 Rendering documentation...")
+        print("🍽️ Plating documentation...")
         generate_docs(output_dir=output_dir)
-        click.secho("✅ Documentation generation completed successfully!", fg="green")
+        click.secho("✅ Documentation plated successfully!", fg="green")
 
     except GarnishError as e:
         # Our custom errors have good messages
         click.secho(f"❌ {e}", fg="red", err=True)
-        logger.error(f"Documentation generation failed: {e}")
+        logger.error(f"Documentation plating failed: {e}")
         raise click.Abort() from e
     except Exception as e:
         import traceback
         
         error_msg = handle_error(e, logger)
-        click.secho(f"❌ Documentation generation failed: {error_msg}", fg="red", err=True)
+        click.secho(f"❌ Documentation plating failed: {error_msg}", fg="red", err=True)
         click.secho(f"Stack trace:\n{traceback.format_exc()}", fg="red", err=True)
         raise click.Abort() from e
 
@@ -160,6 +160,43 @@ def _is_provider_directory(path: Path) -> bool:
             return True
 
     return False
+
+
+# Add 'render' as an alias for 'plate' for backward compatibility
+@main.command("render", hidden=True)  # Hidden from help but still works
+@click.option(
+    "--output-dir",
+    type=click.Path(file_okay=False),
+    default="docs",
+    help="Output directory for plated documentation.",
+)
+@click.option(
+    "--provider-dir",
+    type=click.Path(exists=True, file_okay=False, resolve_path=True),
+    default=".",
+    help="Path to the provider directory.",
+)
+@click.option(
+    "--component-type",
+    type=click.Choice(["resource", "data_source", "function"]),
+    multiple=True,
+    help="Filter by component type (can be used multiple times).",
+)
+@click.option(
+    "--force",
+    is_flag=True,
+    default=False,
+    help="Force documentation generation even if not in a provider directory.",
+)
+def render_command(
+    output_dir: str, provider_dir: str, component_type: tuple[str, ...], force: bool
+) -> None:
+    """(Deprecated) Alias for 'plate' command. Use 'garnish plate' instead."""
+    click.echo("Note: 'render' is deprecated. Please use 'plate' instead.")
+    # Call the plate command directly
+    ctx = click.get_current_context()
+    ctx.invoke(plate_command, output_dir=output_dir, provider_dir=provider_dir, 
+               component_type=component_type, force=force)
 
 
 @main.command("test")

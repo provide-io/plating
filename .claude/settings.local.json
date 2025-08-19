@@ -52,7 +52,11 @@
       "Bash(.venv_darwin_arm64/bin/pip install -e ../garnish)",
       "Bash(UV_PYTHON=.venv_darwin_arm64/bin/python uv pip install -e ../garnish)",
       "Bash(UV_PYTHON=workenv/tofusoup_darwin_arm64/bin/python uv pip install -e ../garnish)",
-      "Bash(/Users/tim/code/gh/provide-io/tofusoup/workenv/tofusoup_darwin_arm64/bin/soup garnish render --output-dir ./docs/generated_soup)"
+      "Bash(/Users/tim/code/gh/provide-io/tofusoup/workenv/tofusoup_darwin_arm64/bin/soup garnish render --output-dir ./docs/generated_soup)",
+      "Bash(workenv/garnish_darwin_arm64/bin/garnish:*)",
+      "Bash(/Users/tim/code/gh/provide-io/garnish/workenv/garnish_darwin_arm64/bin/garnish plate --output-dir ./docs/generated_plate)",
+      "Bash(/Users/tim/code/gh/provide-io/garnish/workenv/garnish_darwin_arm64/bin/garnish render --output-dir ./docs/generated_render_test)",
+      "Bash(workenv/tofusoup_darwin_arm64/bin/soup:*)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
