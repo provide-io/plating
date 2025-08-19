@@ -12,11 +12,12 @@ class TemplateGenerator:
     ) -> str:
         """Generate template content based on component type."""
         # Get component description if available
-        description = (
-            getattr(component_class, "__doc__", "")
-            or f"Terraform {component_type} for {name}"
-        )
-        description = description.strip().split("\n")[0]  # First line only
+        doc = getattr(component_class, "__doc__", None)
+        # Check if it's a real docstring (not from Mock or other test objects)
+        if doc and not doc.startswith("Create a new"):
+            description = doc.strip().split("\n")[0]  # First line only
+        else:
+            description = f"Terraform {component_type.replace('_', ' ')} for {name}"
 
         if component_type == "resource":
             return self._resource_template(name, description)
