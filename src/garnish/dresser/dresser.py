@@ -7,7 +7,9 @@ import asyncio
 from pathlib import Path
 
 from pyvider.hub import ComponentDiscovery, hub
+from pyvider.telemetry import logger
 
+from garnish.errors import DressingError, handle_error
 from garnish.garnish import GarnishDiscovery
 from garnish.dresser.templates import TemplateGenerator
 from garnish.dresser.finder import ComponentFinder
@@ -65,8 +67,10 @@ class GarnishDresser:
         """Dress a single component with a .garnish directory."""
         try:
             # Find the component's source file location
+            logger.trace(f"Looking for source file for {name}")
             source_file = await self.component_finder.find_source(component_class)
             if not source_file:
+                logger.warning(f"Could not find source file for {name}")
                 print(f"⚠️ Could not find source file for {name}")
                 return False
 
@@ -75,8 +79,12 @@ class GarnishDresser:
             docs_dir = garnish_dir / "docs"
             examples_dir = garnish_dir / "examples"
 
-            await asyncio.to_thread(docs_dir.mkdir, parents=True, exist_ok=True)
-            await asyncio.to_thread(examples_dir.mkdir, parents=True, exist_ok=True)
+            logger.trace(f"Creating .garnish directory at {garnish_dir}")
+            try:
+                await asyncio.to_thread(docs_dir.mkdir, parents=True, exist_ok=True)
+                await asyncio.to_thread(examples_dir.mkdir, parents=True, exist_ok=True)
+            except (OSError, IOError) as e:
+                raise DressingError(name, component_type, f"Failed to create directories: {e}")
 
             # Generate and write template
             template_content = await self.template_generator.generate_template(
@@ -92,10 +100,15 @@ class GarnishDresser:
             example_file = examples_dir / "example.tf"
             await asyncio.to_thread(example_file.write_text, example_content)
 
+            logger.info(f"Successfully dressed {component_type}: {name}")
             print(f"✅ Dressed {component_type}: {name}")
             return True
 
+        except DressingError:
+            raise  # Re-raise our custom errors
         except Exception as e:
+            error = DressingError(name, component_type, str(e))
+            handle_error(error, logger)
             print(f"❌ Failed to dress {name}: {e}")
             return False
 

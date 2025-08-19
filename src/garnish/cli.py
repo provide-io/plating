@@ -7,7 +7,9 @@
 from pathlib import Path
 
 import click
+from pyvider.telemetry import logger
 
+from garnish.errors import GarnishError, handle_error
 from garnish.plater import generate_docs
 from garnish.dresser import dress_components
 
@@ -44,10 +46,16 @@ def dress_command(component_type: tuple[str, ...]) -> None:
 
         click.secho("✅ Dressing completed successfully!", fg="green")
 
+    except GarnishError as e:
+        # Our custom errors have good messages
+        click.secho(f"❌ {e}", fg="red", err=True)
+        logger.error(f"Dressing failed: {e}")
+        raise click.Abort() from e
     except Exception as e:
         import traceback
-
-        click.secho(f"❌ Dressing failed: {e}", fg="red", err=True)
+        
+        error_msg = handle_error(e, logger)
+        click.secho(f"❌ Dressing failed: {error_msg}", fg="red", err=True)
         click.secho(f"Stack trace:\n{traceback.format_exc()}", fg="red", err=True)
         raise click.Abort() from e
 
@@ -99,10 +107,16 @@ def render_command(
         generate_docs(provider_dir=provider_path, output_dir=output_dir)
         click.secho("✅ Documentation generation completed successfully!", fg="green")
 
+    except GarnishError as e:
+        # Our custom errors have good messages
+        click.secho(f"❌ {e}", fg="red", err=True)
+        logger.error(f"Documentation generation failed: {e}")
+        raise click.Abort() from e
     except Exception as e:
         import traceback
-
-        click.secho(f"❌ Documentation generation failed: {e}", fg="red", err=True)
+        
+        error_msg = handle_error(e, logger)
+        click.secho(f"❌ Documentation generation failed: {error_msg}", fg="red", err=True)
         click.secho(f"Stack trace:\n{traceback.format_exc()}", fg="red", err=True)
         raise click.Abort() from e
 
@@ -240,10 +254,16 @@ def test_command(
         else:
             click.secho("\n✅ All tests passed!", fg="green")
 
+    except GarnishError as e:
+        # Our custom errors have good messages
+        click.secho(f"❌ {e}", fg="red", err=True)
+        logger.error(f"Test execution failed: {e}")
+        raise click.Abort() from e
     except Exception as e:
         import traceback
-
-        click.secho(f"❌ Test execution failed: {e}", fg="red", err=True)
+        
+        error_msg = handle_error(e, logger)
+        click.secho(f"❌ Test execution failed: {error_msg}", fg="red", err=True)
         click.secho(f"Stack trace:\n{traceback.format_exc()}", fg="red", err=True)
         raise click.Abort() from e
 
