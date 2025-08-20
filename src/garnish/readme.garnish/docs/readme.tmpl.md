@@ -61,10 +61,10 @@ Render your documentation:
 
 ```bash
 # Generate docs in ./docs directory
-garnish plate
+garnish render
 
 # Custom output directory
-garnish plate --output-dir ./documentation
+garnish render --output-dir ./documentation
 ```
 
 ## 📂 Bundle Structure
