@@ -1,147 +1,61 @@
 # 🍲 Garnish
 
-> A sophisticated documentation generation system for Terraform/OpenTofu providers
+> Beautiful documentation generation for Terraform/OpenTofu providers
 
-Garnish is a powerful documentation system that brings culinary elegance to technical documentation. Just as a chef carefully plates and garnishes a dish, Garnish helps you present your Terraform provider documentation beautifully.
+## What is Garnish?
 
-## ✨ Features
+Garnish is a modern documentation generation system specifically designed for Terraform and OpenTofu providers. It transforms your provider code into comprehensive, well-structured documentation with minimal effort.
 
-- **🎯 Automatic Documentation Generation** - Generate comprehensive docs from your provider code
-- **👗 Smart Component Dressing** - Automatically create documentation templates for undocumented components
-- **🍽️ Beautiful Plating** - Render documentation with examples, schemas, and rich formatting
-- **🔍 Component Discovery** - Automatically find and document resources, data sources, and functions
-- **📝 Jinja2 Templates** - Flexible templating with custom functions and filters
-- **🔄 Schema Integration** - Extract and format provider schemas automatically
+## Value Proposition
 
-## 📦 Installation
+**Problem:** Provider documentation is often incomplete, inconsistent, or outdated. Existing tools require significant manual effort and don't integrate well with modern development workflows.
+
+**Solution:** Garnish automates documentation generation while giving developers full control over presentation. It discovers your provider components, generates smart templates, and renders beautiful documentation that stays in sync with your code.
+
+## Key Features
+
+- **🎯 Automatic Discovery** - Finds all resources, data sources, and functions in your provider
+- **📝 Smart Templates** - Generates Jinja2 templates with examples and schemas
+- **🍽️ Beautiful Output** - Renders Terraform Registry-compliant documentation
+- **🧪 Built-in Testing** - Validates examples and documentation integrity
+- **📦 Bundle System** - Co-locates docs, examples, and tests with components
+
+## Comparison with Other Tools
+
+### vs tfplugindocs
+- **tfplugindocs:** Official HashiCorp tool, rigid structure, limited customization
+- **Garnish:** Flexible templating, smart defaults, richer formatting options
+
+### vs terraform-docs
+- **terraform-docs:** Module documentation only, not for providers
+- **Garnish:** Provider-focused, understands schemas and component types
+
+### vs Manual Documentation
+- **Manual:** Time-consuming, prone to drift, inconsistent formatting
+- **Garnish:** Automated generation, stays in sync, enforces consistency
+
+## Quick Example
 
 ```bash
-# Using pip
+# Install garnish
 pip install garnish
 
-# Using uv (recommended)
-uv add garnish
-```
-
-## 🚀 Quick Start
-
-### 1. Dress Your Components
-
-First, create `.garnish` bundles for your undocumented components:
-
-```bash
-# Dress all missing components
+# Generate documentation templates
 garnish dress
 
-# Dress only resources
-garnish dress --component-type resource
-```
-
-### 2. Customize Templates
-
-Edit the generated templates in `.garnish/docs/`:
-
-```markdown
----
-page_title: "Resource: my_resource"
----
-
-# my_resource
-
-{{ "{{ example('basic') }}" }}
-
-## Schema
-
-{{ "{{ schema() }}" }}
-```
-
-### 3. Generate Documentation
-
-Render your documentation:
-
-```bash
-# Generate docs in ./docs directory
+# Customize templates as needed
+# Then render final documentation
 garnish plate
-
-# Custom output directory
-garnish plate --output-dir ./documentation
 ```
 
-## 📂 Bundle Structure
+## Learn More
 
-Each component has a `.garnish` bundle:
+Full documentation and source code available in the `develop` branch.
 
-```
-my_resource.garnish/
-├── docs/
-│   ├── my_resource.tmpl.md    # Main template
-│   └── _partial.md             # Reusable partials
-├── examples/
-│   ├── basic.tf                # Example configurations
-│   └── advanced.tf
-└── fixtures/                   # Test data
-    └── test_config.json
-```
-
-## 🎨 Template Functions
-
-Garnish provides powerful template functions:
-
-- `{{ "{{ example('name') }}" }}` - Include an example file
-- `{{ "{{ schema() }}" }}` - Render component schema
-- `{{ "{{ partial('name') }}" }}` - Include a partial template
-- `{{ "{{ anchor('text') }}" }}` - Create header anchors
-
-## 🧪 Testing
-
-Test your examples with the built-in test runner:
-
-```bash
-# Test all examples
-garnish test
-
-# Test specific component types
-garnish test --component-type resource
-```
-
-## 🔧 Configuration
-
-Configure Garnish in your `pyproject.toml`:
-
-```toml
-[tool.garnish]
-provider_name = "my_provider"
-output_dir = "docs"
-component_types = ["resource", "data_source", "function"]
-```
-
-## 🏗️ Architecture
-
-Garnish follows a modular architecture:
-
-- **GarnishBundle** - Represents documentation bundles
-- **GarnishPlater** - Renders documentation
-- **GarnishDresser** - Creates documentation templates
-- **GarnishDiscovery** - Finds components and bundles
-- **SchemaProcessor** - Extracts provider schemas
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📜 License
+## License
 
 Apache 2.0
 
-## 🙏 Acknowledgments
-
-Built with ❤️ using:
-- [attrs](https://www.attrs.org/) - Python classes without boilerplate
-- [Jinja2](https://jinja.palletsprojects.com/) - Powerful templating
-- [pyvider](https://github.com/provide-io/pyvider) - Terraform provider framework
-- [click](https://click.palletsprojects.com/) - Command line interface
-- [rich](https://rich.readthedocs.io/) - Beautiful terminal output
-
 ---
 
-*Garnish - Making documentation as delightful as a well-plated dish* 🍽️
+*Garnish - Making provider documentation as delightful as a well-plated dish* 🍽️
