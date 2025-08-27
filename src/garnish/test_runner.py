@@ -261,8 +261,8 @@ def _generate_provider_tf() -> str:
     return """terraform {
   required_providers {
     pyvider = {
-      source = "local/providers/pyvider"
-      version = "0.1.0"
+      source  = "registry.terraform.io/provide-io/pyvider"
+      version = "0.0.3"
     }
   }
 }
