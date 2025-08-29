@@ -538,8 +538,9 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
     test_dirs = [d for d in test_dir.iterdir() if d.is_dir()]
     results["total"] = len(test_dirs)
 
-    # Get terraform binary
-    tf_binary = shutil.which("tofu") or shutil.which("terraform") or "terraform"
+    # Get terraform binary from config
+    config = get_config()
+    tf_binary = config.terraform_binary
 
     for suite_dir in test_dirs:
         test_name = suite_dir.name
@@ -568,6 +569,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                 capture_output=True,
                 text=True,
                 timeout=60,
+                env=config.get_terraform_env(),
             )
 
             if init_result.returncode != 0:
@@ -584,7 +586,8 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                 cwd=suite_dir,
                 capture_output=True,
                 text=True,
-                timeout=120,
+                timeout=config.test_timeout,
+                env=config.get_terraform_env(),
             )
 
             if apply_result.returncode != 0:
@@ -611,7 +614,8 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                 cwd=suite_dir,
                 capture_output=True,
                 text=True,
-                timeout=120,
+                timeout=config.test_timeout,
+                env=config.get_terraform_env(),
             )
 
             if destroy_result.returncode != 0:

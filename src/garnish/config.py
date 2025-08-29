@@ -5,7 +5,7 @@
 
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 
 import attrs
 
@@ -54,7 +54,7 @@ class GarnishConfig:
         metadata={"help": "Directory containing function definitions"}
     )
     
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         """Initialize derived configuration values."""
         # Auto-detect terraform binary if not specified
         if self.terraform_binary is None:
@@ -72,7 +72,7 @@ class GarnishConfig:
     @classmethod
     def from_env(cls) -> "GarnishConfig":
         """Create configuration from environment variables."""
-        config_dict = {}
+        config_dict: dict[str, Any] = {}
         
         # Map environment variables to config fields
         env_mapping = {
