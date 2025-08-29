@@ -545,6 +545,9 @@ class TestReportGeneration:
                     "last_log": "Apply failed"
                 }
             },
+            "failures": {
+                "resource_test2_test": "Apply failed"
+            },
             "bundles": {
                 "test1": {"component_type": "resource", "examples_count": 2},
                 "test2": {"component_type": "resource", "examples_count": 1}
