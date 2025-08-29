@@ -17,6 +17,8 @@ from rich.table import Table
 
 from garnish.garnish import GarnishBundle, GarnishDiscovery
 from garnish.types import TestResult, TestSuiteResult, StirResult
+from garnish.config import get_config
+from garnish.error_handling import ErrorReporter
 
 console = Console()
 
@@ -36,8 +38,9 @@ def _get_terraform_version() -> tuple[str, str]:
     if _terraform_version_cache is not None:
         return _terraform_version_cache
 
-    # Check which binary is available
-    tf_binary = shutil.which("tofu") or shutil.which("terraform") or "terraform"
+    # Get binary from config
+    config = get_config()
+    tf_binary = config.terraform_binary
     binary_name = "OpenTofu" if "tofu" in tf_binary else "Terraform"
 
     try:
@@ -111,10 +114,9 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, any]:
     # Run stir with plugin cache to avoid re-downloading providers
     env = os.environ.copy()
 
-    # Set plugin cache directory if it exists
-    plugin_cache_dir = Path.home() / ".terraform.d" / "plugin-cache"
-    if plugin_cache_dir.exists():
-        env["TF_PLUGIN_CACHE_DIR"] = str(plugin_cache_dir)
+    # Set up environment from config
+    config = get_config()
+    env = config.get_terraform_env()
 
     # Find a directory with pyproject.toml to run from
     # First, check current directory
