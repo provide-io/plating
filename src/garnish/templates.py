@@ -78,9 +78,22 @@ provider "{{ provider.short_name }}" {
         )
 
         template = env.get_template("index.md.tmpl")
+        
+        # Get provider schema if available
+        provider_schema = ""
+        if hasattr(self.generator, 'schema_processor') and self.generator.schema_processor:
+            try:
+                provider_schema = self.generator.schema_processor.get_provider_schema()
+                if not provider_schema:
+                    provider_schema = "No provider configuration required"
+            except Exception:
+                provider_schema = "Provider configuration documentation not available"
+        else:
+            provider_schema = "Provider configuration documentation not available"
+        
         rendered = template.render(
             provider=self.generator.provider_info,
-            provider_schema="Provider configuration documentation",  # TODO: implement provider schema
+            provider_schema=provider_schema,
         )
 
         (self.generator.output_dir / "index.md").write_text(rendered)
