@@ -317,11 +317,15 @@ def run_garnish_tests(
     output_format: str = "json",
 ) -> dict[str, any]:
     """Run all garnish example files as Terraform tests.
+    
+    This is a compatibility wrapper that uses GarnishTestAdapter.
 
     Args:
         component_types: Optional list of component types to filter by
         parallel: Number of tests to run in parallel
         output_dir: Directory to create test suites in
+        output_file: Optional file to write report to
+        output_format: Format for report (json, markdown, html)
 
     Returns:
         Dictionary with test results including:
@@ -330,6 +334,24 @@ def run_garnish_tests(
         - failed: Number of failed tests
         - failures: Dict mapping test names to error messages
     """
+    # Use the new adapter
+    adapter = GarnishTestAdapter(output_dir=output_dir, fallback_to_simple=True)
+    return adapter.run_tests(
+        component_types=component_types,
+        parallel=parallel,
+        output_file=output_file,
+        output_format=output_format
+    )
+
+
+def _run_garnish_tests_old(
+    component_types: list[str] | None = None,
+    parallel: int = 4,
+    output_dir: Path | None = None,
+    output_file: Path | None = None,
+    output_format: str = "json",
+) -> dict[str, any]:
+    """Old implementation kept for reference during migration."""
     # Create temporary directory if not specified
     if output_dir is None:
         output_dir = Path(tempfile.mkdtemp(prefix="garnish-tests-"))
