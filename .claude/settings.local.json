@@ -60,7 +60,8 @@
       "Bash(workenv/garnish_darwin_arm64/bin/python -m pytest:*)",
       "Bash(cat:*)",
       "Bash(tofu init:*)",
-      "Bash(tofu apply:*)"
+      "Bash(tofu apply:*)",
+      "Read(/Users/tim/.terraform.d/**)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
