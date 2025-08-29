@@ -6,6 +6,7 @@
 import asyncio
 from datetime import datetime
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -105,13 +106,21 @@ def run_tests_with_stir(
         "--json"
     ]
     
-    # Run stir
+    # Run stir with plugin cache to avoid re-downloading providers
+    env = os.environ.copy()
+    
+    # Set plugin cache directory if it exists
+    plugin_cache_dir = Path.home() / ".terraform.d" / "plugin-cache"
+    if plugin_cache_dir.exists():
+        env["TF_PLUGIN_CACHE_DIR"] = str(plugin_cache_dir)
+    
     try:
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
-            check=False  # Handle errors manually
+            check=False,  # Handle errors manually
+            env=env
         )
         
         if result.returncode != 0:
