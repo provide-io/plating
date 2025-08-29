@@ -67,7 +67,8 @@
       "Bash(soup stir:*)",
       "Bash(soup:*)",
       "Bash(uv tool install:*)",
-      "Read(/Users/tim/.terraform.d/**)"
+      "Read(/Users/tim/.terraform.d/**)",
+      "Bash(uv pip uninstall:*)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
