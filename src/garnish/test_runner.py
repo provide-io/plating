@@ -195,8 +195,14 @@ def parse_stir_results(
     Returns:
         Dictionary with garnish-formatted test results
     """
-    # Start with stir results
+    # Start with stir results, ensuring required keys exist
     results = dict(stir_output)
+    
+    # Ensure essential keys exist with defaults
+    results.setdefault("total", 0)
+    results.setdefault("passed", 0)
+    results.setdefault("failed", 0)
+    results.setdefault("test_details", {})
     
     # Add bundle information if provided
     if bundles:
