@@ -13,7 +13,7 @@ import attrs
 from pyvider.hub import ComponentDiscovery, hub
 from pyvider.telemetry import logger
 
-from garnish.errors import SchemaError, handle_error
+from garnish.errors import SchemaError
 from garnish.models import FunctionInfo, ProviderInfo, ResourceInfo
 
 if TYPE_CHECKING:
@@ -36,7 +36,7 @@ class SchemaProcessor:
         """Extract schema by discovering components and inspecting their schemas."""
         logger.info("Discovering components via Pyvider hub...")
         print("🔍 Discovering components via Pyvider hub...")
-        
+
         try:
             discovery = ComponentDiscovery(hub)
             await discovery.discover_all()
@@ -68,7 +68,7 @@ class SchemaProcessor:
     def _get_provider_schema(self, providers: dict[str, Any]) -> dict[str, Any]:
         if not providers:
             return {"block": {"attributes": {}}}
-        
+
         try:
             provider_component = next(iter(providers.values()))
             if hasattr(provider_component, "get_schema"):
@@ -76,7 +76,7 @@ class SchemaProcessor:
                 return attrs.asdict(schema)
         except Exception as e:
             logger.warning(f"Failed to get provider schema: {e}")
-        
+
         return {"block": {"attributes": {}}}
 
     def _get_component_schemas(self, components: dict[str, Any]) -> dict[str, Any]:

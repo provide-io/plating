@@ -9,9 +9,9 @@ from pathlib import Path
 import click
 from pyvider.telemetry import logger
 
+from garnish.dresser import dress_components
 from garnish.errors import GarnishError, handle_error
 from garnish.plater import generate_docs
-from garnish.dresser import dress_components
 
 
 @click.group()
@@ -53,7 +53,7 @@ def dress_command(component_type: tuple[str, ...]) -> None:
         raise click.Abort() from e
     except Exception as e:
         import traceback
-        
+
         error_msg = handle_error(e, logger)
         click.secho(f"❌ Dressing failed: {error_msg}", fg="red", err=True)
         click.secho(f"Stack trace:\n{traceback.format_exc()}", fg="red", err=True)
@@ -114,7 +114,7 @@ def plate_command(
         raise click.Abort() from e
     except Exception as e:
         import traceback
-        
+
         error_msg = handle_error(e, logger)
         click.secho(f"❌ Documentation plating failed: {error_msg}", fg="red", err=True)
         click.secho(f"Stack trace:\n{traceback.format_exc()}", fg="red", err=True)
@@ -195,7 +195,7 @@ def render_command(
     click.echo("Note: 'render' is deprecated. Please use 'plate' instead.")
     # Call the plate command directly
     ctx = click.get_current_context()
-    ctx.invoke(plate_command, output_dir=output_dir, provider_dir=provider_dir, 
+    ctx.invoke(plate_command, output_dir=output_dir, provider_dir=provider_dir,
                component_type=component_type, force=force)
 
 
@@ -298,7 +298,7 @@ def test_command(
         raise click.Abort() from e
     except Exception as e:
         import traceback
-        
+
         error_msg = handle_error(e, logger)
         click.secho(f"❌ Test execution failed: {error_msg}", fg="red", err=True)
         click.secho(f"Stack trace:\n{traceback.format_exc()}", fg="red", err=True)
