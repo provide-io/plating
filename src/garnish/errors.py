@@ -1,12 +1,14 @@
 """
 Custom error types for garnish.
 """
+
 from pathlib import Path
 from typing import Any
 
 
 class GarnishError(Exception):
     """Base error for all garnish-related errors."""
+
     pass
 
 
@@ -97,12 +99,12 @@ class FileSystemError(GarnishError):
 def handle_error(error: Exception, logger: Any = None, reraise: bool = False) -> str:
     """
     Handle an error with proper logging and optional re-raising.
-    
+
     Args:
         error: The exception to handle
         logger: Optional logger instance to use
         reraise: Whether to re-raise the error after handling
-        
+
     Returns:
         A formatted error message
     """

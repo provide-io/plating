@@ -22,9 +22,7 @@ class GarnishDresser:
         self.template_generator = TemplateGenerator()
         self.component_finder = ComponentFinder()
 
-    async def dress_missing(
-        self, component_types: list[str] = None
-    ) -> dict[str, int]:
+    async def dress_missing(self, component_types: list[str] = None) -> dict[str, int]:
         """
         Dress components with missing .garnish directories.
 
@@ -83,7 +81,9 @@ class GarnishDresser:
                 await asyncio.to_thread(docs_dir.mkdir, parents=True, exist_ok=True)
                 await asyncio.to_thread(examples_dir.mkdir, parents=True, exist_ok=True)
             except OSError as e:
-                raise DressingError(name, component_type, f"Failed to create directories: {e}")
+                raise DressingError(
+                    name, component_type, f"Failed to create directories: {e}"
+                )
 
             # Generate and write template
             template_content = await self.template_generator.generate_template(

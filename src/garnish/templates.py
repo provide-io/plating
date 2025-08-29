@@ -81,7 +81,10 @@ provider "{{ provider.short_name }}" {
 
         # Get provider schema if available
         provider_schema = ""
-        if hasattr(self.generator, 'schema_processor') and self.generator.schema_processor:
+        if (
+            hasattr(self.generator, "schema_processor")
+            and self.generator.schema_processor
+        ):
             try:
                 provider_schema = self.generator.schema_processor.get_provider_schema()
                 if not provider_schema:

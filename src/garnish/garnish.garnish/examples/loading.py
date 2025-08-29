@@ -6,7 +6,7 @@ from garnish.garnish import GarnishBundle
 bundle = GarnishBundle(
     name="database",
     garnish_dir=Path("./resources/database.garnish"),
-    component_type="resource"
+    component_type="resource",
 )
 
 # Load the main template

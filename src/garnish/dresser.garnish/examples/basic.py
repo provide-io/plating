@@ -19,5 +19,6 @@ async def dress_all_components():
 
     return results
 
+
 # Run the async function
 results = asyncio.run(dress_all_components())

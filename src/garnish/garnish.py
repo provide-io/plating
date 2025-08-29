@@ -62,7 +62,7 @@ class GarnishBundle:
 
     def load_partials(self) -> dict[str, str]:
         """Load all partial files from docs directory.
-        
+
         Partials are files starting with underscore (_) in the docs directory.
         """
         partials = {}

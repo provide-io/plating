@@ -20,7 +20,9 @@ class TemplateGenerator:
                 if not doc_stripped.startswith("Create a new `Mock`"):
                     description = doc_stripped.split("\n")[0]  # First line only
                 else:
-                    description = f"Terraform {component_type.replace('_', ' ')} for {name}"
+                    description = (
+                        f"Terraform {component_type.replace('_', ' ')} for {name}"
+                    )
             else:
                 description = f"Terraform {component_type.replace('_', ' ')} for {name}"
         except AttributeError:

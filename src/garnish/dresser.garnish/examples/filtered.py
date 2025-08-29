@@ -16,6 +16,7 @@ async def dress_resources_only():
 
     return results
 
+
 # Dress multiple types
 async def dress_multiple_types():
     """Dress resources and data sources."""
@@ -28,6 +29,7 @@ async def dress_multiple_types():
         count = results[component_type]
         if count > 0:
             print(f"✅ Dressed {count} {component_type}(s)")
+
 
 # Run async functions
 asyncio.run(dress_resources_only())

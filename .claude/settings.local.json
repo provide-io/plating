@@ -71,7 +71,8 @@
       "Bash(uv pip uninstall:*)",
       "Bash(../garnish/workenv/garnish_darwin_arm64/bin/garnish test:*)",
       "Bash(workenv/garnish_darwin_arm64/bin/ruff check:*)",
-      "Bash(workenv/garnish_darwin_arm64/bin/python -m mypy:*)"
+      "Bash(workenv/garnish_darwin_arm64/bin/python -m mypy:*)",
+      "Bash(workenv/garnish_darwin_arm64/bin/ruff format:*)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
