@@ -78,7 +78,7 @@ provider "{{ provider.short_name }}" {
         )
 
         template = env.get_template("index.md.tmpl")
-        
+
         # Get provider schema if available
         provider_schema = ""
         if hasattr(self.generator, 'schema_processor') and self.generator.schema_processor:
@@ -90,7 +90,7 @@ provider "{{ provider.short_name }}" {
                 provider_schema = "Provider configuration documentation not available"
         else:
             provider_schema = "Provider configuration documentation not available"
-        
+
         rendered = template.render(
             provider=self.generator.provider_info,
             provider_schema=provider_schema,

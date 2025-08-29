@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from garnish.garnish import GarnishBundle
 
 # Create a bundle for a resource component

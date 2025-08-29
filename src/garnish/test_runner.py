@@ -3,7 +3,6 @@
 #
 """Test runner for garnish example files."""
 
-import asyncio
 from datetime import datetime
 import json
 import os
@@ -13,11 +12,9 @@ import subprocess
 import tempfile
 
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 
 from garnish.garnish import GarnishBundle, GarnishDiscovery
-from garnish.errors import GarnishError
 
 console = Console()
 
@@ -32,11 +29,11 @@ def _get_terraform_version() -> tuple[str, str]:
         Tuple of (binary_name, version_string)
     """
     global _terraform_version_cache
-    
+
     # Return cached version if available
     if _terraform_version_cache is not None:
         return _terraform_version_cache
-    
+
     # Check which binary is available
     tf_binary = shutil.which("tofu") or shutil.which("terraform") or "terraform"
     binary_name = "OpenTofu" if "tofu" in tf_binary else "Terraform"
@@ -72,16 +69,16 @@ def prepare_test_suites_for_stir(
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     test_suites = []
-    
+
     for bundle in bundles:
         examples = bundle.load_examples()
         if not examples:
             continue
-            
+
         suite_dir = _create_test_suite(bundle, examples, output_dir)
         if suite_dir:
             test_suites.append(suite_dir)
-    
+
     return test_suites
 
 
@@ -98,9 +95,9 @@ def run_tests_with_stir(
     Returns:
         Dictionary with test results from stir
     """
-    import subprocess
     import json
-    
+    import subprocess
+
     # Check if soup command is available
     soup_cmd = shutil.which("soup")
     if not soup_cmd:
@@ -108,7 +105,7 @@ def run_tests_with_stir(
             "tofusoup is not installed or not in PATH. "
             "Please install tofusoup to use the test command."
         )
-    
+
     # Build stir command - ensure absolute path
     test_dir_abs = test_dir.resolve()
     cmd = [
@@ -116,20 +113,20 @@ def run_tests_with_stir(
         str(test_dir_abs),
         "--json"
     ]
-    
+
     # Run stir with plugin cache to avoid re-downloading providers
     env = os.environ.copy()
-    
+
     # Set plugin cache directory if it exists
     plugin_cache_dir = Path.home() / ".terraform.d" / "plugin-cache"
     if plugin_cache_dir.exists():
         env["TF_PLUGIN_CACHE_DIR"] = str(plugin_cache_dir)
-    
+
     # Find a directory with pyproject.toml to run from
     # First, check current directory
     cwd = Path.cwd()
     run_dir = cwd
-    
+
     # Look for pyproject.toml in current or parent directories
     if not (run_dir / "pyproject.toml").exists():
         # Try looking up the directory tree
@@ -145,7 +142,7 @@ def run_tests_with_stir(
             else:
                 # Fallback: run from test directory (will likely fail but allows graceful fallback)
                 run_dir = test_dir
-    
+
     try:
         result = subprocess.run(
             cmd,
@@ -155,7 +152,7 @@ def run_tests_with_stir(
             env=env,
             cwd=str(run_dir)  # Run from directory with pyproject.toml
         )
-        
+
         if result.returncode != 0:
             # Check if this is the pyproject.toml error
             error_msg = result.stderr or result.stdout or "Unknown error"
@@ -169,13 +166,13 @@ def run_tests_with_stir(
             raise subprocess.CalledProcessError(
                 result.returncode, cmd, output=result.stdout, stderr=error_msg
             )
-        
+
         # Parse JSON output
         if result.stdout:
             return json.loads(result.stdout)
         else:
             return {"total": 0, "passed": 0, "failed": 0, "test_details": {}}
-        
+
     except subprocess.CalledProcessError as e:
         # Re-raise with error details
         error_msg = e.stderr or e.stdout or "Unknown error"
@@ -204,13 +201,13 @@ def parse_stir_results(
     """
     # Start with stir results, ensuring required keys exist
     results = dict(stir_output)
-    
+
     # Ensure essential keys exist with defaults
     results.setdefault("total", 0)
     results.setdefault("passed", 0)
     results.setdefault("failed", 0)
     results.setdefault("test_details", {})
-    
+
     # Add bundle information if provided
     if bundles:
         results["bundles"] = {}
@@ -224,35 +221,35 @@ def parse_stir_results(
                 except (AttributeError, TypeError):
                     # Handle mock objects in tests
                     fixture_count = 0
-            
+
             try:
                 examples = bundle.load_examples()
                 examples_count = len(examples) if examples else 0
             except (AttributeError, TypeError):
                 examples_count = 0
-            
+
             try:
                 has_fixtures = hasattr(bundle.fixtures_dir, 'exists') and bundle.fixtures_dir.exists()
             except (AttributeError, TypeError):
                 has_fixtures = False
-            
+
             results["bundles"][bundle.name] = {
                 "component_type": bundle.component_type,
                 "examples_count": examples_count,
                 "has_fixtures": has_fixtures,
                 "fixture_count": fixture_count,
             }
-    
+
     # Ensure timestamp is present
     if "timestamp" not in results:
         results["timestamp"] = datetime.now().isoformat()
-    
+
     return results
 
 
 class GarnishTestAdapter:
     """Adapter to run garnish tests using tofusoup stir."""
-    
+
     def __init__(self, output_dir: Path = None, fallback_to_simple: bool = False):
         """Initialize the test adapter.
         
@@ -263,7 +260,7 @@ class GarnishTestAdapter:
         self.output_dir = output_dir
         self.fallback_to_simple = fallback_to_simple
         self._temp_dir = None
-    
+
     def run_tests(
         self,
         component_types: list[str] = None,
@@ -289,10 +286,10 @@ class GarnishTestAdapter:
                 self.output_dir = self._temp_dir
             else:
                 self.output_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Discover bundles
             bundles = self._discover_bundles(component_types)
-            
+
             if not bundles:
                 return {
                     "total": 0,
@@ -304,10 +301,10 @@ class GarnishTestAdapter:
                     "test_details": {},
                     "timestamp": datetime.now().isoformat(),
                 }
-            
+
             # Prepare test suites
             test_suites = self._prepare_test_suites(bundles)
-            
+
             if not test_suites:
                 console.print(
                     "[yellow]No test suites created (no components with examples found)[/yellow]"
@@ -318,13 +315,13 @@ class GarnishTestAdapter:
                     "failed": 0,
                     "failures": {},
                 }
-            
+
             # Try to run with stir
             try:
                 stir_results = run_tests_with_stir(self.output_dir, parallel)
                 results = parse_stir_results(stir_results, bundles)
-                
-            except (RuntimeError, FileNotFoundError) as e:
+
+            except (RuntimeError, FileNotFoundError):
                 if self.fallback_to_simple:
                     console.print(
                         "[yellow]tofusoup not available, falling back to simple runner[/yellow]"
@@ -333,22 +330,22 @@ class GarnishTestAdapter:
                     results = parse_stir_results(results, bundles)
                 else:
                     raise
-            
+
             # Generate report if requested
             if output_file:
                 _generate_report(results, output_file, output_format)
-            
+
             return results
-            
+
         finally:
             # Cleanup temp directory
             if self._temp_dir and self._temp_dir.exists():
                 shutil.rmtree(self._temp_dir, ignore_errors=True)
-    
+
     def _discover_bundles(self, component_types: list[str] = None) -> list[GarnishBundle]:
         """Discover garnish bundles."""
         discovery = GarnishDiscovery()
-        
+
         if component_types:
             # Collect all bundles for specified types without duplicates
             seen = set()
@@ -360,37 +357,37 @@ class GarnishTestAdapter:
                         seen.add(bundle.name)
         else:
             bundles = discovery.discover_bundles()
-        
+
         console.print(
             f"Found [bold green]{len(bundles)}[/bold green] components with garnish bundles"
         )
         return bundles
-    
+
     def _prepare_test_suites(self, bundles: list[GarnishBundle]) -> list[Path]:
         """Prepare test suites for stir execution."""
         console.print(
             f"\n[bold yellow]📦 Assembling test suites in:[/bold yellow] {self.output_dir}"
         )
-        
+
         test_suites = prepare_test_suites_for_stir(bundles, self.output_dir)
-        
+
         # Show summary table
         if test_suites:
             table = Table(title="Test Suite Assembly", box=None)
             table.add_column("Component", style="cyan", no_wrap=True)
             table.add_column("Type", style="magenta")
             table.add_column("Test Directory", style="yellow")
-            
+
             for suite_dir in test_suites:
                 # Parse suite name to get component info
                 parts = suite_dir.name.rsplit("_test", 1)[0].split("_", 1)
                 comp_type = parts[0]
                 comp_name = parts[1] if len(parts) > 1 else "unknown"
-                
+
                 table.add_row(comp_name, comp_type, suite_dir.name)
-            
+
             console.print(table)
-        
+
         return test_suites
 
 
@@ -525,7 +522,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
         Dictionary with test results
     """
     import subprocess
-    
+
     results = {
         "total": 0,
         "passed": 0,
@@ -536,18 +533,18 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
         "test_details": {},
         "timestamp": datetime.now().isoformat(),
     }
-    
+
     # Find all test directories
     test_dirs = [d for d in test_dir.iterdir() if d.is_dir()]
     results["total"] = len(test_dirs)
-    
+
     # Get terraform binary
     tf_binary = shutil.which("tofu") or shutil.which("terraform") or "terraform"
-    
+
     for suite_dir in test_dirs:
         test_name = suite_dir.name
         console.print(f"Running test: {test_name}")
-        
+
         test_info = {
             "name": test_name,
             "success": False,
@@ -560,9 +557,9 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
             "last_log": "",
             "warnings": [],
         }
-        
+
         start_time = datetime.now()
-        
+
         try:
             # Run terraform init
             init_result = subprocess.run(
@@ -572,15 +569,15 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                 text=True,
                 timeout=60
             )
-            
+
             if init_result.returncode != 0:
                 raise subprocess.CalledProcessError(
-                    init_result.returncode, 
+                    init_result.returncode,
                     init_result.args,
                     init_result.stdout,
                     init_result.stderr
                 )
-            
+
             # Run terraform apply
             apply_result = subprocess.run(
                 [tf_binary, "apply", "-auto-approve"],
@@ -589,7 +586,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                 text=True,
                 timeout=120
             )
-            
+
             if apply_result.returncode != 0:
                 raise subprocess.CalledProcessError(
                     apply_result.returncode,
@@ -597,7 +594,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                     apply_result.stdout,
                     apply_result.stderr
                 )
-            
+
             # Parse output for resource counts
             output = apply_result.stdout
             if "Apply complete!" in output:
@@ -606,7 +603,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                 match = re.search(r'(\d+) added', output)
                 if match:
                     test_info["resources"] = int(match.group(1))
-            
+
             # Run terraform destroy
             destroy_result = subprocess.run(
                 [tf_binary, "destroy", "-auto-approve"],
@@ -615,7 +612,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                 text=True,
                 timeout=120
             )
-            
+
             if destroy_result.returncode != 0:
                 raise subprocess.CalledProcessError(
                     destroy_result.returncode,
@@ -623,36 +620,36 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                     destroy_result.stdout,
                     destroy_result.stderr
                 )
-            
+
             test_info["success"] = True
             results["passed"] += 1
             console.print(f"  ✅ {test_name}: PASS")
-            
+
         except subprocess.CalledProcessError as e:
             test_info["success"] = False
             test_info["last_log"] = str(e.stderr if e.stderr else e.stdout)
             results["failed"] += 1
             results["failures"][test_name] = test_info["last_log"]
             console.print(f"  ❌ {test_name}: FAIL")
-            
+
         except subprocess.TimeoutExpired:
             test_info["success"] = False
             test_info["last_log"] = "Test timed out"
             results["failed"] += 1
             results["failures"][test_name] = "Test timed out"
             console.print(f"  ⏱️ {test_name}: TIMEOUT")
-            
+
         except Exception as e:
             test_info["success"] = False
             test_info["last_log"] = str(e)
             results["failed"] += 1
             results["failures"][test_name] = str(e)
             console.print(f"  ❌ {test_name}: ERROR")
-        
+
         end_time = datetime.now()
         test_info["duration"] = (end_time - start_time).total_seconds()
         results["test_details"][test_name] = test_info
-    
+
     return results
 
 

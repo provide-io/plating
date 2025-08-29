@@ -128,7 +128,7 @@ class GarnishDiscovery:
         for garnish_dir in package_path.rglob("*.garnish"):
             if not garnish_dir.is_dir():
                 continue
-            
+
             # Skip hidden directories
             if garnish_dir.name.startswith("."):
                 continue
@@ -178,7 +178,7 @@ class GarnishDiscovery:
                 if sub_component_type not in ["resource", "data_source", "function"]:
                     # Fall back to parent component type if not a recognized type
                     sub_component_type = component_type
-                
+
                 # This appears to be an individual component
                 bundle = GarnishBundle(
                     name=item.name,  # Use the directory name as component name

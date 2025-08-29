@@ -1,8 +1,9 @@
 from pathlib import Path
+
 from garnish.garnish import GarnishBundle
+from garnish.generator import DocsGenerator
 from garnish.plater import GarnishPlater
 from garnish.schema import SchemaProcessor
-from garnish.generator import DocsGenerator
 
 # Setup schema processor
 generator = DocsGenerator(

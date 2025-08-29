@@ -12,7 +12,7 @@ class GarnishError(Exception):
 
 class BundleError(GarnishError):
     """Error related to garnish bundles."""
-    
+
     def __init__(self, bundle_name: str, message: str):
         self.bundle_name = bundle_name
         super().__init__(f"Bundle '{bundle_name}': {message}")
@@ -20,7 +20,7 @@ class BundleError(GarnishError):
 
 class PlatingError(GarnishError):
     """Error during documentation plating."""
-    
+
     def __init__(self, bundle_name: str, reason: str):
         self.bundle_name = bundle_name
         self.reason = reason
@@ -29,7 +29,7 @@ class PlatingError(GarnishError):
 
 class DressingError(GarnishError):
     """Error during component dressing."""
-    
+
     def __init__(self, component_name: str, component_type: str, reason: str):
         self.component_name = component_name
         self.component_type = component_type
@@ -41,7 +41,7 @@ class DressingError(GarnishError):
 
 class SchemaError(GarnishError):
     """Error related to schema extraction or processing."""
-    
+
     def __init__(self, provider_name: str, reason: str):
         self.provider_name = provider_name
         self.reason = reason
@@ -50,7 +50,7 @@ class SchemaError(GarnishError):
 
 class TemplateError(GarnishError):
     """Error during template rendering."""
-    
+
     def __init__(self, template_path: Path | str, reason: str):
         self.template_path = template_path
         self.reason = reason
@@ -59,7 +59,7 @@ class TemplateError(GarnishError):
 
 class DiscoveryError(GarnishError):
     """Error during bundle discovery."""
-    
+
     def __init__(self, package_name: str, reason: str):
         self.package_name = package_name
         self.reason = reason
@@ -68,7 +68,7 @@ class DiscoveryError(GarnishError):
 
 class ConfigurationError(GarnishError):
     """Error in garnish configuration."""
-    
+
     def __init__(self, config_key: str, reason: str):
         self.config_key = config_key
         self.reason = reason
@@ -77,7 +77,7 @@ class ConfigurationError(GarnishError):
 
 class TestRunnerError(GarnishError):
     """Error during test execution."""
-    
+
     def __init__(self, test_name: str, reason: str):
         self.test_name = test_name
         self.reason = reason
@@ -86,7 +86,7 @@ class TestRunnerError(GarnishError):
 
 class FileSystemError(GarnishError):
     """Error related to file system operations."""
-    
+
     def __init__(self, path: Path | str, operation: str, reason: str):
         self.path = path
         self.operation = operation
@@ -107,7 +107,7 @@ def handle_error(error: Exception, logger: Any = None, reraise: bool = False) ->
         A formatted error message
     """
     error_msg = str(error)
-    
+
     if isinstance(error, GarnishError):
         # It's one of our custom errors, we have more context
         if logger:
@@ -129,10 +129,10 @@ def handle_error(error: Exception, logger: Any = None, reraise: bool = False) ->
         error_msg = f"Unexpected error: {error}"
         if logger:
             logger.exception("Unexpected error occurred")
-    
+
     if reraise:
         raise
-    
+
     return error_msg
 
 

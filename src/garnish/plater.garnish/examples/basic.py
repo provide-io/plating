@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from garnish.garnish import GarnishBundle
 from garnish.plater import GarnishPlater
 
