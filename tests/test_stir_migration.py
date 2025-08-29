@@ -583,12 +583,20 @@ class TestErrorHandling:
             # When: Trying to run tests
             adapter = GarnishTestAdapter(fallback_to_simple=False)
             
-            # Then: Should raise informative error
-            with pytest.raises(RuntimeError) as exc_info:
-                adapter.run_tests()
+            # Mock discovery to return bundles so we actually try to run tests
+            mock_bundle = Mock()
+            mock_bundle.name = "test"
+            mock_bundle.component_type = "resource"
+            mock_bundle.load_examples.return_value = {"basic": "resource 'test' 'example' {}"}
             
-            assert "tofusoup" in str(exc_info.value).lower()
-            assert "install" in str(exc_info.value).lower()
+            with patch.object(adapter, '_discover_bundles', return_value=[mock_bundle]):
+                with patch.object(adapter, '_prepare_test_suites', return_value=[Path("/test")]):
+                    # Then: Should raise informative error
+                    with pytest.raises(RuntimeError) as exc_info:
+                        adapter.run_tests()
+                    
+                    assert "tofusoup" in str(exc_info.value).lower()
+                    assert "install" in str(exc_info.value).lower()
 
     def test_handle_incompatible_stir_version(self):
         """Test handling when stir version is incompatible."""
