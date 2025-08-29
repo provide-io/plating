@@ -41,7 +41,9 @@ class SchemaProcessor:
             discovery = ComponentDiscovery(hub)
             await discovery.discover_all()
         except Exception as e:
-            raise SchemaError(self.generator.provider_name, f"Component discovery failed: {e}")
+            raise SchemaError(
+                self.generator.provider_name, f"Component discovery failed: {e}"
+            )
 
         components = hub.list_components()
 

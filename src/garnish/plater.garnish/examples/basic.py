@@ -5,9 +5,7 @@ from garnish.plater import GarnishPlater
 
 # Create a bundle
 bundle = GarnishBundle(
-    name="vpc",
-    garnish_dir=Path("./resources/vpc.garnish"),
-    component_type="resource"
+    name="vpc", garnish_dir=Path("./resources/vpc.garnish"), component_type="resource"
 )
 
 # Create plater and render

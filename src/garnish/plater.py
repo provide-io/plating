@@ -22,7 +22,7 @@ class GarnishPlater:
         schema_processor: SchemaProcessor | None = None,
     ):
         """Initialize plater with bundles and optional schema processor.
-        
+
         Args:
             bundles: List of GarnishBundle objects to render
             schema_processor: Optional schema processor for schema extraction
@@ -40,7 +40,7 @@ class GarnishPlater:
 
     def plate(self, output_dir: Path, force: bool = False) -> None:
         """Plate all bundles to the output directory.
-        
+
         Args:
             output_dir: Directory to write plated documentation
             force: Force plating even if output exists
@@ -58,9 +58,11 @@ class GarnishPlater:
                 handle_error(error, logger)
                 logger.error(f"Failed to plate bundle {bundle.name}: {e}")
 
-    def _plate_bundle(self, bundle: GarnishBundle, output_dir: Path, force: bool) -> None:
+    def _plate_bundle(
+        self, bundle: GarnishBundle, output_dir: Path, force: bool
+    ) -> None:
         """Plate a single bundle.
-        
+
         Args:
             bundle: The GarnishBundle to render
             output_dir: Directory to write output
@@ -80,7 +82,9 @@ class GarnishPlater:
         context = _create_plating_context(
             bundle,
             self._get_schema_for_component(bundle),
-            self.schema_processor.provider_name if self.schema_processor else "provider"
+            self.schema_processor.provider_name
+            if self.schema_processor
+            else "provider",
         )
 
         # Add examples to context
@@ -98,7 +102,9 @@ class GarnishPlater:
 
         # Check if file exists and force flag
         if output_path.exists() and not force:
-            logger.debug(f"Output file {output_path} exists, skipping (use force=True to overwrite)")
+            logger.debug(
+                f"Output file {output_path} exists, skipping (use force=True to overwrite)"
+            )
             return
 
         # Write output
@@ -111,10 +117,10 @@ class GarnishPlater:
 
     def _get_schema_for_component(self, bundle: GarnishBundle) -> dict | None:
         """Get schema for a component from the provider schema.
-        
+
         Args:
             bundle: The bundle to get schema for
-            
+
         Returns:
             Component schema dict or None
         """
@@ -151,18 +157,15 @@ class GarnishPlater:
         return None
 
     def _plate_template(
-        self,
-        template_content: str,
-        context: dict,
-        partials: dict[str, str]
+        self, template_content: str, context: dict, partials: dict[str, str]
     ) -> str:
         """Plate a Jinja2 template with context.
-        
+
         Args:
             template_content: The template string
             context: Rendering context dictionary
             partials: Partial templates dictionary
-            
+
         Returns:
             Plated template string
         """
@@ -177,7 +180,9 @@ class GarnishPlater:
 
         # Add custom template functions
         env.globals["schema"] = lambda: context.get("schema_markdown", "")
-        env.globals["example"] = lambda name: _format_example(context.get("examples", {}).get(name, ""))
+        env.globals["example"] = lambda name: _format_example(
+            context.get("examples", {}).get(name, "")
+        )
         env.globals["include"] = lambda filename: partials.get(filename, "")
 
         # Plate template
@@ -186,17 +191,15 @@ class GarnishPlater:
 
 
 def _create_plating_context(
-    bundle: GarnishBundle,
-    schema: dict | None,
-    provider_name: str
+    bundle: GarnishBundle, schema: dict | None, provider_name: str
 ) -> dict:
     """Create plating context for a bundle.
-    
+
     Args:
         bundle: The GarnishBundle
         schema: Component schema dict or None
         provider_name: Name of the provider
-        
+
     Returns:
         Context dictionary for template plating
     """
@@ -221,10 +224,10 @@ def _create_plating_context(
 
 def _format_component_type(component_type: str) -> str:
     """Format component type for display.
-    
+
     Args:
         component_type: Raw component type
-        
+
     Returns:
         Formatted component type
     """
@@ -237,10 +240,10 @@ def _format_component_type(component_type: str) -> str:
 
 def _get_output_subdir(component_type: str) -> str:
     """Get output subdirectory for component type.
-    
+
     Args:
         component_type: Component type
-        
+
     Returns:
         Output subdirectory name
     """
@@ -253,10 +256,10 @@ def _get_output_subdir(component_type: str) -> str:
 
 def _format_example(example_code: str) -> str:
     """Format example code for display.
-    
+
     Args:
         example_code: Raw example code
-        
+
     Returns:
         Formatted example with code block
     """
@@ -267,10 +270,10 @@ def _format_example(example_code: str) -> str:
 
 def _plate_schema_markdown(schema: dict) -> str:
     """Plate schema to markdown format.
-    
+
     Args:
         schema: Schema dictionary
-        
+
     Returns:
         Markdown formatted schema
     """
@@ -335,10 +338,10 @@ def _plate_schema_markdown(schema: dict) -> str:
 
 def _format_type_string(type_info) -> str:
     """Format type information to human-readable string.
-    
+
     Args:
         type_info: Type information (string, list, or dict)
-        
+
     Returns:
         Formatted type string
     """
@@ -360,7 +363,9 @@ def _format_type_string(type_info) -> str:
             return f"Map of {_format_type_string(element_type)}"
         elif container_type == "object":
             if isinstance(element_type, dict):
-                attrs = ", ".join(f"{k}: {_format_type_string(v)}" for k, v in element_type.items())
+                attrs = ", ".join(
+                    f"{k}: {_format_type_string(v)}" for k, v in element_type.items()
+                )
                 return f"Object({attrs})"
             return "Object"
 
@@ -369,10 +374,10 @@ def _format_type_string(type_info) -> str:
 
 def _format_function_signature(schema: dict) -> str:
     """Format function signature from schema.
-    
+
     Args:
         schema: Function schema
-        
+
     Returns:
         Formatted function signature
     """
@@ -401,10 +406,10 @@ def _format_function_signature(schema: dict) -> str:
 
 def _format_function_arguments(schema: dict) -> str:
     """Format function arguments from schema.
-    
+
     Args:
         schema: Function schema
-        
+
     Returns:
         Formatted arguments list
     """
@@ -437,9 +442,9 @@ def generate_docs(
     force: bool = False,
 ) -> None:
     """Generate documentation for all discovered garnish bundles.
-    
+
     This is the main entry point for documentation generation.
-    
+
     Args:
         output_dir: Directory to write documentation
         provider_name: Optional provider name for schema extraction

@@ -55,15 +55,14 @@ def _get_terraform_version() -> tuple[str, str]:
 
 
 def prepare_test_suites_for_stir(
-    bundles: list[GarnishBundle],
-    output_dir: Path
+    bundles: list[GarnishBundle], output_dir: Path
 ) -> list[Path]:
     """Prepare test suites from garnish bundles for stir execution.
-    
+
     Args:
         bundles: List of garnish bundles to prepare
         output_dir: Directory to create test suites in
-    
+
     Returns:
         List of paths to created test suite directories
     """
@@ -82,16 +81,13 @@ def prepare_test_suites_for_stir(
     return test_suites
 
 
-def run_tests_with_stir(
-    test_dir: Path,
-    parallel: int = 4
-) -> dict[str, any]:
+def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, any]:
     """Run tests using tofusoup stir command.
-    
+
     Args:
         test_dir: Directory containing test suites
         parallel: Number of parallel tests to run
-    
+
     Returns:
         Dictionary with test results from stir
     """
@@ -108,11 +104,7 @@ def run_tests_with_stir(
 
     # Build stir command - ensure absolute path
     test_dir_abs = test_dir.resolve()
-    cmd = [
-        "soup", "stir",
-        str(test_dir_abs),
-        "--json"
-    ]
+    cmd = ["soup", "stir", str(test_dir_abs), "--json"]
 
     # Run stir with plugin cache to avoid re-downloading providers
     env = os.environ.copy()
@@ -150,7 +142,7 @@ def run_tests_with_stir(
             text=True,
             check=False,  # Handle errors manually
             env=env,
-            cwd=str(run_dir)  # Run from directory with pyproject.toml
+            cwd=str(run_dir),  # Run from directory with pyproject.toml
         )
 
         if result.returncode != 0:
@@ -187,15 +179,14 @@ def run_tests_with_stir(
 
 
 def parse_stir_results(
-    stir_output: dict[str, any],
-    bundles: list[GarnishBundle] = None
+    stir_output: dict[str, any], bundles: list[GarnishBundle] = None
 ) -> dict[str, any]:
     """Parse and enrich stir results with garnish bundle information.
-    
+
     Args:
         stir_output: Raw output from stir command
         bundles: Optional list of garnish bundles for enrichment
-    
+
     Returns:
         Dictionary with garnish-formatted test results
     """
@@ -213,7 +204,7 @@ def parse_stir_results(
         results["bundles"] = {}
         for bundle in bundles:
             fixture_count = 0
-            if hasattr(bundle.fixtures_dir, 'exists') and bundle.fixtures_dir.exists():
+            if hasattr(bundle.fixtures_dir, "exists") and bundle.fixtures_dir.exists():
                 try:
                     fixture_count = sum(
                         1 for _ in bundle.fixtures_dir.rglob("*") if _.is_file()
@@ -229,7 +220,10 @@ def parse_stir_results(
                 examples_count = 0
 
             try:
-                has_fixtures = hasattr(bundle.fixtures_dir, 'exists') and bundle.fixtures_dir.exists()
+                has_fixtures = (
+                    hasattr(bundle.fixtures_dir, "exists")
+                    and bundle.fixtures_dir.exists()
+                )
             except (AttributeError, TypeError):
                 has_fixtures = False
 
@@ -252,7 +246,7 @@ class GarnishTestAdapter:
 
     def __init__(self, output_dir: Path = None, fallback_to_simple: bool = False):
         """Initialize the test adapter.
-        
+
         Args:
             output_dir: Directory for test suites (temp if not specified)
             fallback_to_simple: Whether to fall back to simple runner if stir unavailable
@@ -266,16 +260,16 @@ class GarnishTestAdapter:
         component_types: list[str] = None,
         parallel: int = 4,
         output_file: Path = None,
-        output_format: str = "json"
+        output_format: str = "json",
     ) -> dict[str, any]:
         """Run garnish tests using stir.
-        
+
         Args:
             component_types: Optional list of component types to filter
             parallel: Number of parallel tests
             output_file: Optional file to write report to
             output_format: Format for report (json, markdown, html)
-        
+
         Returns:
             Dictionary with test results
         """
@@ -342,7 +336,9 @@ class GarnishTestAdapter:
             if self._temp_dir and self._temp_dir.exists():
                 shutil.rmtree(self._temp_dir, ignore_errors=True)
 
-    def _discover_bundles(self, component_types: list[str] = None) -> list[GarnishBundle]:
+    def _discover_bundles(
+        self, component_types: list[str] = None
+    ) -> list[GarnishBundle]:
         """Discover garnish bundles."""
         discovery = GarnishDiscovery()
 
@@ -399,7 +395,7 @@ def run_garnish_tests(
     output_format: str = "json",
 ) -> dict[str, any]:
     """Run all garnish example files as Terraform tests.
-    
+
     This is a compatibility wrapper that uses GarnishTestAdapter.
 
     Args:
@@ -422,7 +418,7 @@ def run_garnish_tests(
         component_types=component_types,
         parallel=parallel,
         output_file=output_file,
-        output_format=output_format
+        output_format=output_format,
     )
 
 
@@ -511,13 +507,13 @@ provider "pyvider" {
 
 def _run_simple_tests(test_dir: Path) -> dict[str, any]:
     """Run simple terraform tests without stir.
-    
+
     Note: This is a simplified version without parallel execution or rich UI.
     For advanced test running with rich UI, use tofusoup.
-    
+
     Args:
         test_dir: Directory containing test suites
-    
+
     Returns:
         Dictionary with test results
     """
@@ -567,7 +563,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                 cwd=suite_dir,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60,
             )
 
             if init_result.returncode != 0:
@@ -575,7 +571,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                     init_result.returncode,
                     init_result.args,
                     init_result.stdout,
-                    init_result.stderr
+                    init_result.stderr,
                 )
 
             # Run terraform apply
@@ -584,7 +580,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                 cwd=suite_dir,
                 capture_output=True,
                 text=True,
-                timeout=120
+                timeout=120,
             )
 
             if apply_result.returncode != 0:
@@ -592,7 +588,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                     apply_result.returncode,
                     apply_result.args,
                     apply_result.stdout,
-                    apply_result.stderr
+                    apply_result.stderr,
                 )
 
             # Parse output for resource counts
@@ -600,7 +596,8 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
             if "Apply complete!" in output:
                 # Try to extract resource counts
                 import re
-                match = re.search(r'(\d+) added', output)
+
+                match = re.search(r"(\d+) added", output)
                 if match:
                     test_info["resources"] = int(match.group(1))
 
@@ -610,7 +607,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                 cwd=suite_dir,
                 capture_output=True,
                 text=True,
-                timeout=120
+                timeout=120,
             )
 
             if destroy_result.returncode != 0:
@@ -618,7 +615,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, any]:
                     destroy_result.returncode,
                     destroy_result.args,
                     destroy_result.stdout,
-                    destroy_result.stderr
+                    destroy_result.stderr,
                 )
 
             test_info["success"] = True
@@ -762,7 +759,8 @@ def _generate_markdown_report(results: dict[str, any], output_file: Path) -> Non
                     for test in tests_by_type[comp_type]
                 )
                 has_outputs = any(
-                    test["details"].get("outputs", 0) > 0 for test in tests_by_type[comp_type]
+                    test["details"].get("outputs", 0) > 0
+                    for test in tests_by_type[comp_type]
                 )
 
                 # Build dynamic headers
@@ -823,7 +821,9 @@ def _generate_markdown_report(results: dict[str, any], output_file: Path) -> Non
                         )
                     if has_outputs:
                         row.append(
-                            str(details.get("outputs", 0)) if details.get("outputs", 0) > 0 else "-"
+                            str(details.get("outputs", 0))
+                            if details.get("outputs", 0) > 0
+                            else "-"
                         )
 
                     examples = bundle_info.get("examples_count", 1)

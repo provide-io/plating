@@ -6,7 +6,7 @@ from garnish.garnish import GarnishBundle
 bundle = GarnishBundle(
     name="s3_bucket",
     garnish_dir=Path("./resources/s3_bucket.garnish"),
-    component_type="resource"
+    component_type="resource",
 )
 
 # Access bundle properties

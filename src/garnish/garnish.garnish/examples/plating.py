@@ -11,7 +11,7 @@ bundles = discovery.discover_bundles()
 bundle = GarnishBundle(
     name="load_balancer",
     garnish_dir=Path("./resources/load_balancer.garnish"),
-    component_type="resource"
+    component_type="resource",
 )
 
 # Plate the documentation

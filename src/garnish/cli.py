@@ -195,8 +195,13 @@ def render_command(
     click.echo("Note: 'render' is deprecated. Please use 'plate' instead.")
     # Call the plate command directly
     ctx = click.get_current_context()
-    ctx.invoke(plate_command, output_dir=output_dir, provider_dir=provider_dir,
-               component_type=component_type, force=force)
+    ctx.invoke(
+        plate_command,
+        output_dir=output_dir,
+        provider_dir=provider_dir,
+        component_type=component_type,
+        force=force,
+    )
 
 
 @main.command("test")
