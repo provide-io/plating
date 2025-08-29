@@ -4,9 +4,8 @@
 """Centralized error handling and reporting for garnish."""
 
 import subprocess
-import sys
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional
 
 from rich.console import Console
 
@@ -77,7 +76,7 @@ def handle_subprocess_execution(
     timeout: int = 120,
     context: str = "",
     capture_output: bool = True
-) -> subprocess.CompletedProcess:
+) -> subprocess.CompletedProcess[str]:
     """Execute subprocess with consistent error handling.
     
     Args:
