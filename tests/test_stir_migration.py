@@ -187,7 +187,7 @@ class TestTofusoupStirIntegration:
         assert args[0] == "soup"
         assert args[1] == "stir"
         assert str(test_dir) in args
-        assert "--output-json" in args
+        assert "--json" in args
 
     @patch('subprocess.run')
     def test_run_stir_with_parallel_option(self, mock_run, tmp_path):
