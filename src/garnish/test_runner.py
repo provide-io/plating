@@ -10,15 +10,12 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
-from typing import Any
 
 from rich.console import Console
 from rich.table import Table
 
-from garnish.garnish import GarnishBundle, GarnishDiscovery
-from garnish.types import TestResult, TestSuiteResult, StirResult
 from garnish.config import get_config
-from garnish.error_handling import ErrorReporter
+from garnish.garnish import GarnishBundle, GarnishDiscovery
 
 console = Console()
 

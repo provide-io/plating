@@ -3,8 +3,8 @@
 #
 """Centralized error handling and reporting for garnish."""
 
-import subprocess
 from pathlib import Path
+import subprocess
 
 from rich.console import Console
 
@@ -101,17 +101,17 @@ def handle_subprocess_execution(
             timeout=timeout,
             check=False
         )
-        
+
         if result.returncode != 0:
             error = subprocess.CalledProcessError(
                 result.returncode, cmd, result.stdout, result.stderr
             )
             ErrorReporter.report_subprocess_error(cmd, error, context)
             raise error
-            
+
         return result
-        
-    except subprocess.TimeoutExpired as e:
+
+    except subprocess.TimeoutExpired:
         ErrorReporter.report_warning(
             f"Command timed out after {timeout} seconds",
             f"Command: {' '.join(cmd)}"
