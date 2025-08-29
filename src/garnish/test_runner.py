@@ -150,8 +150,15 @@ def run_tests_with_stir(
         )
         
         if result.returncode != 0:
-            # Re-raise with error details
+            # Check if this is the pyproject.toml error
             error_msg = result.stderr or result.stdout or "Unknown error"
+            if "pyproject.toml" in error_msg:
+                # This is a known issue with soup tool install - raise RuntimeError to trigger fallback
+                raise RuntimeError(
+                    "soup stir requires pyproject.toml context. "
+                    "Falling back to simple runner."
+                )
+            # For other errors, raise the subprocess error
             raise subprocess.CalledProcessError(
                 result.returncode, cmd, output=result.stdout, stderr=error_msg
             )
