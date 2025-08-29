@@ -102,7 +102,7 @@ def run_tests_with_stir(
     cmd = [
         "soup", "stir",
         str(test_dir),
-        "--output-json"
+        "--json"
     ]
     
     # Run stir
