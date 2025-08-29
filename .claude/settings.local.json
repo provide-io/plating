@@ -74,7 +74,8 @@
       "Bash(workenv/garnish_darwin_arm64/bin/python -m mypy:*)",
       "Bash(workenv/garnish_darwin_arm64/bin/ruff format:*)",
       "Bash(workenv/garnish_darwin_arm64/bin/python -m pip install:*)",
-      "Bash(workenv/garnish_darwin_arm64/bin/bandit:*)"
+      "Bash(workenv/garnish_darwin_arm64/bin/bandit:*)",
+      "Bash(git tag:*)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
