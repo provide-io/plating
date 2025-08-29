@@ -268,11 +268,16 @@ class GarnishTestAdapter:
     def _discover_bundles(self, component_types: list[str] = None) -> list[GarnishBundle]:
         """Discover garnish bundles."""
         discovery = GarnishDiscovery()
-        bundles = []
         
         if component_types:
+            # Collect all bundles for specified types without duplicates
+            seen = set()
+            bundles = []
             for ct in component_types:
-                bundles.extend(discovery.discover_bundles(component_type=ct))
+                for bundle in discovery.discover_bundles(component_type=ct):
+                    if bundle.name not in seen:
+                        bundles.append(bundle)
+                        seen.add(bundle.name)
         else:
             bundles = discovery.discover_bundles()
         
