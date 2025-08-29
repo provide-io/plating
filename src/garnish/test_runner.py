@@ -16,6 +16,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from garnish.garnish import GarnishBundle, GarnishDiscovery
+from garnish.errors import GarnishError
 
 console = Console()
 
@@ -43,6 +44,269 @@ def _get_terraform_version() -> tuple[str, str]:
         version_string = "Unable to determine version"
 
     return binary_name, version_string
+
+
+def prepare_test_suites_for_stir(
+    bundles: list[GarnishBundle],
+    output_dir: Path
+) -> list[Path]:
+    """Prepare test suites from garnish bundles for stir execution.
+    
+    Args:
+        bundles: List of garnish bundles to prepare
+        output_dir: Directory to create test suites in
+    
+    Returns:
+        List of paths to created test suite directories
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    test_suites = []
+    
+    for bundle in bundles:
+        examples = bundle.load_examples()
+        if not examples:
+            continue
+            
+        suite_dir = _create_test_suite(bundle, examples, output_dir)
+        if suite_dir:
+            test_suites.append(suite_dir)
+    
+    return test_suites
+
+
+def run_tests_with_stir(
+    test_dir: Path,
+    parallel: int = 4
+) -> dict[str, any]:
+    """Run tests using tofusoup stir command.
+    
+    Args:
+        test_dir: Directory containing test suites
+        parallel: Number of parallel tests to run
+    
+    Returns:
+        Dictionary with test results from stir
+    """
+    import subprocess
+    import json
+    
+    # Check if soup command is available
+    soup_cmd = shutil.which("soup")
+    if not soup_cmd:
+        raise RuntimeError(
+            "tofusoup is not installed or not in PATH. "
+            "Please install tofusoup to use the test command."
+        )
+    
+    # Build stir command
+    cmd = [
+        "soup", "stir",
+        str(test_dir),
+        "--output-json"
+    ]
+    
+    # Run stir
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        # Parse JSON output
+        return json.loads(result.stdout)
+        
+    except subprocess.CalledProcessError as e:
+        # Re-raise with error details
+        error_msg = e.stderr or e.stdout or "Unknown error"
+        raise subprocess.CalledProcessError(
+            e.returncode, e.cmd, output=e.stdout, stderr=error_msg
+        )
+    except FileNotFoundError:
+        raise RuntimeError(
+            "tofusoup is not installed or not in PATH. "
+            "Please install tofusoup to use the test command."
+        )
+
+
+def parse_stir_results(
+    stir_output: dict[str, any],
+    bundles: list[GarnishBundle] = None
+) -> dict[str, any]:
+    """Parse and enrich stir results with garnish bundle information.
+    
+    Args:
+        stir_output: Raw output from stir command
+        bundles: Optional list of garnish bundles for enrichment
+    
+    Returns:
+        Dictionary with garnish-formatted test results
+    """
+    # Start with stir results
+    results = dict(stir_output)
+    
+    # Add bundle information if provided
+    if bundles:
+        results["bundles"] = {}
+        for bundle in bundles:
+            fixture_count = 0
+            if bundle.fixtures_dir.exists():
+                fixture_count = sum(
+                    1 for _ in bundle.fixtures_dir.rglob("*") if _.is_file()
+                )
+            
+            results["bundles"][bundle.name] = {
+                "component_type": bundle.component_type,
+                "examples_count": len(bundle.load_examples()),
+                "has_fixtures": bundle.fixtures_dir.exists(),
+                "fixture_count": fixture_count,
+            }
+    
+    # Ensure timestamp is present
+    if "timestamp" not in results:
+        results["timestamp"] = datetime.now().isoformat()
+    
+    return results
+
+
+class GarnishTestAdapter:
+    """Adapter to run garnish tests using tofusoup stir."""
+    
+    def __init__(self, output_dir: Path = None, fallback_to_simple: bool = False):
+        """Initialize the test adapter.
+        
+        Args:
+            output_dir: Directory for test suites (temp if not specified)
+            fallback_to_simple: Whether to fall back to simple runner if stir unavailable
+        """
+        self.output_dir = output_dir
+        self.fallback_to_simple = fallback_to_simple
+        self._temp_dir = None
+    
+    def run_tests(
+        self,
+        component_types: list[str] = None,
+        parallel: int = 4,
+        output_file: Path = None,
+        output_format: str = "json"
+    ) -> dict[str, any]:
+        """Run garnish tests using stir.
+        
+        Args:
+            component_types: Optional list of component types to filter
+            parallel: Number of parallel tests
+            output_file: Optional file to write report to
+            output_format: Format for report (json, markdown, html)
+        
+        Returns:
+            Dictionary with test results
+        """
+        try:
+            # Setup output directory
+            if self.output_dir is None:
+                self._temp_dir = Path(tempfile.mkdtemp(prefix="garnish-tests-"))
+                self.output_dir = self._temp_dir
+            else:
+                self.output_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Discover bundles
+            bundles = self._discover_bundles(component_types)
+            
+            if not bundles:
+                return {
+                    "total": 0,
+                    "passed": 0,
+                    "failed": 0,
+                    "warnings": 0,
+                    "skipped": 0,
+                    "failures": {},
+                    "test_details": {},
+                    "timestamp": datetime.now().isoformat(),
+                }
+            
+            # Prepare test suites
+            test_suites = self._prepare_test_suites(bundles)
+            
+            if not test_suites:
+                console.print(
+                    "[yellow]No test suites created (no components with examples found)[/yellow]"
+                )
+                return {
+                    "total": 0,
+                    "passed": 0,
+                    "failed": 0,
+                    "failures": {},
+                }
+            
+            # Try to run with stir
+            try:
+                stir_results = run_tests_with_stir(self.output_dir, parallel)
+                results = parse_stir_results(stir_results, bundles)
+                
+            except (RuntimeError, FileNotFoundError) as e:
+                if self.fallback_to_simple:
+                    console.print(
+                        "[yellow]tofusoup not available, falling back to simple runner[/yellow]"
+                    )
+                    results = _run_simple_tests(self.output_dir)
+                    results = parse_stir_results(results, bundles)
+                else:
+                    raise
+            
+            # Generate report if requested
+            if output_file:
+                _generate_report(results, output_file, output_format)
+            
+            return results
+            
+        finally:
+            # Cleanup temp directory
+            if self._temp_dir and self._temp_dir.exists():
+                shutil.rmtree(self._temp_dir, ignore_errors=True)
+    
+    def _discover_bundles(self, component_types: list[str] = None) -> list[GarnishBundle]:
+        """Discover garnish bundles."""
+        discovery = GarnishDiscovery()
+        bundles = []
+        
+        if component_types:
+            for ct in component_types:
+                bundles.extend(discovery.discover_bundles(component_type=ct))
+        else:
+            bundles = discovery.discover_bundles()
+        
+        console.print(
+            f"Found [bold green]{len(bundles)}[/bold green] components with garnish bundles"
+        )
+        return bundles
+    
+    def _prepare_test_suites(self, bundles: list[GarnishBundle]) -> list[Path]:
+        """Prepare test suites for stir execution."""
+        console.print(
+            f"\n[bold yellow]📦 Assembling test suites in:[/bold yellow] {self.output_dir}"
+        )
+        
+        test_suites = prepare_test_suites_for_stir(bundles, self.output_dir)
+        
+        # Show summary table
+        if test_suites:
+            table = Table(title="Test Suite Assembly", box=None)
+            table.add_column("Component", style="cyan", no_wrap=True)
+            table.add_column("Type", style="magenta")
+            table.add_column("Test Directory", style="yellow")
+            
+            for suite_dir in test_suites:
+                # Parse suite name to get component info
+                parts = suite_dir.name.rsplit("_test", 1)[0].split("_", 1)
+                comp_type = parts[0]
+                comp_name = parts[1] if len(parts) > 1 else "unknown"
+                
+                table.add_row(comp_name, comp_type, suite_dir.name)
+            
+            console.print(table)
+        
+        return test_suites
 
 
 def run_garnish_tests(
