@@ -99,10 +99,11 @@ def run_tests_with_stir(
             "Please install tofusoup to use the test command."
         )
     
-    # Build stir command
+    # Build stir command - ensure absolute path
+    test_dir_abs = test_dir.resolve()
     cmd = [
         "soup", "stir",
-        str(test_dir),
+        str(test_dir_abs),
         "--json"
     ]
     
@@ -114,13 +115,38 @@ def run_tests_with_stir(
     if plugin_cache_dir.exists():
         env["TF_PLUGIN_CACHE_DIR"] = str(plugin_cache_dir)
     
+    # Find a directory with pyproject.toml to run from
+    # First, check current directory
+    cwd = Path.cwd()
+    run_dir = cwd
+    
+    # Look for pyproject.toml in current or parent directories
+    if not (run_dir / "pyproject.toml").exists():
+        # Try looking up the directory tree
+        for parent in cwd.parents:
+            if (parent / "pyproject.toml").exists():
+                run_dir = parent
+                break
+        else:
+            # If not found, check if tofusoup is in a known location
+            tofusoup_dir = Path.home() / "code" / "gh" / "provide-io" / "tofusoup"
+            if tofusoup_dir.exists() and (tofusoup_dir / "pyproject.toml").exists():
+                run_dir = tofusoup_dir
+            else:
+                # As a last resort, create a minimal pyproject.toml in the test directory
+                pyproject_file = test_dir / "pyproject.toml"
+                if not pyproject_file.exists():
+                    pyproject_file.write_text('[project]\nname = "test"\nversion = "0.0.1"\n')
+                run_dir = test_dir
+    
     try:
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             check=False,  # Handle errors manually
-            env=env
+            env=env,
+            cwd=str(run_dir)  # Run from directory with pyproject.toml
         )
         
         if result.returncode != 0:
@@ -480,17 +506,17 @@ def _run_garnish_tests_old(
         console.print(
             f"\n[bold yellow]🚀 Running tests...[/bold yellow]\n"
         )
-        adapter = GarnishTestAdapter(output_dir=output_dir, fallback_to_simple=True)
-        # Use pre-discovered bundles instead of re-discovering
-        adapter._bundles = bundles
         
         # Try to run with stir
         try:
             stir_results = run_tests_with_stir(output_dir, parallel)
             results = parse_stir_results(stir_results, bundles)
-        except (RuntimeError, FileNotFoundError) as e:
             console.print(
-                f"[yellow]tofusoup not available ({e}), falling back to simple runner[/yellow]"
+                "[green]✅ Tests executed using tofusoup stir[/green]"
+            )
+        except (RuntimeError, FileNotFoundError, subprocess.CalledProcessError) as e:
+            console.print(
+                f"[yellow]tofusoup stir not available or failed, falling back to simple runner[/yellow]"
             )
             results = _run_simple_tests(output_dir)
 
