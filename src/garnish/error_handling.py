@@ -5,7 +5,6 @@
 
 import subprocess
 from pathlib import Path
-from typing import Optional
 
 from rich.console import Console
 
@@ -45,7 +44,7 @@ class ErrorReporter:
     def report_validation_error(
         component: str,
         errors: list[str],
-        warnings: Optional[list[str]] = None
+        warnings: list[str] | None = None
     ) -> None:
         """Report validation errors and warnings consistently."""
         console.print(f"[red]Validation failed for {component}[/red]")
@@ -56,14 +55,14 @@ class ErrorReporter:
                 console.print(f"  [yellow]⚠[/yellow] {warning}")
 
     @staticmethod
-    def report_warning(message: str, details: Optional[str] = None) -> None:
+    def report_warning(message: str, details: str | None = None) -> None:
         """Report warnings consistently."""
         console.print(f"[yellow]Warning: {message}[/yellow]")
         if details:
             console.print(f"[dim]{details}[/dim]")
 
     @staticmethod
-    def report_success(message: str, details: Optional[str] = None) -> None:
+    def report_success(message: str, details: str | None = None) -> None:
         """Report success messages consistently."""
         console.print(f"[green]✓ {message}[/green]")
         if details:
@@ -72,7 +71,7 @@ class ErrorReporter:
 
 def handle_subprocess_execution(
     cmd: list[str],
-    cwd: Optional[Path] = None,
+    cwd: Path | None = None,
     timeout: int = 120,
     context: str = "",
     capture_output: bool = True

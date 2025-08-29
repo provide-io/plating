@@ -3,7 +3,7 @@
 #
 """Type definitions for garnish."""
 
-from typing import TypedDict, Any, Optional
+from typing import TypedDict, Any
 
 
 class TestResult(TypedDict):
@@ -11,8 +11,8 @@ class TestResult(TypedDict):
     name: str
     status: str  # "passed", "failed", "skipped"
     duration: float
-    error: Optional[str]
-    output: Optional[str]
+    error: str | None
+    output: str | None
 
 
 class TestSuiteResult(TypedDict):
