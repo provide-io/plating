@@ -76,6 +76,9 @@
       "Bash(workenv/garnish_darwin_arm64/bin/python -m pip install:*)",
       "Bash(workenv/garnish_darwin_arm64/bin/bandit:*)",
       "Bash(git tag:*)",
+      "Read(/private/tmp/test-stir/**)",
+      "Bash(timeout 5 python -m tofusoup.stir /tmp/test-stir --json)",
+      "Bash(echo:*)",
       "Read(/private/tmp/test-stir/**)"
     ],
     "additionalDirectories": [
