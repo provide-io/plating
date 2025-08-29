@@ -476,11 +476,23 @@ def _run_garnish_tests_old(
             for tf_file in sorted(first_suite.glob("*.tf")):
                 console.print(f"  - {tf_file.name}")
 
-        # Run tests using simple runner
+        # Run tests using GarnishTestAdapter (delegates to stir if available)
         console.print(
             f"\n[bold yellow]🚀 Running tests...[/bold yellow]\n"
         )
-        results = _run_simple_tests(output_dir)
+        adapter = GarnishTestAdapter(output_dir=output_dir, fallback_to_simple=True)
+        # Use pre-discovered bundles instead of re-discovering
+        adapter._bundles = bundles
+        
+        # Try to run with stir
+        try:
+            stir_results = run_tests_with_stir(output_dir, parallel)
+            results = parse_stir_results(stir_results, bundles)
+        except (RuntimeError, FileNotFoundError) as e:
+            console.print(
+                f"[yellow]tofusoup not available ({e}), falling back to simple runner[/yellow]"
+            )
+            results = _run_simple_tests(output_dir)
 
         # Enrich results with bundle information
         results["bundles"] = {}
