@@ -10,11 +10,13 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+from typing import Optional, Any
 
 from rich.console import Console
 from rich.table import Table
 
 from garnish.garnish import GarnishBundle, GarnishDiscovery
+from garnish.types import TestResult, TestSuiteResult, StirResult
 
 console = Console()
 
@@ -667,8 +669,8 @@ def _extract_warnings_from_log(log_file: Path) -> list[dict[str, str]]:
                         )
                 except json.JSONDecodeError:
                     continue
-    except Exception:
-        pass
+    except Exception as e:
+        console.print(f"[yellow]Warning: Failed to parse log file: {e}[/yellow]")
     return warnings
 
 
