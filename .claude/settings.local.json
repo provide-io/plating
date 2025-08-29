@@ -65,7 +65,8 @@
       "Bash(TF_PLUGIN_CACHE_DIR=~/.terraform.d/plugin-cache soup stir test-output --json)",
       "Read(/Users/tim/.terraform.d/plugin-cache/**)",
       "Bash(soup stir:*)",
-      "Bash(soup:*)"
+      "Bash(soup:*)",
+      "Bash(uv tool install:*)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
