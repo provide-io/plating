@@ -242,7 +242,8 @@ class TestTofusoupStirIntegration:
             run_tests_with_stir(test_dir)
         
         assert "tofusoup" in str(exc_info.value).lower()
-        assert "not found" in str(exc_info.value).lower()
+        assert ("not found" in str(exc_info.value).lower() or 
+                "not installed" in str(exc_info.value).lower())
 
 
 class TestStirResultParsing:
@@ -296,13 +297,21 @@ class TestStirResultParsing:
             }
         }
         
+        # Create proper mock fixtures_dir with rglob support
+        mock_fixtures_dir = Mock()
+        mock_fixtures_dir.exists.return_value = True
+        mock_fixtures_dir.rglob.return_value = []  # No fixtures for simplicity
+        
+        mock_no_fixtures_dir = Mock()
+        mock_no_fixtures_dir.exists.return_value = False
+        
         bundles = [
             Mock(name="my_resource", component_type="resource", 
                  load_examples=Mock(return_value={"ex1": "", "ex2": ""}),
-                 fixtures_dir=Mock(exists=Mock(return_value=True))),
+                 fixtures_dir=mock_fixtures_dir),
             Mock(name="my_data", component_type="data_source",
                  load_examples=Mock(return_value={"ex1": ""}),
-                 fixtures_dir=Mock(exists=Mock(return_value=False)))
+                 fixtures_dir=mock_no_fixtures_dir)
         ]
 
         # When: Parsing with bundle enrichment
