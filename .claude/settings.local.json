@@ -62,7 +62,8 @@
       "Bash(tofu init:*)",
       "Bash(tofu apply:*)",
       "Read(/Users/tim/.terraform.d/**)",
-      "Bash(TF_PLUGIN_CACHE_DIR=~/.terraform.d/plugin-cache soup stir test-output --json)"
+      "Bash(TF_PLUGIN_CACHE_DIR=~/.terraform.d/plugin-cache soup stir test-output --json)",
+      "Read(/Users/tim/.terraform.d/plugin-cache/**)"
     ],
     "additionalDirectories": [
       "/Users/tim/code/gh/provide-io"
