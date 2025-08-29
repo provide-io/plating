@@ -5,7 +5,7 @@
 
 import os
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any
 
 import attrs
 
@@ -107,7 +107,7 @@ class GarnishConfig:
 
 
 # Global configuration instance
-_config: Optional[GarnishConfig] = None
+_config: GarnishConfig | None = None
 
 
 def get_config() -> GarnishConfig:

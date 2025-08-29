@@ -10,7 +10,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
-from typing import Optional, Any
+from typing import Any
 
 from rich.console import Console
 from rich.table import Table
