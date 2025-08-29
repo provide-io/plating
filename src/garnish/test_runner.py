@@ -14,6 +14,8 @@ import tempfile
 from rich.console import Console
 from rich.table import Table
 
+from typing import Any
+
 from garnish.config import get_config
 from garnish.garnish import GarnishBundle, GarnishDiscovery
 
@@ -83,7 +85,7 @@ def prepare_test_suites_for_stir(
     return test_suites
 
 
-def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, any]:
+def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
     """Run tests using tofusoup stir command.
 
     Args:
@@ -181,7 +183,7 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, any]:
 
 def parse_stir_results(
     stir_output: dict[str, any], bundles: list[GarnishBundle] = None
-) -> dict[str, any]:
+) -> dict[str, Any]:
     """Parse and enrich stir results with garnish bundle information.
 
     Args:
@@ -262,7 +264,7 @@ class GarnishTestAdapter:
         parallel: int = 4,
         output_file: Path = None,
         output_format: str = "json",
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """Run garnish tests using stir.
 
         Args:
@@ -394,7 +396,7 @@ def run_garnish_tests(
     output_dir: Path | None = None,
     output_file: Path | None = None,
     output_format: str = "json",
-) -> dict[str, any]:
+) -> dict[str, Any]:
     """Run all garnish example files as Terraform tests.
 
     This is a compatibility wrapper that uses GarnishTestAdapter.
@@ -506,7 +508,7 @@ provider "pyvider" {
 """
 
 
-def _run_simple_tests(test_dir: Path) -> dict[str, any]:
+def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
     """Run simple terraform tests without stir.
 
     Note: This is a simplified version without parallel execution or rich UI.
