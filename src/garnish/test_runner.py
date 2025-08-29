@@ -31,6 +31,12 @@ def _get_terraform_version() -> tuple[str, str]:
     Returns:
         Tuple of (binary_name, version_string)
     """
+    global _terraform_version_cache
+    
+    # Return cached version if available
+    if _terraform_version_cache is not None:
+        return _terraform_version_cache
+    
     # Check which binary is available
     tf_binary = shutil.which("tofu") or shutil.which("terraform") or "terraform"
     binary_name = "OpenTofu" if "tofu" in tf_binary else "Terraform"
@@ -47,7 +53,8 @@ def _get_terraform_version() -> tuple[str, str]:
     except Exception:
         version_string = "Unable to determine version"
 
-    return binary_name, version_string
+    _terraform_version_cache = (binary_name, version_string)
+    return _terraform_version_cache
 
 
 def prepare_test_suites_for_stir(
