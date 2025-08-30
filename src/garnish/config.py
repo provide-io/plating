@@ -13,7 +13,7 @@ import attrs
 @attrs.define
 class GarnishConfig:
     """Configuration for garnish operations."""
-    
+
     # Terraform/OpenTofu configuration
     terraform_binary: str = attrs.field(
         default=None,
@@ -23,7 +23,7 @@ class GarnishConfig:
         default=None,
         metadata={"help": "Terraform plugin cache directory"}
     )
-    
+
     # Test execution configuration
     test_timeout: int = attrs.field(
         default=120,
@@ -33,13 +33,13 @@ class GarnishConfig:
         default=4,
         metadata={"help": "Number of parallel test executions"}
     )
-    
+
     # Output configuration
     output_dir: Path = attrs.field(
         default=Path("./docs"),
         metadata={"help": "Default output directory for documentation"}
     )
-    
+
     # Component directories
     resources_dir: Path = attrs.field(
         default=Path("./resources"),
@@ -53,27 +53,27 @@ class GarnishConfig:
         default=Path("./functions"),
         metadata={"help": "Directory containing function definitions"}
     )
-    
+
     def __attrs_post_init__(self) -> None:
         """Initialize derived configuration values."""
         # Auto-detect terraform binary if not specified
         if self.terraform_binary is None:
             import shutil
             self.terraform_binary = (
-                shutil.which("tofu") or 
-                shutil.which("terraform") or 
+                shutil.which("tofu") or
+                shutil.which("terraform") or
                 "terraform"
             )
-        
+
         # Set default plugin cache directory
         if self.plugin_cache_dir is None:
             self.plugin_cache_dir = Path.home() / ".terraform.d" / "plugin-cache"
-    
+
     @classmethod
     def from_env(cls) -> "GarnishConfig":
         """Create configuration from environment variables."""
         config_dict: dict[str, Any] = {}
-        
+
         # Map environment variables to config fields
         env_mapping = {
             "GARNISH_TF_BINARY": "terraform_binary",
@@ -82,7 +82,7 @@ class GarnishConfig:
             "GARNISH_TEST_PARALLEL": "test_parallel",
             "GARNISH_OUTPUT_DIR": "output_dir",
         }
-        
+
         for env_var, field_name in env_mapping.items():
             value = os.environ.get(env_var)
             if value is not None:
@@ -93,16 +93,16 @@ class GarnishConfig:
                     config_dict[field_name] = int(value)
                 else:
                     config_dict[field_name] = value
-        
+
         return cls(**config_dict)
-    
+
     def get_terraform_env(self) -> dict[str, str]:
         """Get environment variables for terraform execution."""
         env = os.environ.copy()
-        
+
         if self.plugin_cache_dir and self.plugin_cache_dir.exists():
             env["TF_PLUGIN_CACHE_DIR"] = str(self.plugin_cache_dir)
-        
+
         return env
 
 
