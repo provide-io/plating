@@ -4,15 +4,14 @@
 """Core dresser implementation."""
 
 import asyncio
-from pathlib import Path
 
 from pyvider.hub import ComponentDiscovery, hub
 from pyvider.telemetry import logger
 
+from garnish.dresser.finder import ComponentFinder
+from garnish.dresser.templates import TemplateGenerator
 from garnish.errors import DressingError, handle_error
 from garnish.garnish import GarnishDiscovery
-from garnish.dresser.templates import TemplateGenerator
-from garnish.dresser.finder import ComponentFinder
 
 
 class GarnishDresser:
@@ -23,9 +22,7 @@ class GarnishDresser:
         self.template_generator = TemplateGenerator()
         self.component_finder = ComponentFinder()
 
-    async def dress_missing(
-        self, component_types: list[str] = None
-    ) -> dict[str, int]:
+    async def dress_missing(self, component_types: list[str] = None) -> dict[str, int]:
         """
         Dress components with missing .garnish directories.
 
@@ -83,8 +80,10 @@ class GarnishDresser:
             try:
                 await asyncio.to_thread(docs_dir.mkdir, parents=True, exist_ok=True)
                 await asyncio.to_thread(examples_dir.mkdir, parents=True, exist_ok=True)
-            except (OSError, IOError) as e:
-                raise DressingError(name, component_type, f"Failed to create directories: {e}")
+            except OSError as e:
+                raise DressingError(
+                    name, component_type, f"Failed to create directories: {e}"
+                )
 
             # Generate and write template
             template_content = await self.template_generator.generate_template(
