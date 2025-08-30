@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from garnish.garnish import GarnishDiscovery
 from garnish.plater import GarnishPlater
 
@@ -20,7 +21,7 @@ resource_docs = list((output_dir / "resources").glob("*.md"))
 data_docs = list((output_dir / "data-sources").glob("*.md"))
 function_docs = list((output_dir / "functions").glob("*.md"))
 
-print(f"Generated:")
+print("Generated:")
 print(f"  - {len(resource_docs)} resource docs")
 print(f"  - {len(data_docs)} data source docs")
 print(f"  - {len(function_docs)} function docs")

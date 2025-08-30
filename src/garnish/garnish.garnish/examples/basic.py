@@ -1,11 +1,12 @@
 from pathlib import Path
+
 from garnish.garnish import GarnishBundle
 
 # Create a bundle for a resource component
 bundle = GarnishBundle(
     name="s3_bucket",
     garnish_dir=Path("./resources/s3_bucket.garnish"),
-    component_type="resource"
+    component_type="resource",
 )
 
 # Access bundle properties
