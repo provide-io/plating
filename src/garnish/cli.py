@@ -7,7 +7,7 @@
 from pathlib import Path
 
 import click
-from pyvider.telemetry import logger
+from provide.foundation import logger
 
 from garnish.dresser import dress_components
 from garnish.errors import GarnishError, handle_error
