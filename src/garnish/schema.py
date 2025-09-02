@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 import attrs
 from pyvider.hub import ComponentDiscovery, hub
-from pyvider.telemetry import logger
+from provide.foundation import logger
 
 from garnish.errors import SchemaError
 from garnish.models import FunctionInfo, ProviderInfo, ResourceInfo
