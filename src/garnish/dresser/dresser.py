@@ -6,7 +6,7 @@
 import asyncio
 
 from pyvider.hub import ComponentDiscovery, hub
-from pyvider.telemetry import logger
+from provide.foundation import logger
 
 from garnish.dresser.finder import ComponentFinder
 from garnish.dresser.templates import TemplateGenerator

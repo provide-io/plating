@@ -6,7 +6,7 @@
 from pathlib import Path
 
 from jinja2 import DictLoader, Environment, select_autoescape
-from pyvider.telemetry import logger
+from provide.foundation import logger
 
 from garnish.errors import PlatingError, TemplateError, handle_error
 from garnish.garnish import GarnishBundle, GarnishDiscovery
