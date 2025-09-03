@@ -4,9 +4,10 @@ Custom error types for garnish.
 
 from pathlib import Path
 from typing import Any
+from provide.foundation.errors import FoundationError
 
 
-class GarnishError(Exception):
+class GarnishError(FoundationError):
     """Base error for all garnish-related errors."""
 
     pass
