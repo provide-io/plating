@@ -77,6 +77,33 @@ class GarnishConfig(BaseConfig):
         if self.plugin_cache_dir is None:
             self.plugin_cache_dir = Path.home() / ".terraform.d" / "plugin-cache"
 
+    @classmethod
+    def from_env(cls) -> "GarnishConfig":
+        """Create configuration from environment variables."""
+        # Create an instance with defaults
+        config = cls()
+        
+        # Load environment overrides using the field metadata
+        env_updates = {}
+        for field_info in attrs.fields(cls):
+            env_var = field_info.metadata.get("env_var")
+            if env_var and env_var in os.environ:
+                value = os.environ[env_var]
+                
+                # Type conversion based on field type
+                field_type = field_info.type
+                if field_type == Path or field_type == Path | None:
+                    env_updates[field_info.name] = Path(value)
+                elif field_type == int or field_type == int | None:
+                    env_updates[field_info.name] = int(value)
+                else:
+                    env_updates[field_info.name] = value
+        
+        # Apply updates
+        if env_updates:
+            config = attrs.evolve(config, **env_updates)
+        
+        return config
 
     def get_terraform_env(self) -> dict[str, str]:
         """Get environment variables for terraform execution."""
