@@ -8,11 +8,11 @@ from pathlib import Path
 from typing import Any
 
 import attrs
-from provide.foundation.config import EnvConfig, field
+from provide.foundation.config import RuntimeConfig, field
 
 
 @attrs.define
-class GarnishConfig(EnvConfig):
+class GarnishConfig(RuntimeConfig):
     """Configuration for garnish operations."""
 
     # Terraform/OpenTofu configuration
