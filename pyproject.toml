@@ -50,11 +50,11 @@ package = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["garnish*"]
+namespaces = false
 
 [tool.setuptools.dynamic]
 version = {file = "VERSION"}
-include = ["garnish*"]
-namespaces = false
 
 [tool.pytest.ini_options]
 log_cli = true
