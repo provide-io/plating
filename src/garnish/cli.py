@@ -7,7 +7,7 @@
 from pathlib import Path
 
 import click
-from provide.foundation import logger
+from provide.foundation import logger, pout, perr
 
 from garnish.dresser import dress_components
 from garnish.errors import GarnishError, handle_error
@@ -30,19 +30,19 @@ def main() -> None:
 def dress_command(component_type: tuple[str, ...]) -> None:
     """Dress components with missing .garnish directories."""
     try:
-        print("👗 Dressing components with .garnish directories...")
+        pout("👗 Dressing components with .garnish directories...")
 
         component_types = list(component_type) if component_type else None
         results = dress_components(component_types)
 
         total = sum(results.values())
         if total > 0:
-            print(f"✅ Dressed {total} components:")
+            pout(f"✅ Dressed {total} components:")
             for comp_type, count in results.items():
                 if count > 0:
-                    print(f"  - {count} {comp_type}{'s' if count != 1 else ''}")
+                    pout(f"  - {count} {comp_type}{'s' if count != 1 else ''}")
         else:
-            print("ℹ️ No missing .garnish directories found")
+            pout("ℹ️ No missing .garnish directories found")
 
         click.secho("✅ Dressing completed successfully!", fg="green")
 
@@ -103,7 +103,7 @@ def plate_command(
             )
             raise click.Abort()
 
-        print("🍽️ Plating documentation...")
+        pout("🍽️ Plating documentation...")
         generate_docs(output_dir=output_dir)
         click.secho("✅ Documentation plated successfully!", fg="green")
 
@@ -263,34 +263,34 @@ def test_command(
         skipped = results.get("skipped", 0)
 
         if total_tests == 0:
-            print("ℹ️ No garnish examples found to test")
+            pout("ℹ️ No garnish examples found to test")
             return
 
-        print("\n📊 Test Results:")
-        print(f"  Total: {total_tests}")
-        print(f"  ✅ Passed: {passed}")
+        pout("\n📊 Test Results:")
+        pout(f"  Total: {total_tests}")
+        pout(f"  ✅ Passed: {passed}")
         if failed > 0:
-            print(f"  ❌ Failed: {failed}")
+            pout(f"  ❌ Failed: {failed}")
         if warnings > 0:
-            print(f"  ⚠️  Warnings: {warnings}")
+            pout(f"  ⚠️  Warnings: {warnings}")
         if skipped > 0:
-            print(f"  ⏭️  Skipped: {skipped}")
+            pout(f"  ⏭️  Skipped: {skipped}")
 
         # Show warnings if any
         if warnings > 0:
-            print("\n⚠️  Tests with warnings:")
+            pout("\n⚠️  Tests with warnings:")
             for test_name, details in results.get("test_details", {}).items():
                 if details.get("warnings"):
-                    print(f"  - {test_name} ({len(details['warnings'])} warnings)")
+                    pout(f"  - {test_name} ({len(details['warnings'])} warnings)")
                     for warning in details["warnings"][:2]:  # Show first 2 warnings
-                        print(f"    • {warning['message']}")
+                        pout(f"    • {warning['message']}")
                     if len(details["warnings"]) > 2:
-                        print(f"    • ... and {len(details['warnings']) - 2} more")
+                        pout(f"    • ... and {len(details['warnings']) - 2} more")
 
         if failed > 0:
-            print("\n❌ Failed tests:")
+            pout("\n❌ Failed tests:")
             for test_name, error in results["failures"].items():
-                print(f"  - {test_name}: {error}")
+                pout(f"  - {test_name}: {error}")
             click.secho("\n❌ Some tests failed!", fg="red", err=True)
             raise click.Abort()
         else:
