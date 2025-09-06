@@ -16,6 +16,9 @@ from rich.table import Table
 
 from typing import Any
 
+from provide.foundation import logger, pout, perr
+from provide.foundation.process import run_command, ProcessError
+
 from garnish.config import get_config
 from garnish.garnish import GarnishBundle, GarnishDiscovery
 
@@ -43,15 +46,15 @@ def _get_terraform_version() -> tuple[str, str]:
     binary_name = "OpenTofu" if "tofu" in tf_binary else "Terraform"
 
     try:
-        result = subprocess.run(
-            [tf_binary, "-version"], capture_output=True, text=True, timeout=5
+        result = run_command(
+            [tf_binary, "-version"], capture_output=True, timeout=5
         )
         version_lines = result.stdout.strip().split("\n")
         if version_lines:
             version_string = version_lines[0]
         else:
             version_string = "Unknown version"
-    except Exception:
+    except ProcessError:
         version_string = "Unable to determine version"
 
     _terraform_version_cache = (binary_name, version_string)
@@ -139,46 +142,32 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
                 run_dir = test_dir
 
     try:
-        result = subprocess.run(
+        result = run_command(
             cmd,
             capture_output=True,
-            text=True,
-            check=False,  # Handle errors manually
             env=env,
             cwd=str(run_dir),  # Run from directory with pyproject.toml
         )
-
-        if result.returncode != 0:
-            # Check if this is the pyproject.toml error
-            error_msg = result.stderr or result.stdout or "Unknown error"
-            if "pyproject.toml" in error_msg:
-                # This is a known issue with soup tool install - raise RuntimeError to trigger fallback
-                raise RuntimeError(
-                    "soup stir requires pyproject.toml context. "
-                    "Falling back to simple runner."
-                )
-            # For other errors, raise the subprocess error
-            raise subprocess.CalledProcessError(
-                result.returncode, cmd, output=result.stdout, stderr=error_msg
-            )
-
-        # Parse JSON output
-        if result.stdout:
-            return json.loads(result.stdout)
-        else:
-            return {"total": 0, "passed": 0, "failed": 0, "test_details": {}}
-
-    except subprocess.CalledProcessError as e:
-        # Re-raise with error details
+    except ProcessError as e:
+        # Check if this is the pyproject.toml error
         error_msg = e.stderr or e.stdout or "Unknown error"
-        raise subprocess.CalledProcessError(
-            e.returncode, e.cmd, output=e.stdout, stderr=error_msg
-        )
-    except FileNotFoundError:
-        raise RuntimeError(
-            "tofusoup is not installed or not in PATH. "
-            "Please install tofusoup to use the test command."
-        )
+        if "pyproject.toml" in error_msg:
+            # This is a known issue with soup tool install - raise RuntimeError to trigger fallback
+            raise RuntimeError(
+                "soup stir requires pyproject.toml context. "
+                "Falling back to simple runner."
+            ) from e
+        
+        # For other process errors, log and re-raise
+        logger.error("TofuSoup stir execution failed", command=e.cmd, returncode=e.returncode,
+                    stdout=e.stdout, stderr=e.stderr)
+        raise RuntimeError(f"Failed to run tofusoup stir: {e}") from e
+
+    # Parse JSON output
+    if result.stdout:
+        return json.loads(result.stdout)
+    else:
+        return {"total": 0, "passed": 0, "failed": 0, "test_details": {}}
 
 
 def parse_stir_results(
@@ -562,40 +551,32 @@ def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
 
         try:
             # Run terraform init
-            init_result = subprocess.run(
-                [tf_binary, "init"],
-                cwd=suite_dir,
-                capture_output=True,
-                text=True,
-                timeout=60,
-                env=config.get_terraform_env(),
-            )
-
-            if init_result.returncode != 0:
-                raise subprocess.CalledProcessError(
-                    init_result.returncode,
-                    init_result.args,
-                    init_result.stdout,
-                    init_result.stderr,
+            try:
+                init_result = run_command(
+                    [tf_binary, "init"],
+                    cwd=suite_dir,
+                    capture_output=True,
+                    timeout=60,
+                    env=config.get_terraform_env(),
                 )
+            except ProcessError as e:
+                logger.error("Terraform init failed", command=e.cmd, returncode=e.returncode,
+                           stdout=e.stdout, stderr=e.stderr, suite=suite_dir.name)
+                raise
 
             # Run terraform apply
-            apply_result = subprocess.run(
-                [tf_binary, "apply", "-auto-approve"],
-                cwd=suite_dir,
-                capture_output=True,
-                text=True,
-                timeout=config.test_timeout,
-                env=config.get_terraform_env(),
-            )
-
-            if apply_result.returncode != 0:
-                raise subprocess.CalledProcessError(
-                    apply_result.returncode,
-                    apply_result.args,
-                    apply_result.stdout,
-                    apply_result.stderr,
+            try:
+                apply_result = run_command(
+                    [tf_binary, "apply", "-auto-approve"],
+                    cwd=suite_dir,
+                    capture_output=True,
+                    timeout=config.test_timeout,
+                    env=config.get_terraform_env(),
                 )
+            except ProcessError as e:
+                logger.error("Terraform apply failed", command=e.cmd, returncode=e.returncode,
+                           stdout=e.stdout, stderr=e.stderr, suite=suite_dir.name)
+                raise
 
             # Parse output for resource counts
             output = apply_result.stdout

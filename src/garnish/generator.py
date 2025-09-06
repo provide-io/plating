@@ -5,6 +5,8 @@
 
 from pathlib import Path
 
+from provide.foundation import pout
+
 from garnish.garnish import GarnishDiscovery
 from garnish.models import FunctionInfo, ProviderInfo, ResourceInfo
 from garnish.schema import SchemaProcessor
@@ -130,28 +132,28 @@ class DocsGenerator:
 
     def generate(self):
         """Generate documentation for the provider."""
-        print(f"🔍 Generating documentation for {self.provider_name} provider...")
+        pout(f"🔍 Generating documentation for {self.provider_name} provider...")
 
         # Extract provider schema
-        print("📋 Extracting provider schema...")
+        pout("📋 Extracting provider schema...")
         self.provider_schema = self.schema_processor.extract_provider_schema()
 
         # Parse schema into our internal structures
         self.schema_processor.parse_provider_schema()
 
         # Process examples
-        print("📁 Processing examples...")
+        pout("📁 Processing examples...")
         self.process_examples()
 
         # Generate missing templates
-        print("📄 Generating missing templates...")
+        pout("📄 Generating missing templates...")
         self.template_processor.generate_missing_templates()
 
         # Render templates
-        print("🎨 Rendering templates...")
+        pout("🎨 Rendering templates...")
         self.template_processor.render_templates()
 
-        print(f"✅ Documentation generated successfully in {self.output_dir}")
+        pout(f"✅ Documentation generated successfully in {self.output_dir}")
 
 
 def generate_docs(

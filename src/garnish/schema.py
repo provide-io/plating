@@ -11,8 +11,10 @@ from typing import TYPE_CHECKING, Any
 
 import attrs
 from pyvider.hub import ComponentDiscovery, hub
-from provide.foundation import logger
+from provide.foundation import logger, pout, perr
+from provide.foundation.process import run_command, ProcessError
 
+from garnish.config import get_config
 from garnish.errors import SchemaError
 from garnish.models import FunctionInfo, ProviderInfo, ResourceInfo
 
@@ -35,7 +37,7 @@ class SchemaProcessor:
     async def _extract_schema_via_discovery(self) -> dict[str, Any]:
         """Extract schema by discovering components and inspecting their schemas."""
         logger.info("Discovering components via Pyvider hub...")
-        print("🔍 Discovering components via Pyvider hub...")
+        pout("🔍 Discovering components via Pyvider hub...")
 
         try:
             discovery = ComponentDiscovery(hub)
@@ -106,21 +108,21 @@ class SchemaProcessor:
 
     def _extract_schema_via_terraform(self) -> dict[str, Any]:
         """Fallback: Extract schema by building provider and using Terraform CLI."""
+        config = get_config()
+        tf_binary = config.terraform_binary or "terraform"
+        
         # Build the provider binary
-        print(f"Building provider in {self.generator.provider_dir}")
-        build_result = subprocess.run(
-            ["python", "-m", "build"],
-            cwd=self.generator.provider_dir,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if build_result.returncode != 0:
-            print("---STDOUT---")
-            print(build_result.stdout)
-            print("---STDERR---")
-            print(build_result.stderr)
-            build_result.check_returncode()
+        pout(f"Building provider in {self.generator.provider_dir}")
+        try:
+            build_result = run_command(
+                ["python", "-m", "build"],
+                cwd=self.generator.provider_dir,
+                capture_output=True,
+            )
+        except ProcessError as e:
+            logger.error("Provider build failed", command=e.cmd, returncode=e.returncode, 
+                        stdout=e.stdout, stderr=e.stderr)
+            raise SchemaError(f"Failed to build provider: {e}")
 
         # Find the built provider binary
         provider_binary = self._find_provider_binary()
@@ -147,22 +149,28 @@ provider "{self.generator.provider_name}" {{}}
             tf_file.write_text(tf_config)
 
             # Initialize Terraform
-            subprocess.run(
-                ["terraform", "init"],
-                cwd=temp_dir,
-                capture_output=True,
-                text=True,
-                check=True,
-            )
+            try:
+                run_command(
+                    [tf_binary, "init"],
+                    cwd=temp_dir,
+                    capture_output=True,
+                )
+            except ProcessError as e:
+                logger.error("Terraform init failed", command=e.cmd, returncode=e.returncode,
+                           stdout=e.stdout, stderr=e.stderr)
+                raise SchemaError(f"Failed to initialize Terraform: {e}")
 
             # Extract schema
-            schema_result = subprocess.run(
-                ["terraform", "providers", "schema", "-json"],
-                cwd=temp_dir,
-                capture_output=True,
-                text=True,
-                check=True,
-            )
+            try:
+                schema_result = run_command(
+                    [tf_binary, "providers", "schema", "-json"],
+                    cwd=temp_dir,
+                    capture_output=True,
+                )
+            except ProcessError as e:
+                logger.error("Schema extraction failed", command=e.cmd, returncode=e.returncode,
+                           stdout=e.stdout, stderr=e.stderr)
+                raise SchemaError(f"Failed to extract provider schema: {e}")
 
             schema_data = json.loads(schema_result.stdout)
             return schema_data

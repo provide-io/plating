@@ -6,6 +6,7 @@
 from typing import TYPE_CHECKING
 
 from jinja2 import DictLoader, Environment, select_autoescape
+from provide.foundation import pout
 
 if TYPE_CHECKING:
     from .garnish import GarnishBundle
@@ -25,7 +26,7 @@ class TemplateProcessor:
         This method is kept for compatibility but .garnish directories should contain
         all necessary templates and are discovered automatically.
         """
-        print("📄 Using .garnish bundles for templates (no template generation needed)")
+        pout("📄 Using .garnish bundles for templates (no template generation needed)")
 
     def render_templates(self):
         """Render all templates using garnish bundles to generate documentation."""
@@ -106,7 +107,7 @@ provider "{{ provider.short_name }}" {
         # Load template and assets from bundle
         template_content = bundle.load_main_template()
         if not template_content:
-            print(f"⚠️ No main template found for {bundle.name}")
+            pout(f"⚠️ No main template found for {bundle.name}")
             return
 
         examples = bundle.load_examples()
@@ -115,7 +116,7 @@ provider "{{ provider.short_name }}" {
         # Get component info from generator
         component_info = self._get_component_info(bundle)
         if not component_info:
-            print(f"⚠️ No component info found for {bundle.name}")
+            pout(f"⚠️ No component info found for {bundle.name}")
             return
 
         # Set up Jinja2 environment with custom functions

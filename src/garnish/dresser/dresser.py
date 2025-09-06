@@ -6,7 +6,7 @@
 import asyncio
 
 from pyvider.hub import ComponentDiscovery, hub
-from provide.foundation import logger
+from provide.foundation import logger, pout, perr
 
 from garnish.dresser.finder import ComponentFinder
 from garnish.dresser.templates import TemplateGenerator
@@ -68,7 +68,7 @@ class GarnishDresser:
             source_file = await self.component_finder.find_source(component_class)
             if not source_file:
                 logger.warning(f"Could not find source file for {name}")
-                print(f"⚠️ Could not find source file for {name}")
+                pout(f"⚠️ Could not find source file for {name}")
                 return False
 
             # Create .garnish directory structure
@@ -100,7 +100,7 @@ class GarnishDresser:
             await asyncio.to_thread(example_file.write_text, example_content)
 
             logger.info(f"Successfully dressed {component_type}: {name}")
-            print(f"✅ Dressed {component_type}: {name}")
+            pout(f"✅ Dressed {component_type}: {name}")
             return True
 
         except DressingError:
@@ -108,7 +108,7 @@ class GarnishDresser:
         except Exception as e:
             error = DressingError(name, component_type, str(e))
             handle_error(error, logger)
-            print(f"❌ Failed to dress {name}: {e}")
+            perr(f"❌ Failed to dress {name}: {e}")
             return False
 
 
