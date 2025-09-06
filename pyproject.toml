@@ -28,7 +28,6 @@ dependencies = [
     "jinja2>=3.1.6",
     "rich>=13.0.0",
     "pyvider>=0.0.0.post0",
-    "pyvider-telemetry>=0.0.13",
     "pyvider-cty>=0.0.111",
     "pyvider-hcl>=0.0.113",
 ]
