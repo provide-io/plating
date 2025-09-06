@@ -1,6 +1,6 @@
 [project]
 name = "garnish"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Documentation generation system for Terraform/OpenTofu providers"
 requires-python = ">=3.11"
 readme = "README.md"
@@ -50,6 +50,9 @@ package = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
 include = ["garnish*"]
 namespaces = false
 
