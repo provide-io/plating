@@ -7,11 +7,11 @@ import os
 from pathlib import Path
 from typing import Any
 
-import attrs
+from attrs import define
 from provide.foundation.config import RuntimeConfig, field
 
 
-@attrs.define
+@define
 class GarnishConfig(RuntimeConfig):
     """Configuration for garnish operations."""
 
