@@ -1,24 +1,25 @@
 #
-# plating/test_runner/__init__.py
+# plating/validator/__init__.py
 #
-"""Test runner module for plating example files."""
+"""Validator module for plating example validation."""
 
-from .adapters import PlatingTestAdapter, parse_stir_results, run_tests_with_stir
-from .core import TestResult, run_tests
-from .reporters import generate_report
-from .suite_builder import prepare_bundles_summary, prepare_test_suites_for_stir
-from .utils import get_terraform_version
+from plating.validator.adapters import PlatingValidator, parse_validation_results, run_validation_with_stir
+from plating.validator.core import run_validation
+from plating.validator.reporters import generate_report
+from plating.validator.suite_builder import prepare_bundles_summary, prepare_validation_suites
+from plating.validator.utils import get_terraform_version
+from plating.results import ValidationResult
 
 __all__ = [
     # Main classes
-    "PlatingTestAdapter",
-    "TestResult",
+    "PlatingValidator",
+    "ValidationResult",
     # Core functions
-    "run_tests",
-    "run_tests_with_stir",
-    "parse_stir_results",
+    "run_validation",
+    "run_validation_with_stir",
+    "parse_validation_results",
     # Suite preparation
-    "prepare_test_suites_for_stir", 
+    "prepare_validation_suites", 
     "prepare_bundles_summary",
     # Reporting
     "generate_report",
@@ -26,4 +27,4 @@ __all__ = [
     "get_terraform_version",
 ]
 
-# 🧪📦🎯
+# 🔍✅📊
