@@ -3,10 +3,8 @@
 #
 """Clean functionality for removing generated documentation."""
 
-import os
 import shutil
 from pathlib import Path
-from typing import Any
 
 from rich.console import Console
 

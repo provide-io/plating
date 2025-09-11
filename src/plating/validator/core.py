@@ -12,7 +12,6 @@ from provide.foundation import logger, pout
 from provide.foundation.process import ProcessError, run_command
 
 from plating.config import get_config
-from plating.plating import PlatingDiscovery
 from plating.results import ValidationResult
 
 
@@ -38,7 +37,6 @@ def run_validation(
     
     # Dogfood our own adapters and reporters
     from plating.validator.adapters import PlatingValidator
-    from plating.validator.reporters import generate_report
 
     adapter = PlatingValidator(fallback_to_simple=True)
     results_dict = adapter.run_validation(
