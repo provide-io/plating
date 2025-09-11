@@ -150,7 +150,7 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
         )
     except ProcessError as e:
         # Check if this is the pyproject.toml error
-        error_msg = e.stderr or e.stdout or "Unknown error"
+        error_msg = getattr(e, 'stderr', '') or getattr(e, 'stdout', '') or str(e)
         if "pyproject.toml" in error_msg:
             # This is a known issue with soup tool install - raise RuntimeError to trigger fallback
             raise RuntimeError(
