@@ -330,7 +330,7 @@ class TestComponentFinder:
 class TestDresserAPI:
     """Test the public API functions."""
 
-    @patch('garnish.dresser.api.PlatingDresser')
+    @patch('plating.dresser.api.PlatingDresser')
     @pytest.mark.asyncio
     async def test_dress_missing_components_async(self, MockDresser):
         """Test async dress_missing_components function."""
@@ -343,7 +343,7 @@ class TestDresserAPI:
         mock_dresser.dress_missing.assert_called_once_with(["resource"])
         assert result == {"resource": 2}
 
-    @patch('garnish.dresser.api.asyncio.run')
+    @patch('plating.dresser.api.asyncio.run')
     def test_dress_components_sync(self, mock_run):
         """Test sync dress_components function."""
         mock_run.return_value = {"resource": 3}

@@ -89,18 +89,18 @@ class PlatingConfig(RuntimeConfig):
 
 
 # Global configuration instance
-_config: GarnishConfig | None = None
+_config: PlatingConfig | None = None
 
 
-def get_config() -> GarnishConfig:
+def get_config() -> PlatingConfig:
     """Get the global configuration instance."""
     global _config
     if _config is None:
-        _config = GarnishConfig.from_env()
+        _config = PlatingConfig.from_env()
     return _config
 
 
-def set_config(config: GarnishConfig) -> None:
+def set_config(config: PlatingConfig) -> None:
     """Set the global configuration instance."""
     global _config
     _config = config

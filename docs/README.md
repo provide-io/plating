@@ -49,7 +49,7 @@ Options:
 
 Commands:
   cty      Utilities for CTY data.
-  garnish  Manage component asset bundles (docs, examples, tests).
+  plating  Manage component asset bundles (docs, examples, tests).
   harness  Build and manage language-specific CLI implementations.
   hcl      Utilities for HCL file processing.
   stir     Run parallel Terraform integration tests.
@@ -81,7 +81,7 @@ Options:
 
 Commands:
   cty      Utilities for CTY data.
-  garnish  Manage component asset bundles (docs, examples, tests).
+  plating  Manage component asset bundles (docs, examples, tests).
   harness  Build and manage language-specific CLI implementations.
   hcl      Utilities for HCL file processing.
   stir     Run parallel Terraform integration tests.
@@ -118,7 +118,7 @@ Options:
 
 Commands:
   cty      Utilities for CTY data.
-  garnish  Manage component asset bundles (docs, examples, tests).
+  plating  Manage component asset bundles (docs, examples, tests).
   harness  Build and manage language-specific CLI implementations.
   hcl      Utilities for HCL file processing.
   stir     Run parallel Terraform integration tests.
@@ -150,7 +150,7 @@ Options:
 
 Commands:
   cty      Utilities for CTY data.
-  garnish  Manage component asset bundles (docs, examples, tests).
+  plating  Manage component asset bundles (docs, examples, tests).
   harness  Build and manage language-specific CLI implementations.
   hcl      Utilities for HCL file processing.
   stir     Run parallel Terraform integration tests.
@@ -159,19 +159,19 @@ Commands:
 ```
 ---
 
-### 📄 `soup garnish`
+### 📄 `soup plating`
 
-Manages **Component Asset Bundles** (`.garnish/`), which co-locate documentation, examples, and tests with component source code.
+Manages **Component Asset Bundles** (`.plating/`), which co-locate documentation, examples, and tests with component source code.
 
 ```ascii
-[component.py] + [*.garnish/] ────► soup garnish render ────► [docs.md]
+[component.py] + [*.plating/] ────► soup plating render ────► [docs.md]
                                 │
-                                └─► soup garnish test ──────► [Test Results]
+                                └─► soup plating test ──────► [Test Results]
 ```
 
 This powerful system allows you to `scaffold` new bundles, `render` Terraform Registry-compliant documentation, and `test` the component using its co-located conformance tests.
 
-*See the [Authoring Garnish Bundles Guide](./guides/04-authoring-garnish-bundles.md) for more details.*
+*See the [Authoring Plating Bundles Guide](./guides/04-authoring-plating-bundles.md) for more details.*
 
 ---
 ```
@@ -182,7 +182,7 @@ Options:
 
 Commands:
   cty      Utilities for CTY data.
-  garnish  Manage component asset bundles (docs, examples, tests).
+  plating  Manage component asset bundles (docs, examples, tests).
   harness  Build and manage language-specific CLI implementations.
   hcl      Utilities for HCL file processing.
   stir     Run parallel Terraform integration tests.

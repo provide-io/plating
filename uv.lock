@@ -255,7 +255,7 @@ wheels = [
 ]
 
 [[package]]
-name = "garnish"
+name = "plating"
 source = { editable = "." }
 dependencies = [
     { name = "jinja2" },

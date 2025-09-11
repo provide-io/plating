@@ -8,18 +8,18 @@ from unittest.mock import patch, MagicMock
 from plating.cli import main
 
 
-class TestGarnishCli:
-    """Tests for the garnish CLI."""
+class TestPlatingCli:
+    """Tests for the plating CLI."""
 
     @pytest.fixture
     def runner(self) -> CliRunner:
         return CliRunner()
 
     def test_plating_command_exists(self, runner: CliRunner):
-        """Test that the garnish command exists and shows help."""
+        """Test that the plating command exists and shows help."""
         result = runner.invoke(main, ["--help"])
         assert result.exit_code == 0
-        assert "Garnish - Documentation generator" in result.output
+        assert "Plating - Documentation generator" in result.output
         assert "dress" in result.output
         assert "plate" in result.output
         assert "test" in result.output

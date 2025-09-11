@@ -594,8 +594,8 @@ class TestHelperFunctions:
 class TestGenerateDocsFunction:
     """Test the generate_docs main entry point."""
 
-    @patch('garnish.plater.PlatingDiscovery')
-    @patch('garnish.plater.PlatingPlater')
+    @patch('plating.plater.PlatingDiscovery')
+    @patch('plating.plater.PlatingPlater')
     def test_generate_docs_basic(self, MockPlater, MockDiscovery, tmp_path):
         """Test generate_docs with basic parameters."""
         # Set up mocks
@@ -615,9 +615,9 @@ class TestGenerateDocsFunction:
         MockPlater.assert_called_once_with([mock_bundle], None)
         mock_plater.plate.assert_called_once_with(Path(output_dir), False)
 
-    @patch('garnish.plater.PlatingDiscovery')
-    @patch('garnish.plater.PlatingPlater')
-    @patch('garnish.plater.SchemaProcessor')
+    @patch('plating.plater.PlatingDiscovery')
+    @patch('plating.plater.PlatingPlater')
+    @patch('plating.plater.SchemaProcessor')
     def test_generate_docs_with_provider_name(
         self, MockSchemaProcessor, MockPlater, MockDiscovery, tmp_path
     ):
@@ -641,8 +641,8 @@ class TestGenerateDocsFunction:
         MockSchemaProcessor.assert_called_once()
         MockPlater.assert_called_once_with([mock_bundle], mock_schema_processor)
 
-    @patch('garnish.plater.PlatingDiscovery')
-    @patch('garnish.plater.logger')
+    @patch('plating.plater.PlatingDiscovery')
+    @patch('plating.plater.logger')
     def test_generate_docs_no_bundles(self, mock_logger, MockDiscovery, tmp_path):
         """Test generate_docs when no bundles are found."""
         # Set up mocks
@@ -656,8 +656,8 @@ class TestGenerateDocsFunction:
         # Should log warning
         mock_logger.warning.assert_called_once()
 
-    @patch('garnish.plater.PlatingDiscovery')
-    @patch('garnish.plater.PlatingPlater')
+    @patch('plating.plater.PlatingDiscovery')
+    @patch('plating.plater.PlatingPlater')
     def test_generate_docs_with_component_type_filter(
         self, MockPlater, MockDiscovery, tmp_path
     ):
@@ -677,8 +677,8 @@ class TestGenerateDocsFunction:
         # Verify discovery was called with filter
         mock_discovery.discover_bundles.assert_called_once_with("resource")
 
-    @patch('garnish.plater.PlatingDiscovery')
-    @patch('garnish.plater.PlatingPlater')
+    @patch('plating.plater.PlatingDiscovery')
+    @patch('plating.plater.PlatingPlater')
     def test_generate_docs_with_force_flag(
         self, MockPlater, MockDiscovery, tmp_path
     ):

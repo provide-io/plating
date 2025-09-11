@@ -16,7 +16,7 @@ from plating.plater import generate_docs
 
 @click.group()
 def main() -> None:
-    """Garnish - Documentation generator for Terraform/OpenTofu providers."""
+    """Plating - Documentation generator for Terraform/OpenTofu providers."""
     pass
 
 

@@ -1,22 +1,22 @@
 ---
-page_title: "GarnishBundle - garnish"
+page_title: "PlatingBundle - plating"
 subcategory: "Core Components"
 description: |-
-  Core bundle abstraction for garnish documentation system.
+  Core bundle abstraction for plating documentation system.
 ---
 
-# GarnishBundle
+# PlatingBundle
 
-The `GarnishBundle` class represents a single `.garnish` directory containing documentation templates, examples, and fixtures for a component.
+The `PlatingBundle` class represents a single `.plating` directory containing documentation templates, examples, and fixtures for a component.
 
 ## Overview
 
-A garnish bundle is the fundamental unit of documentation in the garnish system. Each bundle corresponds to a single component (resource, data source, or function) and contains all the assets needed to generate its documentation.
+A plating bundle is the fundamental unit of documentation in the plating system. Each bundle corresponds to a single component (resource, data source, or function) and contains all the assets needed to generate its documentation.
 
 ## Bundle Structure
 
 ```
-component_name.garnish/
+component_name.plating/
 ├── docs/
 │   ├── component_name.tmpl.md  # Main template
 │   └── _partial.md              # Optional partials
@@ -33,12 +33,12 @@ component_name.garnish/
 
 ```python
 from pathlib import Path
-from garnish.garnish import GarnishBundle
+from plating.plating import PlatingBundle
 
 # Create a bundle for a resource component
-bundle = GarnishBundle(
+bundle = PlatingBundle(
     name="s3_bucket",
-    garnish_dir=Path("./resources/s3_bucket.garnish"),
+    plating_dir=Path("./resources/s3_bucket.plating"),
     component_type="resource"
 )
 
@@ -69,13 +69,13 @@ print(f"Found {len(partials)} partials")
 ### Using with Plater
 
 ```python
-from garnish.plater import GarnishPlater
+from plating.plater import PlatingPlater
 
 # Create bundles manually or via discovery
 bundles = [bundle]
 
 # Plate the documentation
-plater = GarnishPlater(bundles=bundles)
+plater = PlatingPlater(bundles=bundles)
 output_dir = Path("./docs")
 plater.plate(output_dir, force=True)
 
@@ -118,25 +118,25 @@ Loads all partial templates from the docs directory.
 ## Attributes
 
 - **name** (`str`): The name of the component
-- **garnish_dir** (`Path`): Path to the .garnish directory
+- **plating_dir** (`Path`): Path to the .plating directory
 - **component_type** (`str`): Type of component ("resource", "data_source", or "function")
 
 ## Best Practices
 
-1. **Naming Convention**: Bundle directories should be named `{component_name}.garnish`
+1. **Naming Convention**: Bundle directories should be named `{component_name}.plating`
 2. **Template Organization**: Keep the main template focused; use partials for reusable content
 3. **Example Quality**: Provide both basic and advanced examples
 4. **Documentation Style**: Follow Terraform registry documentation conventions
 
 ## Integration
 
-The GarnishBundle integrates with:
-- **GarnishDiscovery**: For automatic bundle discovery
-- **GarnishPlater**: For rendering documentation
-- **GarnishDresser**: For creating new bundles
+The PlatingBundle integrates with:
+- **PlatingDiscovery**: For automatic bundle discovery
+- **PlatingPlater**: For rendering documentation
+- **PlatingDresser**: For creating new bundles
 
 ## See Also
 
-- [GarnishPlater](../plater) - Documentation rendering
-- [GarnishDiscovery](../discovery) - Bundle discovery
-- [GarnishDresser](../dresser) - Bundle creation
+- [PlatingPlater](../plater) - Documentation rendering
+- [PlatingDiscovery](../discovery) - Bundle discovery
+- [PlatingDresser](../dresser) - Bundle creation

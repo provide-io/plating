@@ -361,10 +361,10 @@ class TestStirResultParsing:
 class TestPlatingTestAdapter:
     """Tests for the main adapter that coordinates the migration."""
 
-    @patch('garnish.test_runner.PlatingDiscovery')
-    @patch('garnish.test_runner.prepare_test_suites_for_stir')
-    @patch('garnish.test_runner.run_tests_with_stir')
-    @patch('garnish.test_runner.parse_stir_results')
+    @patch('plating.test_runner.PlatingDiscovery')
+    @patch('plating.test_runner.prepare_test_suites_for_stir')
+    @patch('plating.test_runner.run_tests_with_stir')
+    @patch('plating.test_runner.parse_stir_results')
     def test_full_test_flow_with_stir(self, mock_parse, mock_run_stir, 
                                       mock_prepare, mock_discovery, tmp_path):
         """Test the complete flow from garnish discovery to stir execution."""
@@ -400,7 +400,7 @@ class TestPlatingTestAdapter:
         assert results["total"] == 2
         assert results["passed"] == 2
 
-    @patch('garnish.test_runner.PlatingDiscovery')
+    @patch('plating.test_runner.PlatingDiscovery')
     def test_adapter_with_no_bundles_found(self, mock_discovery):
         """Test adapter behavior when no plating bundles are found."""
         # Given: No bundles discovered
@@ -415,8 +415,8 @@ class TestPlatingTestAdapter:
         assert results["passed"] == 0
         assert results["failed"] == 0
 
-    @patch('garnish.test_runner.PlatingDiscovery')
-    @patch('garnish.test_runner.prepare_test_suites_for_stir')
+    @patch('plating.test_runner.PlatingDiscovery')
+    @patch('plating.test_runner.prepare_test_suites_for_stir')
     def test_adapter_cleanup_on_failure(self, mock_prepare, mock_discovery, tmp_path):
         """Test that adapter cleans up temporary directories on failure."""
         # Given: Preparation fails
@@ -469,7 +469,7 @@ class TestPlatingTestAdapter:
 class TestCLIIntegration:
     """Tests for CLI integration with new stir-based flow."""
 
-    @patch('garnish.test_runner.PlatingTestAdapter')
+    @patch('plating.test_runner.PlatingTestAdapter')
     def test_cli_test_command_uses_adapter(self, mock_adapter_class):
         """Test that CLI test command uses the new adapter."""
         # Given: Mock adapter
@@ -491,7 +491,7 @@ class TestCLIIntegration:
         assert result.exit_code == 0
         assert "✅ All tests passed!" in result.output
 
-    @patch('garnish.test_runner.PlatingTestAdapter')
+    @patch('plating.test_runner.PlatingTestAdapter')
     def test_cli_passes_options_to_adapter(self, mock_adapter_class):
         """Test that CLI options are passed to the adapter."""
         # Given: Mock adapter

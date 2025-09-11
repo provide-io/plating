@@ -1,8 +1,8 @@
-# 🍲 Garnish
+# 🍽️ Plating
 
 > A sophisticated documentation generation system for Terraform/OpenTofu providers
 
-Garnish is a powerful documentation system that brings culinary elegance to technical documentation. Just as a chef carefully plates and garnishes a dish, Garnish helps you present your Terraform provider documentation beautifully.
+Plating is a powerful documentation system that brings culinary elegance to technical documentation. Just as a chef carefully plates and garnishes a dish, Plating helps you present your Terraform provider documentation beautifully.
 
 ## ✨ Features
 
@@ -41,8 +41,8 @@ uv self update
 
 ```bash
 # Clone the repository
-git clone https://github.com/provide-io/garnish.git
-cd garnish
+git clone https://github.com/provide-io/plating.git
+cd plating
 
 # Create virtual environment
 uv venv
@@ -60,29 +60,29 @@ uv sync
 
 ```bash
 # Install from PyPI
-uv add garnish
+uv add plating
 
 # Or install from source
-uv add git+https://github.com/provide-io/garnish.git
+uv add git+https://github.com/provide-io/plating.git
 ```
 
 ## 📚 Usage Examples
 
 ### 1. Dress Your Components
 
-First, create `.garnish` bundles for your undocumented components:
+First, create `.plating` bundles for your undocumented components:
 
 ```bash
 # Dress all missing components
-garnish dress
+plating dress
 
 # Dress only resources
-garnish dress --component-type resource
+plating dress --component-type resource
 ```
 
 ### 2. Customize Templates
 
-Edit the generated templates in `.garnish/docs/`:
+Edit the generated templates in `.plating/docs/`:
 
 ```markdown
 ---
@@ -104,18 +104,18 @@ Render your documentation:
 
 ```bash
 # Generate docs in ./docs directory
-garnish plate
+plating plate
 
 # Custom output directory
-garnish plate --output-dir ./documentation
+plating plate --output-dir ./documentation
 ```
 
 ## 📂 Bundle Structure
 
-Each component has a `.garnish` bundle:
+Each component has a `.plating` bundle:
 
 ```
-my_resource.garnish/
+my_resource.plating/
 ├── docs/
 │   ├── my_resource.tmpl.md    # Main template
 │   └── _partial.md             # Reusable partials
@@ -128,7 +128,7 @@ my_resource.garnish/
 
 ## 🎨 Template Functions
 
-Garnish provides powerful template functions:
+Plating provides powerful template functions:
 
 - `{{ "{{ example('name') }}" }}` - Include an example file
 - `{{ "{{ schema() }}" }}` - Render component schema
@@ -141,18 +141,18 @@ Test your examples with the built-in test runner:
 
 ```bash
 # Test all examples
-garnish test
+plating test
 
 # Test specific component types
-garnish test --component-type resource
+plating test --component-type resource
 ```
 
 ## 🔧 Configuration
 
-Configure Garnish in your `pyproject.toml`:
+Configure Plating in your `pyproject.toml`:
 
 ```toml
-[tool.garnish]
+[tool.plating]
 provider_name = "my_provider"
 output_dir = "docs"
 component_types = ["resource", "data_source", "function"]
@@ -160,12 +160,12 @@ component_types = ["resource", "data_source", "function"]
 
 ## 🏗️ Architecture
 
-Garnish follows a modular architecture:
+Plating follows a modular architecture:
 
-- **GarnishBundle** - Represents documentation bundles
-- **GarnishPlater** - Renders documentation
-- **GarnishDresser** - Creates documentation templates
-- **GarnishDiscovery** - Finds components and bundles
+- **PlatingBundle** - Represents documentation bundles
+- **PlatingPlater** - Renders documentation
+- **PlatingDresser** - Creates documentation templates
+- **PlatingDiscovery** - Finds components and bundles
 - **SchemaProcessor** - Extracts provider schemas
 
 ## 🤝 Contributing
@@ -187,4 +187,4 @@ Built with ❤️ using:
 
 ---
 
-*Garnish - Making documentation as delightful as a well-plated dish* 🍽️
+*Plating - Making documentation as delightful as a well-plated dish* 🍽️
