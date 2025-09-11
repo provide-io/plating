@@ -92,8 +92,8 @@ page_title: "Test Resource"
     @pytest.mark.asyncio
     async def test_dresser_to_plater_flow(self, temp_provider_dir):
         """Test the flow from dressing components to plating."""
-        with patch('garnish.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('garnish.dresser.dresser.hub') as mock_hub:
+        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.dresser.dresser.hub') as mock_hub:
                 # Setup mocks
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
@@ -298,8 +298,8 @@ page_title: "Test Resource"
     @pytest.mark.asyncio
     async def test_full_pipeline_async(self, temp_provider_dir):
         """Test the full async pipeline from dressing to plating."""
-        with patch('garnish.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('garnish.dresser.dresser.hub') as mock_hub:
+        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.dresser.dresser.hub') as mock_hub:
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
                 

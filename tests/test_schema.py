@@ -64,8 +64,8 @@ class TestSchemaProcessor:
     @pytest.mark.asyncio
     async def test_extract_schema_via_discovery(self, schema_processor):
         """Test _extract_schema_via_discovery method."""
-        with patch('garnish.schema.ComponentDiscovery') as MockDiscovery:
-            with patch('garnish.schema.hub') as mock_hub:
+        with patch('plating.schema.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.schema.hub') as mock_hub:
                 # Setup mocks
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
