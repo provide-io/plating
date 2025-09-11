@@ -10,19 +10,19 @@ from unittest.mock import Mock, patch
 import pytest
 
 from plating.plating import PlatingBundle
-from plating.test_runner import (
-    PlatingTestAdapter,
-    parse_stir_results,
-    prepare_test_suites_for_stir,
-    run_tests_with_stir,
+from plating.validator import (
+    PlatingValidator,
+    parse_validation_results,
+    prepare_validation_suites,
+    run_validation_with_stir,
 )
 
 
-class TestGarnishTestSuitePreparation:
-    """Tests for preparing plating test suites for stir execution."""
+class TestGarnishValidationSuitePreparation:
+    """Tests for preparing plating validation suites for stir execution."""
 
-    def test_prepare_single_bundle_test_suite(self, tmp_path):
-        """Test preparing a test suite from a single plating bundle."""
+    def test_prepare_single_bundle_validation_suite(self, tmp_path):
+        """Test preparing a validation suite from a single plating bundle."""
         # Given: A mock plating bundle with examples
         bundle = Mock(spec=PlatingBundle)
         bundle.name = "test_resource"
@@ -31,13 +31,13 @@ class TestGarnishTestSuitePreparation:
         bundle.load_fixtures.return_value = {}
         bundle.fixtures_dir = tmp_path / "fixtures"
 
-        # When: Preparing test suite
-        output_dir = tmp_path / "test_output"
-        suite_dir = prepare_test_suites_for_stir([bundle], output_dir)[0]
+        # When: Preparing validation suite
+        output_dir = tmp_path / "validation_output"
+        suite_dir = prepare_validation_suites([bundle], output_dir)[0]
 
-        # Then: Test suite should be created with correct structure
+        # Then: Validation suite should be created with correct structure
         assert suite_dir.exists()
-        assert suite_dir.name == "resource_test_resource_test"
+        assert suite_dir.name == "resource_test_resource_validation"
         assert (suite_dir / "provider.tf").exists()
         assert (suite_dir / "test_resource.tf").exists()
 
@@ -49,8 +49,8 @@ class TestGarnishTestSuitePreparation:
         example_content = (suite_dir / "test_resource.tf").read_text()
         assert 'resource "test" "example"' in example_content
 
-    def test_prepare_multiple_bundles_test_suites(self, tmp_path):
-        """Test preparing test suites from multiple plating bundles."""
+    def test_prepare_multiple_bundles_validation_suites(self, tmp_path):
+        """Test preparing validation suites from multiple plating bundles."""
         # Given: Multiple mock plating bundles
         bundles = []
         for i in range(3):
@@ -62,19 +62,19 @@ class TestGarnishTestSuitePreparation:
             bundle.fixtures_dir = tmp_path / f"fixtures_{i}"
             bundles.append(bundle)
 
-        # When: Preparing test suites
-        output_dir = tmp_path / "test_output"
-        suite_dirs = prepare_test_suites_for_stir(bundles, output_dir)
+        # When: Preparing validation suites
+        output_dir = tmp_path / "validation_output"
+        suite_dirs = prepare_validation_suites(bundles, output_dir)
 
-        # Then: All test suites should be created
+        # Then: All validation suites should be created
         assert len(suite_dirs) == 3
         for i, suite_dir in enumerate(suite_dirs):
             assert suite_dir.exists()
             expected_type = ["resource", "data_source", "function"][i]
-            assert suite_dir.name == f"{expected_type}_test_component_{i}_test"
+            assert suite_dir.name == f"{expected_type}_test_component_{i}_validation"
 
     def test_prepare_bundle_with_fixtures(self, tmp_path):
-        """Test preparing a test suite with fixture files."""
+        """Test preparing a validation suite with fixture files."""
         # Given: A bundle with fixtures
         bundle = Mock(spec=PlatingBundle)
         bundle.name = "test_with_fixtures"
@@ -88,9 +88,9 @@ class TestGarnishTestSuitePreparation:
         }
         bundle.fixtures_dir = tmp_path / "fixtures"
 
-        # When: Preparing test suite
-        output_dir = tmp_path / "test_output"
-        suite_dir = prepare_test_suites_for_stir([bundle], output_dir)[0]
+        # When: Preparing validation suite
+        output_dir = tmp_path / "validation_output"
+        suite_dir = prepare_validation_suites([bundle], output_dir)[0]
 
         # Then: Fixtures should be created at parent level
         fixtures_dir = suite_dir.parent / "fixtures"
@@ -103,7 +103,7 @@ class TestGarnishTestSuitePreparation:
         assert "config: test" in (fixtures_dir / "nested" / "config.yaml").read_text()
 
     def test_prepare_bundle_with_multiple_examples(self, tmp_path):
-        """Test preparing a test suite with multiple example files."""
+        """Test preparing a validation suite with multiple example files."""
         # Given: A bundle with multiple examples
         bundle = Mock(spec=PlatingBundle)
         bundle.name = "multi_example"
@@ -116,9 +116,9 @@ class TestGarnishTestSuitePreparation:
         bundle.load_fixtures.return_value = {}
         bundle.fixtures_dir = tmp_path / "fixtures"
 
-        # When: Preparing test suite
-        output_dir = tmp_path / "test_output"
-        suite_dir = prepare_test_suites_for_stir([bundle], output_dir)[0]
+        # When: Preparing validation suite
+        output_dir = tmp_path / "validation_output"
+        suite_dir = prepare_validation_suites([bundle], output_dir)[0]
 
         # Then: All example files should be created with unique names
         assert (suite_dir / "multi_example.tf").exists()  # Default example
@@ -142,13 +142,13 @@ class TestGarnishTestSuitePreparation:
         bundle_without.load_fixtures.return_value = {}
         bundle_without.fixtures_dir = tmp_path / "fixtures2"
 
-        # When: Preparing test suites
-        output_dir = tmp_path / "test_output"
-        suite_dirs = prepare_test_suites_for_stir([bundle_with, bundle_without], output_dir)
+        # When: Preparing validation suites
+        output_dir = tmp_path / "validation_output"
+        suite_dirs = prepare_validation_suites([bundle_with, bundle_without], output_dir)
 
-        # Then: Only bundle with examples should have test suite
+        # Then: Only bundle with examples should have validation suite
         assert len(suite_dirs) == 1
-        assert suite_dirs[0].name == "resource_with_examples_test"
+        assert suite_dirs[0].name == "resource_with_examples_validation"
 
 
 class TestTofusoupStirIntegration:
@@ -166,8 +166,8 @@ class TestTofusoupStirIntegration:
         # Mock successful stir execution
         mock_run.return_value = Mock(returncode=0, stdout='{"total": 2, "passed": 2, "failed": 0}', stderr="")
 
-        # When: Running tests with stir
-        run_tests_with_stir(test_dir)
+        # When: Running validation with stir
+        run_validation_with_stir(test_dir)
 
         # Then: Stir should be called with correct arguments
         mock_run.assert_called_once()
@@ -187,7 +187,7 @@ class TestTofusoupStirIntegration:
         mock_run.return_value = Mock(returncode=0, stdout='{"total": 1, "passed": 1, "failed": 0}', stderr="")
 
         # When: Running with parallel option
-        run_tests_with_stir(test_dir, parallel=8)
+        run_validation_with_stir(test_dir, parallel=8)
 
         # Then: Parallel option should be passed to stir
         mock_run.assert_called_once()
@@ -195,7 +195,7 @@ class TestTofusoupStirIntegration:
         # Note: Need to check how stir handles parallel option
         # This might need adjustment based on actual stir CLI
 
-    @patch("plating.test_runner.run_command")
+    @patch("plating.validator.adapters.run_command")
     def test_handle_stir_execution_failure(self, mock_run_command, tmp_path):
         """Test handling when stir execution fails."""
         # Given: Stir fails to execute
@@ -213,12 +213,12 @@ class TestTofusoupStirIntegration:
 
         # When/Then: Should raise appropriate exception
         with pytest.raises(RuntimeError) as exc_info:
-            run_tests_with_stir(test_dir)
+            run_validation_with_stir(test_dir)
 
         # Just check that it raised RuntimeError with proper message
         assert "Failed to run tofusoup stir" in str(exc_info.value)
 
-    @patch("plating.test_runner.run_command")
+    @patch("plating.validator.adapters.run_command")
     def test_handle_stir_not_found(self, mock_run_command, tmp_path):
         """Test handling when soup/stir command is not found."""
         # Given: Soup command not found
@@ -227,7 +227,7 @@ class TestTofusoupStirIntegration:
 
         # When/Then: Should raise informative error
         with pytest.raises(RuntimeError) as exc_info:
-            run_tests_with_stir(test_dir)
+            run_validation_with_stir(test_dir)
 
         assert "tofusoup" in str(exc_info.value).lower()
         assert "not found" in str(exc_info.value).lower() or "not installed" in str(exc_info.value).lower()
@@ -256,7 +256,7 @@ class TestStirResultParsing:
         }
 
         # When: Parsing stir results
-        garnish_results = parse_stir_results(stir_output)
+        garnish_results = parse_validation_results(stir_output)
 
         # Then: Results should be transformed to garnish format
         assert garnish_results["total"] == 5
@@ -304,7 +304,7 @@ class TestStirResultParsing:
         bundles = [bundle1, bundle2]
 
         # When: Parsing with bundle enrichment
-        garnish_results = parse_stir_results(stir_output, bundles)
+        garnish_results = parse_validation_results(stir_output, bundles)
 
         # Then: Bundle information should be added
         assert "bundles" in garnish_results
@@ -325,7 +325,7 @@ class TestStirResultParsing:
         stir_output = {"total": 0, "passed": 0, "failed": 0, "test_details": {}}
 
         # When: Parsing empty results
-        garnish_results = parse_stir_results(stir_output)
+        garnish_results = parse_validation_results(stir_output)
 
         # Then: Should handle gracefully
         assert garnish_results["total"] == 0
@@ -334,14 +334,14 @@ class TestStirResultParsing:
         assert garnish_results["test_details"] == {}
 
 
-class TestPlatingTestAdapter:
+class TestPlatingValidator:
     """Tests for the main adapter that coordinates the migration."""
 
-    @patch("plating.test_runner.PlatingDiscovery")
-    @patch("plating.test_runner.prepare_test_suites_for_stir")
-    @patch("plating.test_runner.run_tests_with_stir")
-    @patch("plating.test_runner.parse_stir_results")
-    def test_full_test_flow_with_stir(self, mock_parse, mock_run_stir, mock_prepare, mock_discovery, tmp_path):
+    @patch("plating.validator.adapters.PlatingDiscovery")
+    @patch("plating.validator.adapters.prepare_validation_suites")
+    @patch("plating.validator.adapters.run_validation_with_stir")
+    @patch("plating.validator.adapters.parse_validation_results")
+    def test_full_validation_flow_with_stir(self, mock_parse, mock_run_stir, mock_prepare, mock_discovery, tmp_path):
         """Test the complete flow from garnish discovery to stir execution."""
         # Given: Mock plating bundles and stir results
         mock_bundles = [
@@ -356,9 +356,9 @@ class TestPlatingTestAdapter:
         mock_run_stir.return_value = mock_stir_output
         mock_parse.return_value = mock_stir_output
 
-        # When: Running plating tests through adapter
-        adapter = PlatingTestAdapter()
-        results = adapter.run_tests(component_types=["resource", "data_source"])
+        # When: Running plating validation through adapter
+        adapter = PlatingValidator()
+        results = adapter.run_validation(component_types=["resource", "data_source"])
 
         # Then: All components should be called in order
         mock_discovery.return_value.discover_bundles.assert_called()
@@ -369,23 +369,23 @@ class TestPlatingTestAdapter:
         assert results["total"] == 2
         assert results["passed"] == 2
 
-    @patch("plating.test_runner.PlatingDiscovery")
+    @patch("plating.validator.adapters.PlatingDiscovery")
     def test_adapter_with_no_bundles_found(self, mock_discovery):
         """Test adapter behavior when no plating bundles are found."""
         # Given: No bundles discovered
         mock_discovery.return_value.discover_bundles.return_value = []
 
-        # When: Running tests
-        adapter = PlatingTestAdapter()
-        results = adapter.run_tests()
+        # When: Running validation
+        adapter = PlatingValidator()
+        results = adapter.run_validation()
 
         # Then: Should return empty results without calling stir
         assert results["total"] == 0
         assert results["passed"] == 0
         assert results["failed"] == 0
 
-    @patch("plating.test_runner.PlatingDiscovery")
-    @patch("plating.test_runner.prepare_test_suites_for_stir")
+    @patch("plating.plating.PlatingDiscovery")
+    @patch("plating.validator.prepare_test_suites_for_stir")
     def test_adapter_cleanup_on_failure(self, mock_prepare, mock_discovery, tmp_path):
         """Test that adapter cleans up temporary directories on failure."""
         # Given: Preparation fails
@@ -393,13 +393,13 @@ class TestPlatingTestAdapter:
         mock_prepare.side_effect = Exception("Preparation failed")
 
         # Create a mock temp directory
-        adapter = PlatingTestAdapter()
+        adapter = PlatingValidator()
         adapter.output_dir = tmp_path / "temp_test_dir"
         adapter.output_dir.mkdir()
 
         # When/Then: Should clean up even on failure
         with pytest.raises(Exception):
-            adapter.run_tests()
+            adapter.run_validation()
 
         # Verify cleanup would be called (in real implementation)
         # Note: This would need proper implementation in the adapter
@@ -411,14 +411,14 @@ class TestPlatingTestAdapter:
         mock_run.side_effect = FileNotFoundError()
 
         # When: Running tests with fallback enabled
-        adapter = PlatingTestAdapter(fallback_to_simple=True)
+        adapter = PlatingValidator(fallback_to_simple=True)
 
         # Mock the simple runner
-        with patch("plating.test_runner._run_simple_tests") as mock_simple:
+        with patch("plating.validator.core._run_simple_validation") as mock_simple:
             mock_simple.return_value = {"total": 1, "passed": 1, "failed": 0}
 
             # Create a mock bundle
-            with patch("plating.test_runner.PlatingDiscovery") as mock_disc:
+            with patch("plating.plating.PlatingDiscovery") as mock_disc:
                 mock_bundle = Mock(
                     name="test",
                     component_type="resource",
@@ -428,7 +428,7 @@ class TestPlatingTestAdapter:
                 )
                 mock_disc.return_value.discover_bundles.return_value = [mock_bundle]
 
-                results = adapter.run_tests()
+                results = adapter.run_validation()
 
         # Then: Should fall back to simple runner
         mock_simple.assert_called_once()
@@ -438,12 +438,12 @@ class TestPlatingTestAdapter:
 class TestCLIIntegration:
     """Tests for CLI integration with new stir-based flow."""
 
-    @patch("plating.test_runner.PlatingTestAdapter")
+    @patch("plating.validator.PlatingValidator")
     def test_cli_test_command_uses_adapter(self, mock_adapter_class):
         """Test that CLI test command uses the new adapter."""
         # Given: Mock adapter
         mock_adapter = Mock()
-        mock_adapter.run_tests.return_value = {"total": 3, "passed": 3, "failed": 0, "failures": {}}
+        mock_adapter.run_validation.return_value = {"total": 3, "passed": 3, "failed": 0, "failures": {}}
         mock_adapter_class.return_value = mock_adapter
 
         # When: Running CLI test command
@@ -455,16 +455,16 @@ class TestCLIIntegration:
         result = runner.invoke(test, [])
 
         # Then: Should use adapter and show results
-        mock_adapter.run_tests.assert_called_once()
+        mock_adapter.run_validation.assert_called_once()
         assert result.exit_code == 0
         assert "✅ All tests passed!" in result.output
 
-    @patch("plating.test_runner.PlatingTestAdapter")
+    @patch("plating.validator.PlatingValidator")
     def test_cli_passes_options_to_adapter(self, mock_adapter_class):
         """Test that CLI options are passed to the adapter."""
         # Given: Mock adapter
         mock_adapter = Mock()
-        mock_adapter.run_tests.return_value = {"total": 1, "passed": 1, "failed": 0, "failures": {}}
+        mock_adapter.run_validation.return_value = {"total": 1, "passed": 1, "failed": 0, "failures": {}}
         mock_adapter_class.return_value = mock_adapter
 
         # When: Running with options
@@ -488,8 +488,8 @@ class TestCLIIntegration:
         )
 
         # Then: Options should be passed to adapter
-        mock_adapter.run_tests.assert_called_once()
-        call_args = mock_adapter.run_tests.call_args
+        mock_adapter.run_validation.assert_called_once()
+        call_args = mock_adapter.run_validation.call_args
         assert call_args[1].get("component_types") == ["resource"]
         assert call_args[1].get("parallel") == 8
 
@@ -519,10 +519,10 @@ class TestReportGeneration:
         }
 
         # When: Generating markdown report
-        from plating.test_runner import _generate_markdown_report
+        from plating.validator.reporters import generate_report
 
         report_file = tmp_path / "report.md"
-        _generate_markdown_report(results, report_file)
+        generate_report(results, report_file, "markdown")
 
         # Then: Report should be generated with correct content
         assert report_file.exists()
@@ -542,11 +542,11 @@ class TestErrorHandling:
     def test_handle_missing_tofusoup_gracefully(self):
         """Test graceful handling when tofusoup is not installed."""
         # Given: Tofusoup not available
-        with patch("plating.test_runner.run_command") as mock_run_command:
+        with patch("plating.validator.adapters.run_command") as mock_run_command:
             mock_run_command.side_effect = FileNotFoundError("soup not found")
 
             # When: Trying to run tests
-            adapter = PlatingTestAdapter(fallback_to_simple=False)
+            adapter = PlatingValidator(fallback_to_simple=False)
 
             # Mock discovery to return bundles so we actually try to run tests
             mock_bundle = Mock()
@@ -555,10 +555,10 @@ class TestErrorHandling:
             mock_bundle.load_examples.return_value = {"basic": "resource 'test' 'example' {}"}
 
             with patch.object(adapter, "_discover_bundles", return_value=[mock_bundle]):
-                with patch.object(adapter, "_prepare_test_suites", return_value=[Path("/test")]):
+                with patch.object(adapter, "_prepare_validation_suites", return_value=[Path("/test")]):
                     # Then: Should raise informative error
                     with pytest.raises(RuntimeError) as exc_info:
-                        adapter.run_tests()
+                        adapter.run_validation()
 
                     assert "tofusoup" in str(exc_info.value).lower()
                     assert "install" in str(exc_info.value).lower()
@@ -574,11 +574,11 @@ class TestErrorHandling:
             )
 
             # When: Parsing results
-            adapter = PlatingTestAdapter()
+            adapter = PlatingValidator()
             with patch.object(adapter, "_discover_bundles", return_value=[Mock()]):
-                with patch.object(adapter, "_prepare_test_suites", return_value=[Path("/test")]):
+                with patch.object(adapter, "_prepare_validation_suites", return_value=[Path("/test")]):
                     # Then: Should handle gracefully by providing defaults
-                    results = adapter.run_tests()
+                    results = adapter.run_validation()
                     # parse_stir_results should handle missing keys gracefully
                     assert "total" in results
                     assert "passed" in results
@@ -589,17 +589,17 @@ class TestErrorHandling:
         # Given: Garnish bundle with invalid structure
         from plating.errors import PlatingError
 
-        with patch("plating.test_runner.PlatingDiscovery") as mock_disc:
+        with patch("plating.plating.PlatingDiscovery") as mock_disc:
             mock_disc.return_value.discover_bundles.side_effect = PlatingError(
                 "Invalid plating bundle structure"
             )
 
             # When: Running tests
-            adapter = PlatingTestAdapter()
+            adapter = PlatingValidator()
 
             # Then: Should preserve garnish error
             with pytest.raises(PlatingError) as exc_info:
-                adapter.run_tests()
+                adapter.run_validation()
 
             assert "Invalid plating bundle structure" in str(exc_info.value)
 
