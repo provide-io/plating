@@ -1,51 +1,49 @@
 #
-# plating/test_runner/suite_builder.py
+# plating/validator/suite_builder.py
 #
-"""Test suite preparation and building functionality."""
+"""Validation suite preparation and building functionality."""
 
 from datetime import datetime
 from pathlib import Path
 
-from rich.console import Console
+from provide.foundation import pout
 
 from plating.plating import PlatingBundle, PlatingDiscovery
 
-console = Console()
 
-
-def prepare_test_suites_for_stir(bundles: list[PlatingBundle], output_dir: Path) -> list[Path]:
-    """Prepare test suites from plating bundles for stir execution.
+def prepare_validation_suites(bundles: list[PlatingBundle], output_dir: Path) -> list[Path]:
+    """Prepare validation suites from plating bundles for stir execution.
 
     Args:
         bundles: List of plating bundles to prepare
-        output_dir: Directory to create test suites in
+        output_dir: Directory to create validation suites in
 
     Returns:
-        List of paths to created test suite directories
+        List of paths to created validation suite directories
     """
     output_dir.mkdir(parents=True, exist_ok=True)
-    test_suites = []
+    validation_suites = []
 
     for bundle in bundles:
         examples = bundle.load_examples()
         if not examples:
             continue
 
-        suite_dir = _create_test_suite(bundle, examples, output_dir)
+        suite_dir = _create_validation_suite(bundle, examples, output_dir)
         if suite_dir:
-            test_suites.append(suite_dir)
+            validation_suites.append(suite_dir)
 
-    return test_suites
+    return validation_suites
 
 
 def prepare_bundles_summary(bundles: list[PlatingBundle]) -> dict:
-    """Prepare a summary of bundles for test results.
+    """Prepare a summary of bundles for validation results.
 
     Args:
         bundles: List of plating bundles
 
     Returns:
-        Dictionary with bundle information for test results
+        Dictionary with bundle information for validation results
     """
     results = {
         "bundles": {},
@@ -87,8 +85,8 @@ def prepare_bundles_summary(bundles: list[PlatingBundle]) -> dict:
     return results
 
 
-def _create_test_suite(bundle: PlatingBundle, examples: dict[str, str], output_dir: Path) -> Path | None:
-    """Create a test suite directory for a plating bundle.
+def _create_validation_suite(bundle: PlatingBundle, examples: dict[str, str], output_dir: Path) -> Path | None:
+    """Create a validation suite directory for a plating bundle.
 
     Args:
         bundle: The plating bundle
@@ -96,10 +94,10 @@ def _create_test_suite(bundle: PlatingBundle, examples: dict[str, str], output_d
         output_dir: Base output directory
 
     Returns:
-        Path to the created test suite directory, or None if creation failed
+        Path to the created validation suite directory, or None if creation failed
     """
     # Create directory name based on component type and name
-    suite_name = f"{bundle.component_type}_{bundle.name}_test"
+    suite_name = f"{bundle.component_type}_{bundle.name}_validation"
     suite_dir = output_dir / suite_name
 
     try:
@@ -127,30 +125,30 @@ def _create_test_suite(bundle: PlatingBundle, examples: dict[str, str], output_d
 
         # Copy and rename example files
         for example_name, content in examples.items():
-            # Create test-specific filename
+            # Create validation-specific filename
             if example_name == "example":
-                test_filename = f"{bundle.name}.tf"
+                validation_filename = f"{bundle.name}.tf"
             else:
-                test_filename = f"{bundle.name}_{example_name}.tf"
+                validation_filename = f"{bundle.name}_{example_name}.tf"
 
-            if test_filename in created_files:
-                console.print(
-                    f"[red]❌ Collision detected: example file '{test_filename}' conflicts with fixture file in {bundle.name}[/red]"
+            if validation_filename in created_files:
+                pout(
+                    f"[red]❌ Collision detected: example file '{validation_filename}' conflicts with fixture file in {bundle.name}[/red]"
                 )
-                raise Exception(f"File collision: {test_filename}")
+                raise Exception(f"File collision: {validation_filename}")
 
-            (suite_dir / test_filename).write_text(content)
-            created_files.add(test_filename)
+            (suite_dir / validation_filename).write_text(content)
+            created_files.add(validation_filename)
 
         return suite_dir
 
     except Exception as e:
-        console.print(f"[red]⚠️  Failed to create test suite for {bundle.name}: {e}[/red]")
+        pout(f"[red]⚠️  Failed to create validation suite for {bundle.name}: {e}[/red]")
         return None
 
 
 def _generate_provider_tf() -> str:
-    """Generate a standard provider.tf file for tests."""
+    """Generate a standard provider.tf file for validation."""
     return """terraform {
   required_providers {
     pyvider = {
@@ -161,7 +159,7 @@ def _generate_provider_tf() -> str:
 }
 
 provider "pyvider" {
-  # Provider configuration for tests
+  # Provider configuration for validation
 }
 """
 
