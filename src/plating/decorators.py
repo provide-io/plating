@@ -41,7 +41,8 @@ def with_retry(
         backoff_strategy = {
             "exponential": BackoffStrategy.EXPONENTIAL,
             "linear": BackoffStrategy.LINEAR,
-            "constant": BackoffStrategy.CONSTANT
+            "fixed": BackoffStrategy.FIXED,
+            "constant": BackoffStrategy.FIXED  # Map constant to fixed
         }.get(backoff, BackoffStrategy.EXPONENTIAL)
         
         retry_policy = RetryPolicy(
