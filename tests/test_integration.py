@@ -1,19 +1,19 @@
 """
-Integration tests for garnish.
+Integration tests for plating.
 """
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch, AsyncMock
 import pytest
 
-from garnish.garnish import GarnishBundle, GarnishDiscovery
-from garnish.plater import GarnishPlater, generate_docs
-from garnish.dresser import GarnishDresser, dress_components
-from garnish.schema import SchemaProcessor
+from plating.plating import PlatingBundle, PlatingDiscovery
+from plating.plater import PlatingPlater, generate_docs
+from plating.dresser import PlatingDresser, dress_components
+from plating.schema import SchemaProcessor
 
 
 class TestIntegration:
-    """Integration tests for garnish components."""
+    """Integration tests for plating components."""
 
     @pytest.fixture
     def temp_provider_dir(self):
@@ -29,9 +29,9 @@ class TestIntegration:
             yield provider_dir
 
     @pytest.fixture
-    def sample_garnish_bundle(self, temp_provider_dir):
-        """Create a sample .garnish bundle."""
-        bundle_dir = temp_provider_dir / "resources" / "test_resource.garnish"
+    def sample_plating_bundle(self, temp_provider_dir):
+        """Create a sample .plating bundle."""
+        bundle_dir = temp_provider_dir / "resources" / "test_resource.plating"
         bundle_dir.mkdir(parents=True)
         
         # Create docs directory with template
@@ -62,11 +62,11 @@ page_title: "Test Resource"
         
         return bundle_dir
 
-    def test_discovery_to_plating_flow(self, sample_garnish_bundle):
+    def test_discovery_to_plating_flow(self, sample_plating_bundle):
         """Test the flow from discovery to plating."""
         # Create bundle directly for testing
-        bundle = GarnishBundle(
-            garnish_dir=sample_garnish_bundle,
+        bundle = PlatingBundle(
+            plating_dir=sample_plating_bundle,
             name="test_resource",
             component_type="resource"
         )
@@ -78,7 +78,7 @@ page_title: "Test Resource"
         
         # Create plater with discovered bundles
         with tempfile.TemporaryDirectory() as output_dir:
-            plater = GarnishPlater(bundles=bundles)
+            plater = PlatingPlater(bundles=bundles)
             plater.plate(Path(output_dir))
             
             # Check output was created
@@ -107,9 +107,9 @@ page_title: "Test Resource"
                 }
                 
                 # Create dresser and dress components
-                dresser = GarnishDresser()
+                dresser = PlatingDresser()
                 
-                with patch.object(dresser.garnish_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = []  # No existing bundles
                     
                     with patch.object(dresser.component_finder, 'find_source') as mock_find:
@@ -123,13 +123,13 @@ page_title: "Test Resource"
                         result = await dresser.dress_missing(["resource"])
                         assert result["resource"] == 1
                         
-                        # Check .garnish directory was created
-                        garnish_dir = temp_provider_dir / "resources" / "integration_resource.garnish"
-                        assert garnish_dir.exists()
+                        # Check .plating directory was created
+                        plating_dir = temp_provider_dir / "resources" / "integration_resource.plating"
+                        assert plating_dir.exists()
                         
                         # Create bundle for the dressed component
-                        bundle = GarnishBundle(
-                            garnish_dir=garnish_dir,
+                        bundle = PlatingBundle(
+                            plating_dir=plating_dir,
                             name="integration_resource",
                             component_type="resource"
                         )
@@ -140,17 +140,17 @@ page_title: "Test Resource"
                         
                         # Plate the documentation
                         with tempfile.TemporaryDirectory() as output_dir:
-                            plater = GarnishPlater(bundles=bundles)
+                            plater = PlatingPlater(bundles=bundles)
                             plater.plate(Path(output_dir))
                             
                             output_file = Path(output_dir) / "resources" / "integration_resource.md"
                             assert output_file.exists()
 
-    def test_schema_integration(self, sample_garnish_bundle):
+    def test_schema_integration(self, sample_plating_bundle):
         """Test basic plating without schema integration."""
         # Create bundle for testing
-        bundle = GarnishBundle(
-            garnish_dir=sample_garnish_bundle,
+        bundle = PlatingBundle(
+            plating_dir=sample_plating_bundle,
             name="test_resource",
             component_type="resource"
         )
@@ -158,7 +158,7 @@ page_title: "Test Resource"
         
         with tempfile.TemporaryDirectory() as output_dir:
             # Test plating without schema processor
-            plater = GarnishPlater(bundles=bundles)
+            plater = PlatingPlater(bundles=bundles)
             plater.plate(Path(output_dir))
             
             output_file = Path(output_dir) / "resources" / "test_resource.md"
@@ -167,17 +167,17 @@ page_title: "Test Resource"
             content = output_file.read_text()
             assert "Test Resource" in content
 
-    def test_generate_docs_integration(self, temp_provider_dir, sample_garnish_bundle):
+    def test_generate_docs_integration(self, temp_provider_dir, sample_plating_bundle):
         """Test the generate_docs function integrates all components."""
         with tempfile.TemporaryDirectory() as output_dir:
-            # For this test, we'll use GarnishPlater directly since generate_docs 
+            # For this test, we'll use PlatingPlater directly since generate_docs 
             # uses a different discovery mechanism
-            bundle = GarnishBundle(
-                garnish_dir=sample_garnish_bundle,
+            bundle = PlatingBundle(
+                plating_dir=sample_plating_bundle,
                 name="test_resource",
                 component_type="resource"
             )
-            plater = GarnishPlater(bundles=[bundle])
+            plater = PlatingPlater(bundles=[bundle])
             plater.plate(Path(output_dir))
             
             # Check output was created
@@ -195,7 +195,7 @@ page_title: "Test Resource"
             ("data_source", "data_sources"),
             ("function", "functions")
         ]:
-            bundle_dir = temp_provider_dir / subdir / f"test_{comp_type}.garnish"
+            bundle_dir = temp_provider_dir / subdir / f"test_{comp_type}.plating"
             bundle_dir.mkdir(parents=True)
             
             docs_dir = bundle_dir / "docs"
@@ -204,8 +204,8 @@ page_title: "Test Resource"
             template.write_text(f"# Test {comp_type}")
         
         # Create bundles directly for testing
-        resource_bundle = GarnishBundle(
-            garnish_dir=temp_provider_dir / "resources" / "test_resource.garnish",
+        resource_bundle = PlatingBundle(
+            plating_dir=temp_provider_dir / "resources" / "test_resource.plating",
             name="test_resource",
             component_type="resource"
         )
@@ -216,7 +216,7 @@ page_title: "Test Resource"
         
         # Test plating with filtered bundles
         with tempfile.TemporaryDirectory() as output_dir:
-            plater = GarnishPlater(bundles=resource_bundles)
+            plater = PlatingPlater(bundles=resource_bundles)
             plater.plate(Path(output_dir))
             
             # Only resource should be plated
@@ -227,14 +227,14 @@ page_title: "Test Resource"
     def test_error_handling_integration(self, temp_provider_dir):
         """Test error handling across components."""
         # Create an invalid bundle (missing template)
-        bundle_dir = temp_provider_dir / "resources" / "bad_resource.garnish"
+        bundle_dir = temp_provider_dir / "resources" / "bad_resource.plating"
         bundle_dir.mkdir(parents=True)
         
         # No template file created
         
         # Create bundle directly
-        bundle = GarnishBundle(
-            garnish_dir=bundle_dir,
+        bundle = PlatingBundle(
+            plating_dir=bundle_dir,
             name="bad_resource",
             component_type="resource"
         )
@@ -243,7 +243,7 @@ page_title: "Test Resource"
         assert len(bundles) == 1
         
         with tempfile.TemporaryDirectory() as output_dir:
-            plater = GarnishPlater(bundles=bundles)
+            plater = PlatingPlater(bundles=bundles)
             # Should handle missing template gracefully
             plater.plate(Path(output_dir))
             
@@ -254,7 +254,7 @@ page_title: "Test Resource"
         """Test handling multiple bundles."""
         # Create multiple bundles
         for i in range(3):
-            bundle_dir = temp_provider_dir / "resources" / f"resource_{i}.garnish"
+            bundle_dir = temp_provider_dir / "resources" / f"resource_{i}.plating"
             bundle_dir.mkdir(parents=True)
             
             docs_dir = bundle_dir / "docs"
@@ -270,8 +270,8 @@ page_title: "Test Resource"
         # Discover all bundles
         # Create bundles directly
         bundles = [
-            GarnishBundle(
-                garnish_dir=temp_provider_dir / "resources" / f"resource_{i}.garnish",
+            PlatingBundle(
+                plating_dir=temp_provider_dir / "resources" / f"resource_{i}.plating",
                 name=f"resource_{i}",
                 component_type="resource"
             )
@@ -282,7 +282,7 @@ page_title: "Test Resource"
         
         # Plate all bundles
         with tempfile.TemporaryDirectory() as output_dir:
-            plater = GarnishPlater(bundles=bundles)
+            plater = PlatingPlater(bundles=bundles)
             plater.plate(Path(output_dir))
             
             # Check all outputs created
@@ -314,9 +314,9 @@ page_title: "Test Resource"
                     "resource": components
                 }
                 
-                dresser = GarnishDresser()
+                dresser = PlatingDresser()
                 
-                with patch.object(dresser.garnish_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = []
                     
                     with patch.object(dresser.component_finder, 'find_source') as mock_find:
@@ -333,15 +333,15 @@ page_title: "Test Resource"
                                 name, "resource", components[name]
                             )
                         
-                        # Verify all .garnish directories created
+                        # Verify all .plating directories created
                         for name in components:
-                            garnish_dir = temp_provider_dir / "resources" / f"{name}.garnish"
-                            assert garnish_dir.exists()
+                            plating_dir = temp_provider_dir / "resources" / f"{name}.plating"
+                            assert plating_dir.exists()
                         
                         # Create bundles for dressed components
                         bundles = [
-                            GarnishBundle(
-                                garnish_dir=temp_provider_dir / "resources" / f"{name}.garnish",
+                            PlatingBundle(
+                                plating_dir=temp_provider_dir / "resources" / f"{name}.plating",
                                 name=name,
                                 component_type="resource"
                             )
@@ -351,7 +351,7 @@ page_title: "Test Resource"
                         assert len(bundles) == 2
                         
                         with tempfile.TemporaryDirectory() as output_dir:
-                            plater = GarnishPlater(bundles=bundles)
+                            plater = PlatingPlater(bundles=bundles)
                             plater.plate(Path(output_dir))
                             
                             # Verify all outputs created

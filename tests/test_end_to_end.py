@@ -1,14 +1,14 @@
 """
-End-to-end tests for garnish with real bundles.
+End-to-end tests for plating with real bundles.
 """
 import subprocess
 import tempfile
 from pathlib import Path
 import pytest
 
-from garnish.garnish import GarnishBundle
-from garnish.plater import GarnishPlater
-from garnish.dresser import GarnishDresser
+from plating.plating import PlatingBundle
+from plating.plater import PlatingPlater
+from plating.dresser import PlatingDresser
 
 
 class TestEndToEnd:
@@ -16,7 +16,7 @@ class TestEndToEnd:
 
     @pytest.fixture
     def realistic_bundle(self):
-        """Create a realistic garnish bundle for testing."""
+        """Create a realistic plating bundle for testing."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
             
@@ -56,8 +56,8 @@ class BucketResource:
         pass
 ''')
             
-            # Create the garnish bundle
-            bundle_dir = resources_dir / "bucket.garnish"
+            # Create the plating bundle
+            bundle_dir = resources_dir / "bucket.plating"
             bundle_dir.mkdir()
             
             # Create docs directory with comprehensive template
@@ -221,9 +221,9 @@ output "bucket_id" {
 
     def test_full_workflow_with_realistic_bundle(self, realistic_bundle):
         """Test the complete workflow with a realistic bundle."""
-        # Create a GarnishBundle object
-        bundle = GarnishBundle(
-            garnish_dir=realistic_bundle,
+        # Create a PlatingBundle object
+        bundle = PlatingBundle(
+            plating_dir=realistic_bundle,
             name="bucket",
             component_type="resource"
         )
@@ -249,7 +249,7 @@ output "bucket_id" {
         
         # Test plating the bundle
         with tempfile.TemporaryDirectory() as output_dir:
-            plater = GarnishPlater(bundles=[bundle])
+            plater = PlatingPlater(bundles=[bundle])
             plater.plate(Path(output_dir))
             
             # Verify output was created
@@ -317,7 +317,7 @@ class DatabaseResource:
     """
             
             # Create dresser and dress the component
-            dresser = GarnishDresser()
+            dresser = PlatingDresser()
             
             # Mock finding the source file
             from unittest.mock import patch
@@ -330,14 +330,14 @@ class DatabaseResource:
                 )
                 assert success
                 
-                # Verify .garnish directory was created
-                garnish_dir = resources_dir / "database.garnish"
-                assert garnish_dir.exists()
-                assert (garnish_dir / "docs").exists()
-                assert (garnish_dir / "examples").exists()
+                # Verify .plating directory was created
+                plating_dir = resources_dir / "database.plating"
+                assert plating_dir.exists()
+                assert (plating_dir / "docs").exists()
+                assert (plating_dir / "examples").exists()
                 
                 # Verify template was created
-                template_file = garnish_dir / "docs" / "database.tmpl.md"
+                template_file = plating_dir / "docs" / "database.tmpl.md"
                 assert template_file.exists()
                 
                 template_content = template_file.read_text()
@@ -345,14 +345,14 @@ class DatabaseResource:
                 assert "Manages a cloud database instance" in template_content
                 
                 # Now create a bundle and plate it
-                bundle = GarnishBundle(
-                    garnish_dir=garnish_dir,
+                bundle = PlatingBundle(
+                    plating_dir=plating_dir,
                     name="database",
                     component_type="resource"
                 )
                 
                 with tempfile.TemporaryDirectory() as output_dir:
-                    plater = GarnishPlater(bundles=[bundle])
+                    plater = PlatingPlater(bundles=[bundle])
                     plater.plate(Path(output_dir))
                     
                     # Verify output
@@ -367,25 +367,25 @@ class DatabaseResource:
         """Test using the CLI with a realistic bundle."""
         # Test that the CLI can be invoked
         result = subprocess.run(
-            ["python", "-m", "garnish.cli", "--help"],
+            ["python", "-m", "plating.cli", "--help"],
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent / "src"
         )
         
         # Basic check that CLI is accessible
-        assert result.returncode == 0 or "garnish" in result.stdout.lower()
+        assert result.returncode == 0 or "plating" in result.stdout.lower()
 
     def test_error_handling_with_invalid_bundle(self):
         """Test error handling with invalid bundle configurations."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Create an invalid bundle (missing required directories)
-            bundle_dir = Path(tmp_dir) / "invalid.garnish"
+            bundle_dir = Path(tmp_dir) / "invalid.plating"
             bundle_dir.mkdir()
             
             # Try to create a bundle - should handle gracefully
-            bundle = GarnishBundle(
-                garnish_dir=bundle_dir,
+            bundle = PlatingBundle(
+                plating_dir=bundle_dir,
                 name="invalid",
                 component_type="resource"
             )
@@ -400,7 +400,7 @@ class DatabaseResource:
             
             # Plating should handle gracefully
             with tempfile.TemporaryDirectory() as output_dir:
-                plater = GarnishPlater(bundles=[bundle])
+                plater = PlatingPlater(bundles=[bundle])
                 plater.plate(Path(output_dir))
                 
                 # No output file should be created
@@ -410,14 +410,14 @@ class DatabaseResource:
     def test_complex_template_rendering(self, realistic_bundle):
         """Test rendering complex templates with all features."""
         # Create a bundle with complex template features
-        bundle = GarnishBundle(
-            garnish_dir=realistic_bundle,
+        bundle = PlatingBundle(
+            plating_dir=realistic_bundle,
             name="bucket",
             component_type="resource"
         )
         
         # Create plater without schema processor for simplicity
-        plater = GarnishPlater(bundles=[bundle])
+        plater = PlatingPlater(bundles=[bundle])
         
         with tempfile.TemporaryDirectory() as output_dir:
             plater.plate(Path(output_dir))

@@ -1,7 +1,7 @@
 #
 # tests/test_stir_migration.py
 #
-"""TDD tests for migrating garnish test to use tofusoup stir."""
+"""TDD tests for migrating plating test to use tofusoup stir."""
 
 import json
 import subprocess
@@ -11,24 +11,24 @@ from unittest.mock import Mock, patch, MagicMock, call
 
 import pytest
 
-from garnish.garnish import GarnishBundle, GarnishDiscovery
-from garnish.test_runner import (
-    run_garnish_tests,
+from plating.plating import PlatingBundle, PlatingDiscovery
+from plating.test_runner import (
+    run_plating_tests,
     _create_test_suite,
     prepare_test_suites_for_stir,
     run_tests_with_stir,
     parse_stir_results,
-    GarnishTestAdapter,
+    PlatingTestAdapter,
 )
 
 
 class TestGarnishTestSuitePreparation:
-    """Tests for preparing garnish test suites for stir execution."""
+    """Tests for preparing plating test suites for stir execution."""
 
     def test_prepare_single_bundle_test_suite(self, tmp_path):
-        """Test preparing a test suite from a single garnish bundle."""
-        # Given: A mock garnish bundle with examples
-        bundle = Mock(spec=GarnishBundle)
+        """Test preparing a test suite from a single plating bundle."""
+        # Given: A mock plating bundle with examples
+        bundle = Mock(spec=PlatingBundle)
         bundle.name = "test_resource"
         bundle.component_type = "resource"
         bundle.load_examples.return_value = {
@@ -56,11 +56,11 @@ class TestGarnishTestSuitePreparation:
         assert 'resource "test" "example"' in example_content
 
     def test_prepare_multiple_bundles_test_suites(self, tmp_path):
-        """Test preparing test suites from multiple garnish bundles."""
-        # Given: Multiple mock garnish bundles
+        """Test preparing test suites from multiple plating bundles."""
+        # Given: Multiple mock plating bundles
         bundles = []
         for i in range(3):
-            bundle = Mock(spec=GarnishBundle)
+            bundle = Mock(spec=PlatingBundle)
             bundle.name = f"test_component_{i}"
             bundle.component_type = ["resource", "data_source", "function"][i]
             bundle.load_examples.return_value = {
@@ -84,7 +84,7 @@ class TestGarnishTestSuitePreparation:
     def test_prepare_bundle_with_fixtures(self, tmp_path):
         """Test preparing a test suite with fixture files."""
         # Given: A bundle with fixtures
-        bundle = Mock(spec=GarnishBundle)
+        bundle = Mock(spec=PlatingBundle)
         bundle.name = "test_with_fixtures"
         bundle.component_type = "resource"
         bundle.load_examples.return_value = {
@@ -113,7 +113,7 @@ class TestGarnishTestSuitePreparation:
     def test_prepare_bundle_with_multiple_examples(self, tmp_path):
         """Test preparing a test suite with multiple example files."""
         # Given: A bundle with multiple examples
-        bundle = Mock(spec=GarnishBundle)
+        bundle = Mock(spec=PlatingBundle)
         bundle.name = "multi_example"
         bundle.component_type = "resource"
         bundle.load_examples.return_value = {
@@ -136,14 +136,14 @@ class TestGarnishTestSuitePreparation:
     def test_skip_bundles_without_examples(self, tmp_path):
         """Test that bundles without examples are skipped."""
         # Given: Bundles with and without examples
-        bundle_with = Mock(spec=GarnishBundle)
+        bundle_with = Mock(spec=PlatingBundle)
         bundle_with.name = "with_examples"
         bundle_with.component_type = "resource"
         bundle_with.load_examples.return_value = {"example": "resource {}"}
         bundle_with.load_fixtures.return_value = {}
         bundle_with.fixtures_dir = tmp_path / "fixtures1"
 
-        bundle_without = Mock(spec=GarnishBundle)
+        bundle_without = Mock(spec=PlatingBundle)
         bundle_without.name = "without_examples"
         bundle_without.component_type = "data_source"
         bundle_without.load_examples.return_value = {}
@@ -286,7 +286,7 @@ class TestStirResultParsing:
         assert "resource_test_1_test" in garnish_results["test_details"]
 
     def test_parse_stir_results_with_bundle_info(self):
-        """Test enriching stir results with garnish bundle information."""
+        """Test enriching stir results with plating bundle information."""
         # Given: Stir output and bundle information
         stir_output = {
             "total": 2,
@@ -358,17 +358,17 @@ class TestStirResultParsing:
         assert garnish_results["test_details"] == {}
 
 
-class TestGarnishTestAdapter:
+class TestPlatingTestAdapter:
     """Tests for the main adapter that coordinates the migration."""
 
-    @patch('garnish.test_runner.GarnishDiscovery')
+    @patch('garnish.test_runner.PlatingDiscovery')
     @patch('garnish.test_runner.prepare_test_suites_for_stir')
     @patch('garnish.test_runner.run_tests_with_stir')
     @patch('garnish.test_runner.parse_stir_results')
     def test_full_test_flow_with_stir(self, mock_parse, mock_run_stir, 
                                       mock_prepare, mock_discovery, tmp_path):
         """Test the complete flow from garnish discovery to stir execution."""
-        # Given: Mock garnish bundles and stir results
+        # Given: Mock plating bundles and stir results
         mock_bundles = [
             Mock(name="test1", component_type="resource"),
             Mock(name="test2", component_type="data_source")
@@ -387,8 +387,8 @@ class TestGarnishTestAdapter:
         mock_run_stir.return_value = mock_stir_output
         mock_parse.return_value = mock_stir_output
 
-        # When: Running garnish tests through adapter
-        adapter = GarnishTestAdapter()
+        # When: Running plating tests through adapter
+        adapter = PlatingTestAdapter()
         results = adapter.run_tests(component_types=["resource", "data_source"])
 
         # Then: All components should be called in order
@@ -400,14 +400,14 @@ class TestGarnishTestAdapter:
         assert results["total"] == 2
         assert results["passed"] == 2
 
-    @patch('garnish.test_runner.GarnishDiscovery')
+    @patch('garnish.test_runner.PlatingDiscovery')
     def test_adapter_with_no_bundles_found(self, mock_discovery):
-        """Test adapter behavior when no garnish bundles are found."""
+        """Test adapter behavior when no plating bundles are found."""
         # Given: No bundles discovered
         mock_discovery.return_value.discover_bundles.return_value = []
 
         # When: Running tests
-        adapter = GarnishTestAdapter()
+        adapter = PlatingTestAdapter()
         results = adapter.run_tests()
 
         # Then: Should return empty results without calling stir
@@ -415,7 +415,7 @@ class TestGarnishTestAdapter:
         assert results["passed"] == 0
         assert results["failed"] == 0
 
-    @patch('garnish.test_runner.GarnishDiscovery')
+    @patch('garnish.test_runner.PlatingDiscovery')
     @patch('garnish.test_runner.prepare_test_suites_for_stir')
     def test_adapter_cleanup_on_failure(self, mock_prepare, mock_discovery, tmp_path):
         """Test that adapter cleans up temporary directories on failure."""
@@ -424,7 +424,7 @@ class TestGarnishTestAdapter:
         mock_prepare.side_effect = Exception("Preparation failed")
         
         # Create a mock temp directory
-        adapter = GarnishTestAdapter()
+        adapter = PlatingTestAdapter()
         adapter.output_dir = tmp_path / "temp_test_dir"
         adapter.output_dir.mkdir()
 
@@ -442,14 +442,14 @@ class TestGarnishTestAdapter:
         mock_run.side_effect = FileNotFoundError()
         
         # When: Running tests with fallback enabled
-        adapter = GarnishTestAdapter(fallback_to_simple=True)
+        adapter = PlatingTestAdapter(fallback_to_simple=True)
         
         # Mock the simple runner
         with patch('garnish.test_runner._run_simple_tests') as mock_simple:
             mock_simple.return_value = {"total": 1, "passed": 1, "failed": 0}
             
             # Create a mock bundle
-            with patch('garnish.test_runner.GarnishDiscovery') as mock_disc:
+            with patch('garnish.test_runner.PlatingDiscovery') as mock_disc:
                 mock_bundle = Mock(
                     name="test", 
                     component_type="resource",
@@ -469,7 +469,7 @@ class TestGarnishTestAdapter:
 class TestCLIIntegration:
     """Tests for CLI integration with new stir-based flow."""
 
-    @patch('garnish.test_runner.GarnishTestAdapter')
+    @patch('garnish.test_runner.PlatingTestAdapter')
     def test_cli_test_command_uses_adapter(self, mock_adapter_class):
         """Test that CLI test command uses the new adapter."""
         # Given: Mock adapter
@@ -480,7 +480,7 @@ class TestCLIIntegration:
         mock_adapter_class.return_value = mock_adapter
 
         # When: Running CLI test command
-        from garnish.cli import test_command as test
+        from plating.cli import test_command as test
         from click.testing import CliRunner
         
         runner = CliRunner()
@@ -491,7 +491,7 @@ class TestCLIIntegration:
         assert result.exit_code == 0
         assert "✅ All tests passed!" in result.output
 
-    @patch('garnish.test_runner.GarnishTestAdapter')
+    @patch('garnish.test_runner.PlatingTestAdapter')
     def test_cli_passes_options_to_adapter(self, mock_adapter_class):
         """Test that CLI options are passed to the adapter."""
         # Given: Mock adapter
@@ -502,7 +502,7 @@ class TestCLIIntegration:
         mock_adapter_class.return_value = mock_adapter
 
         # When: Running with options
-        from garnish.cli import test_command as test
+        from plating.cli import test_command as test
         from click.testing import CliRunner
         
         runner = CliRunner()
@@ -555,7 +555,7 @@ class TestReportGeneration:
         }
 
         # When: Generating markdown report
-        from garnish.test_runner import _generate_markdown_report
+        from plating.test_runner import _generate_markdown_report
         report_file = tmp_path / "report.md"
         _generate_markdown_report(results, report_file)
 
@@ -581,7 +581,7 @@ class TestErrorHandling:
             mock_run.side_effect = FileNotFoundError("soup not found")
             
             # When: Trying to run tests
-            adapter = GarnishTestAdapter(fallback_to_simple=False)
+            adapter = PlatingTestAdapter(fallback_to_simple=False)
             
             # Mock discovery to return bundles so we actually try to run tests
             mock_bundle = Mock()
@@ -609,7 +609,7 @@ class TestErrorHandling:
             )
             
             # When: Parsing results
-            adapter = GarnishTestAdapter()
+            adapter = PlatingTestAdapter()
             with patch.object(adapter, '_discover_bundles', return_value=[Mock()]):
                 with patch.object(adapter, '_prepare_test_suites', return_value=[Path("/test")]):
                     # Then: Should handle gracefully by providing defaults
@@ -619,32 +619,32 @@ class TestErrorHandling:
                     assert "passed" in results
                     assert "failed" in results
 
-    def test_preserve_garnish_specific_errors(self):
+    def test_preserve_plating_specific_errors(self):
         """Test that garnish-specific errors are preserved and reported."""
         # Given: Garnish bundle with invalid structure
-        from garnish.errors import GarnishError
+        from plating.errors import PlatingError
         
-        with patch('garnish.test_runner.GarnishDiscovery') as mock_disc:
-            mock_disc.return_value.discover_bundles.side_effect = GarnishError(
-                "Invalid garnish bundle structure"
+        with patch('garnish.test_runner.PlatingDiscovery') as mock_disc:
+            mock_disc.return_value.discover_bundles.side_effect = PlatingError(
+                "Invalid plating bundle structure"
             )
             
             # When: Running tests
-            adapter = GarnishTestAdapter()
+            adapter = PlatingTestAdapter()
             
             # Then: Should preserve garnish error
-            with pytest.raises(GarnishError) as exc_info:
+            with pytest.raises(PlatingError) as exc_info:
                 adapter.run_tests()
             
-            assert "Invalid garnish bundle structure" in str(exc_info.value)
+            assert "Invalid plating bundle structure" in str(exc_info.value)
 
 
 # --- Test Fixtures ---
 
 @pytest.fixture
-def mock_garnish_bundle():
-    """Create a mock GarnishBundle for testing."""
-    bundle = Mock(spec=GarnishBundle)
+def mock_plating_bundle():
+    """Create a mock PlatingBundle for testing."""
+    bundle = Mock(spec=PlatingBundle)
     bundle.name = "test_component"
     bundle.component_type = "resource"
     bundle.root_dir = Path("/test/bundle")

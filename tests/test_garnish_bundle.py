@@ -1,72 +1,72 @@
 """
-Unit tests for GarnishBundle class using TDD approach.
+Unit tests for PlatingBundle class using TDD approach.
 """
 import tempfile
 from pathlib import Path
 import pytest
 
-from garnish.garnish import GarnishBundle
+from plating.plating import PlatingBundle
 
 
-class TestGarnishBundle:
-    """Test suite for GarnishBundle functionality."""
+class TestPlatingBundle:
+    """Test suite for PlatingBundle functionality."""
 
     def test_bundle_initialization(self):
-        """Test that a GarnishBundle can be initialized with required attributes."""
-        bundle = GarnishBundle(
+        """Test that a PlatingBundle can be initialized with required attributes."""
+        bundle = PlatingBundle(
             name="test_resource",
-            garnish_dir=Path("/tmp/test.garnish"),
+            plating_dir=Path("/tmp/test.plating"),
             component_type="resource"
         )
         
         assert bundle.name == "test_resource"
-        assert bundle.garnish_dir == Path("/tmp/test.garnish")
+        assert bundle.plating_dir == Path("/tmp/test.plating")
         assert bundle.component_type == "resource"
 
     def test_bundle_docs_dir_property(self):
         """Test that docs_dir property returns correct path."""
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test",
-            garnish_dir=Path("/tmp/test.garnish"),
+            plating_dir=Path("/tmp/test.plating"),
             component_type="resource"
         )
         
-        assert bundle.docs_dir == Path("/tmp/test.garnish/docs")
+        assert bundle.docs_dir == Path("/tmp/test.plating/docs")
 
     def test_bundle_examples_dir_property(self):
         """Test that examples_dir property returns correct path."""
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test",
-            garnish_dir=Path("/tmp/test.garnish"),
+            plating_dir=Path("/tmp/test.plating"),
             component_type="resource"
         )
         
-        assert bundle.examples_dir == Path("/tmp/test.garnish/examples")
+        assert bundle.examples_dir == Path("/tmp/test.plating/examples")
 
     def test_bundle_fixtures_dir_property(self):
         """Test that fixtures_dir property returns correct path."""
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test",
-            garnish_dir=Path("/tmp/test.garnish"),
+            plating_dir=Path("/tmp/test.plating"),
             component_type="resource"
         )
         
-        assert bundle.fixtures_dir == Path("/tmp/test.garnish/examples/fixtures")
+        assert bundle.fixtures_dir == Path("/tmp/test.plating/examples/fixtures")
 
     def test_load_main_template_with_existing_file(self, tmp_path):
         """Test loading main template when file exists."""
         # Create test structure
-        garnish_dir = tmp_path / "test.garnish"
-        docs_dir = garnish_dir / "docs"
+        plating_dir = tmp_path / "test.plating"
+        docs_dir = plating_dir / "docs"
         docs_dir.mkdir(parents=True)
         
         template_content = "# {{ name }} Resource\n\n{{ description }}"
         template_file = docs_dir / "test_resource.tmpl.md"
         template_file.write_text(template_content)
         
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test_resource",
-            garnish_dir=garnish_dir,
+            plating_dir=plating_dir,
             component_type="resource"
         )
         
@@ -75,12 +75,12 @@ class TestGarnishBundle:
 
     def test_load_main_template_with_missing_file(self, tmp_path):
         """Test loading main template when file doesn't exist."""
-        garnish_dir = tmp_path / "test.garnish"
-        garnish_dir.mkdir()
+        plating_dir = tmp_path / "test.plating"
+        plating_dir.mkdir()
         
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test_resource",
-            garnish_dir=garnish_dir,
+            plating_dir=plating_dir,
             component_type="resource"
         )
         
@@ -89,17 +89,17 @@ class TestGarnishBundle:
 
     def test_load_main_template_with_read_error(self, tmp_path):
         """Test loading main template handles read errors gracefully."""
-        garnish_dir = tmp_path / "test.garnish"
-        docs_dir = garnish_dir / "docs"
+        plating_dir = tmp_path / "test.plating"
+        docs_dir = plating_dir / "docs"
         docs_dir.mkdir(parents=True)
         
         # Create a directory instead of file to cause read error
         template_file = docs_dir / "test_resource.tmpl.md"
         template_file.mkdir()
         
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test_resource",
-            garnish_dir=garnish_dir,
+            plating_dir=plating_dir,
             component_type="resource"
         )
         
@@ -108,8 +108,8 @@ class TestGarnishBundle:
 
     def test_load_examples_with_multiple_files(self, tmp_path):
         """Test loading multiple example files."""
-        garnish_dir = tmp_path / "test.garnish"
-        examples_dir = garnish_dir / "examples"
+        plating_dir = tmp_path / "test.plating"
+        examples_dir = plating_dir / "examples"
         examples_dir.mkdir(parents=True)
         
         # Create example files
@@ -119,9 +119,9 @@ class TestGarnishBundle:
         example2 = examples_dir / "advanced.tf"
         example2.write_text('resource "test" "advanced" { count = 2 }')
         
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test_resource",
-            garnish_dir=garnish_dir,
+            plating_dir=plating_dir,
             component_type="resource"
         )
         
@@ -134,13 +134,13 @@ class TestGarnishBundle:
 
     def test_load_examples_with_empty_directory(self, tmp_path):
         """Test loading examples from empty directory."""
-        garnish_dir = tmp_path / "test.garnish"
-        examples_dir = garnish_dir / "examples"
+        plating_dir = tmp_path / "test.plating"
+        examples_dir = plating_dir / "examples"
         examples_dir.mkdir(parents=True)
         
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test_resource",
-            garnish_dir=garnish_dir,
+            plating_dir=plating_dir,
             component_type="resource"
         )
         
@@ -149,12 +149,12 @@ class TestGarnishBundle:
 
     def test_load_examples_with_missing_directory(self, tmp_path):
         """Test loading examples when directory doesn't exist."""
-        garnish_dir = tmp_path / "test.garnish"
-        garnish_dir.mkdir()
+        plating_dir = tmp_path / "test.plating"
+        plating_dir.mkdir()
         
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test_resource",
-            garnish_dir=garnish_dir,
+            plating_dir=plating_dir,
             component_type="resource"
         )
         
@@ -163,8 +163,8 @@ class TestGarnishBundle:
 
     def test_load_examples_ignores_non_tf_files(self, tmp_path):
         """Test that load_examples only loads .tf files."""
-        garnish_dir = tmp_path / "test.garnish"
-        examples_dir = garnish_dir / "examples"
+        plating_dir = tmp_path / "test.plating"
+        examples_dir = plating_dir / "examples"
         examples_dir.mkdir(parents=True)
         
         # Create various files
@@ -172,9 +172,9 @@ class TestGarnishBundle:
         (examples_dir / "README.md").write_text("# Examples")
         (examples_dir / "config.json").write_text('{"key": "value"}')
         
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test_resource",
-            garnish_dir=garnish_dir,
+            plating_dir=plating_dir,
             component_type="resource"
         )
         
@@ -186,8 +186,8 @@ class TestGarnishBundle:
 
     def test_load_fixtures_with_nested_files(self, tmp_path):
         """Test loading fixtures from nested directory structure."""
-        garnish_dir = tmp_path / "test.garnish"
-        fixtures_dir = garnish_dir / "examples" / "fixtures"
+        plating_dir = tmp_path / "test.plating"
+        fixtures_dir = plating_dir / "examples" / "fixtures"
         fixtures_dir.mkdir(parents=True)
         
         # Create nested fixture files
@@ -197,9 +197,9 @@ class TestGarnishBundle:
         nested_dir.mkdir()
         (nested_dir / "config.yaml").write_text("key: value")
         
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test_resource",
-            garnish_dir=garnish_dir,
+            plating_dir=plating_dir,
             component_type="resource"
         )
         
@@ -212,12 +212,12 @@ class TestGarnishBundle:
 
     def test_load_fixtures_with_missing_directory(self, tmp_path):
         """Test loading fixtures when fixtures directory doesn't exist."""
-        garnish_dir = tmp_path / "test.garnish"
-        garnish_dir.mkdir()
+        plating_dir = tmp_path / "test.plating"
+        plating_dir.mkdir()
         
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test_resource",
-            garnish_dir=garnish_dir,
+            plating_dir=plating_dir,
             component_type="resource"
         )
         
@@ -226,8 +226,8 @@ class TestGarnishBundle:
 
     def test_load_partials_from_docs_directory(self, tmp_path):
         """Test loading partial templates from docs directory."""
-        garnish_dir = tmp_path / "test.garnish"
-        docs_dir = garnish_dir / "docs"
+        plating_dir = tmp_path / "test.plating"
+        docs_dir = plating_dir / "docs"
         docs_dir.mkdir(parents=True)
         
         # Create partial files
@@ -235,9 +235,9 @@ class TestGarnishBundle:
         (docs_dir / "_footer.md").write_text("## Footer")
         (docs_dir / "main.tmpl.md").write_text("# Main")  # Should not be included
         
-        bundle = GarnishBundle(
+        bundle = PlatingBundle(
             name="test_resource",
-            garnish_dir=garnish_dir,
+            plating_dir=plating_dir,
             component_type="resource"
         )
         
@@ -253,24 +253,24 @@ class TestGarnishBundle:
         valid_types = ["resource", "data_source", "function"]
         
         for comp_type in valid_types:
-            bundle = GarnishBundle(
+            bundle = PlatingBundle(
                 name="test",
-                garnish_dir=Path("/tmp/test.garnish"),
+                plating_dir=Path("/tmp/test.plating"),
                 component_type=comp_type
             )
             assert bundle.component_type == comp_type
 
     def test_bundle_equality(self):
         """Test that bundles with same attributes are equal."""
-        bundle1 = GarnishBundle(
+        bundle1 = PlatingBundle(
             name="test",
-            garnish_dir=Path("/tmp/test.garnish"),
+            plating_dir=Path("/tmp/test.plating"),
             component_type="resource"
         )
         
-        bundle2 = GarnishBundle(
+        bundle2 = PlatingBundle(
             name="test",
-            garnish_dir=Path("/tmp/test.garnish"),
+            plating_dir=Path("/tmp/test.plating"),
             component_type="resource"
         )
         
@@ -278,15 +278,15 @@ class TestGarnishBundle:
 
     def test_bundle_inequality(self):
         """Test that bundles with different attributes are not equal."""
-        bundle1 = GarnishBundle(
+        bundle1 = PlatingBundle(
             name="test1",
-            garnish_dir=Path("/tmp/test.garnish"),
+            plating_dir=Path("/tmp/test.plating"),
             component_type="resource"
         )
         
-        bundle2 = GarnishBundle(
+        bundle2 = PlatingBundle(
             name="test2",
-            garnish_dir=Path("/tmp/test.garnish"),
+            plating_dir=Path("/tmp/test.plating"),
             component_type="resource"
         )
         

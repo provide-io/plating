@@ -1,5 +1,5 @@
 [project]
-name = "garnish"
+name = "plating"
 dynamic = ["version"]
 description = "Documentation generation system for Terraform/OpenTofu providers"
 requires-python = ">=3.11"
@@ -41,14 +41,14 @@ dev = [
 ]
 
 [project.scripts]
-garnish = "garnish.cli:main"
+plating = "plating.cli:main"
 
 [tool.uv]
 package = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["garnish*"]
+include = ["plating*"]
 namespaces = false
 
 [tool.setuptools.dynamic]
@@ -72,7 +72,7 @@ select = ["E", "F", "W", "I", "UP"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["garnish"]
+known-first-party = ["plating"]
 force-sort-within-sections = true
 combine-as-imports = true
 
@@ -98,7 +98,7 @@ module = ["pyvider.*", "jinja2.*", "rich.*", "click.*", "attrs.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]
-source = ["garnish"]
+source = ["plating"]
 branch = true
 parallel = true
 
