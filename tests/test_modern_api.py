@@ -148,7 +148,7 @@ class TestModernAPI:
         assert api._schema_processor is not None
     
     @pytest.mark.asyncio 
-    @patch('plating.api.adorn_missing_components')
+    @patch('plating.adorner.adorn_missing_components')
     async def test_adorn_operation(self, mock_adorn):
         """Test adorn operation with type-safe API."""
         # Mock the adorn function
@@ -177,7 +177,7 @@ class TestModernAPI:
     async def test_discover_bundles(self, mock_loop):
         """Test bundle discovery."""
         # Mock executor and discovery
-        mock_executor = Mock()
+        mock_executor = AsyncMock()
         mock_loop.return_value.run_in_executor = mock_executor
         
         from plating.plating import PlatingBundle

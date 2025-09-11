@@ -34,7 +34,7 @@ class TestPlatingPlater:
         docs_dir = plating_dir / "docs"
         docs_dir.mkdir()
         template_file = docs_dir / "test.tmpl.md"
-        template_file.write_text("# {{ name }}\n\n{{ type }}: {{ description }}")
+        template_file.write_text("# {{ name }}\n\n{{ component_type }}: {{ description }}")
 
         # Create examples directory
         examples_dir = plating_dir / "examples"
