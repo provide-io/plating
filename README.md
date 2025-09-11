@@ -13,17 +13,60 @@ Garnish is a powerful documentation system that brings culinary elegance to tech
 - **📝 Jinja2 Templates** - Flexible templating with custom functions and filters
 - **🔄 Schema Integration** - Extract and format provider schemas automatically
 
-## 📦 Installation
+## 📦 Prerequisites
+
+> **Important:** This project uses `uv` for Python environment and package management.
+
+### Install UV
+
+Visit [UV Documentation](https://github.com/astral-sh/uv) for more information.
 
 ```bash
-# Using pip
-pip install garnish
+# On macOS and Linux.
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Using uv (recommended)
-uv add garnish
+# On Windows.
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Using pipx (if you prefer)
+pipx install uv
+
+# Update UV to latest version
+uv self update
 ```
 
-## 🚀 Quick Start
+## 🚀 Getting Started
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/provide-io/garnish.git
+cd garnish
+
+# Create virtual environment
+uv venv
+
+# Activate virtual environment
+source .venv/bin/activate  # On Linux/macOS
+# or
+.venv\Scripts\activate     # On Windows
+
+# Install dependencies
+uv sync
+```
+
+### Installing as a Package
+
+```bash
+# Install from PyPI
+uv add garnish
+
+# Or install from source
+uv add git+https://github.com/provide-io/garnish.git
+```
+
+## 📚 Usage Examples
 
 ### 1. Dress Your Components
 

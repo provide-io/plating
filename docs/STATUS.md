@@ -36,7 +36,7 @@ The following actions have been taken to address the identified issues:
     *   Reverted to `cty_to_native` for JSON serialization, acknowledging its limitations with `bytes` output.
     *   Introduced `_cty_value_to_json_compatible_value` helper function to handle JSON serialization of `CtyValue` objects, including `UnknownValue` and `CtyDynamic` types.
 
-*   **Go Harness Build Environment Fixes (`tofusoup/src/tofusoup/harness/go/build.py` & `tofusoup/env.sh`):**
+*   **Go Harness Build Environment Fixes (`tofusoup/src/tofusoup/harness/go/build.py`):**
     *   Ensured `$(go env GOPATH)/bin` is added to the `PATH` environment variable for subprocesses in `build.py` to help `protoc` find its plugins.
     *   Set `force_rebuild=True` in the `go_harness_executable` pytest fixture to ensure `soup-go` is always rebuilt with the latest changes.
 
