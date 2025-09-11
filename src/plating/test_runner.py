@@ -159,8 +159,7 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
             ) from e
         
         # For other process errors, log and re-raise
-        logger.error("TofuSoup stir execution failed", command=e.cmd, returncode=e.returncode,
-                    stdout=e.stdout, stderr=e.stderr)
+        logger.error("TofuSoup stir execution failed", error=str(e))
         raise RuntimeError(f"Failed to run tofusoup stir: {e}") from e
 
     # Parse JSON output
