@@ -7,6 +7,7 @@ from pathlib import Path
 
 from jinja2 import DictLoader, Environment, select_autoescape
 from provide.foundation import logger
+from provide.foundation.context import CLIContext
 
 from plating.errors import PlatingRenderError, handle_error
 from plating.plating import PlatingBundle, PlatingDiscovery
@@ -76,12 +77,16 @@ class PlatingPlater:
         examples = bundle.load_examples()
         partials = bundle.load_partials()
 
-        # Create plating context
-        context = _create_plating_context(
-            bundle,
-            self._get_schema_for_component(bundle),
-            self.schema_processor.provider_name if self.schema_processor else "provider",
-        )
+        # Create plating context using CLIContext
+        cli_context = CLIContext()
+        
+        # Get schema for this component
+        schema = self._get_schema_for_component(bundle)
+        provider_name = self.schema_processor.provider_name if self.schema_processor else "provider"
+        
+        # Build context data
+        context_data = self._build_context_data(bundle, schema, provider_name)
+        context = cli_context.create_context(context_data)
 
         # Add examples to context
         context["examples"] = examples
@@ -181,7 +186,7 @@ class PlatingPlater:
         return template.render(**context)
 
 
-def _create_plating_context(bundle: PlatingBundle, schema: dict | None, provider_name: str) -> dict:
+def _build_context_data(bundle: PlatingBundle, schema: dict | None, provider_name: str) -> dict:
     """Create plating context for a bundle.
 
     Args:
