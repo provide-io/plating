@@ -1,17 +1,17 @@
 ---
-page_title: "PlatingDresser - plating"
+page_title: "PlatingAdorner - plating"
 subcategory: "Core Components"
 description: |-
   Automatic .plating bundle creation for components.
 ---
 
-# PlatingDresser
+# PlatingAdorner
 
-The `PlatingDresser` class automatically creates `.plating` directories for components that don't have documentation yet. It "dresses" components with the necessary bundle structure.
+The `PlatingAdorner` class automatically creates `.plating` directories for components that don't have documentation yet. It "adorns" components with the necessary bundle structure.
 
 ## Overview
 
-The dresser automates the creation of plating bundles by:
+The adorner automates the creation of plating bundles by:
 1. Discovering components via pyvider hub
 2. Finding components without existing bundles
 3. Generating template documentation based on component metadata
@@ -41,24 +41,24 @@ The dresser automates the creation of plating bundles by:
 
 ## Methods
 
-### `dress_missing(component_types: list[str] = None)`
+### `adorn_missing(component_types: list[str] = None)`
 
-Discovers and dresses all components without existing bundles.
+Discovers and adorns all components without existing bundles.
 
 **Parameters:**
 - **component_types**: Optional list of types to process ("resource", "data_source", "function")
 
-**Returns:** Dictionary with counts of dressed components by type
+**Returns:** Dictionary with counts of adorned components by type
 
 **Example:**
 ```python
-results = await dresser.dress_missing(["resource"])
-print(f"Dressed {results['resource']} resources")
+results = await adorner.adorn_missing(["resource"])
+print(f"Adorned {results['resource']} resources")
 ```
 
 ## Generated Structure
 
-For each component, the dresser creates:
+For each component, the adorner creates:
 
 ```
 component_name.plating/
@@ -87,7 +87,7 @@ Examples include:
 
 ## Integration
 
-The PlatingDresser integrates with:
+The PlatingAdorner integrates with:
 - **ComponentDiscovery**: For finding components
 - **PlatingDiscovery**: For checking existing bundles
 - **TemplateGenerator**: For creating content
@@ -95,17 +95,17 @@ The PlatingDresser integrates with:
 
 ## CLI Usage
 
-The dresser is available via CLI:
+The adorner is available via CLI:
 
 ```bash
-# Dress all missing components
-plating dress
+# Adorn all missing components
+plating adorn
 
-# Dress only resources
-plating dress --component-type resource
+# Adorn only resources
+plating adorn --component-type resource
 
-# Dress multiple types
-plating dress --component-type resource --component-type data_source
+# Adorn multiple types
+plating adorn --component-type resource --component-type data_source
 ```
 
 ## Best Practices
@@ -117,7 +117,7 @@ plating dress --component-type resource --component-type data_source
 
 ## Error Handling
 
-The dresser handles:
+The adorner handles:
 - Missing source files gracefully
 - Invalid component types
 - File system errors

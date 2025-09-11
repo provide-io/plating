@@ -8,7 +8,7 @@ import pytest
 
 from plating.plating import PlatingBundle, PlatingDiscovery
 from plating.plater import PlatingPlater, generate_docs
-from plating.dresser import PlatingDresser, dress_components
+from plating.adorner import PlatingAdorner, adorn_components
 from plating.schema import SchemaProcessor
 
 
@@ -90,10 +90,10 @@ page_title: "Test Resource"
             assert 'resource "test_resource" "example"' in content
 
     @pytest.mark.asyncio
-    async def test_dresser_to_plater_flow(self, temp_provider_dir):
+    async def test_adorner_to_plater_flow(self, temp_provider_dir):
         """Test the flow from dressing components to plating."""
-        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('plating.dresser.dresser.hub') as mock_hub:
+        with patch('plating.adorner.adorner.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.adorner.adorner.hub') as mock_hub:
                 # Setup mocks
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
@@ -106,13 +106,13 @@ page_title: "Test Resource"
                     "resource": {"integration_resource": mock_component}
                 }
                 
-                # Create dresser and dress components
-                dresser = PlatingDresser()
+                # Create adorner and dress components
+                adorner = PlatingAdorner()
                 
-                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(adorner.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = []  # No existing bundles
                     
-                    with patch.object(dresser.component_finder, 'find_source') as mock_find:
+                    with patch.object(adorner.component_finder, 'find_source') as mock_find:
                         # Create a fake source file
                         source_file = temp_provider_dir / "resources" / "integration_resource.py"
                         source_file.parent.mkdir(exist_ok=True)
@@ -120,7 +120,7 @@ page_title: "Test Resource"
                         mock_find.return_value = source_file
                         
                         # Dress the component
-                        result = await dresser.dress_missing(["resource"])
+                        result = await adorner.adorn_missing(["resource"])
                         assert result["resource"] == 1
                         
                         # Check .plating directory was created
@@ -298,8 +298,8 @@ page_title: "Test Resource"
     @pytest.mark.asyncio
     async def test_full_pipeline_async(self, temp_provider_dir):
         """Test the full async pipeline from dressing to plating."""
-        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('plating.dresser.dresser.hub') as mock_hub:
+        with patch('plating.adorner.adorner.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.adorner.adorner.hub') as mock_hub:
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
                 
@@ -314,12 +314,12 @@ page_title: "Test Resource"
                     "resource": components
                 }
                 
-                dresser = PlatingDresser()
+                adorner = PlatingAdorner()
                 
-                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(adorner.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = []
                     
-                    with patch.object(dresser.component_finder, 'find_source') as mock_find:
+                    with patch.object(adorner.component_finder, 'find_source') as mock_find:
                         # Create source files for each component
                         for name in components:
                             source_file = temp_provider_dir / "resources" / f"{name}.py"
@@ -329,7 +329,7 @@ page_title: "Test Resource"
                             
                             # Manually dress one component at a time
                             # (since mock_find returns same file each time)
-                            await dresser._dress_component(
+                            await adorner._adorn_component(
                                 name, "resource", components[name]
                             )
                         

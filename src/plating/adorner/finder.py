@@ -1,5 +1,5 @@
 #
-# plating/dresser/finder.py
+# plating/adorner/finder.py
 #
 """Component source file finding utilities."""
 

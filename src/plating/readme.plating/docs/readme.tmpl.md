@@ -31,10 +31,10 @@ First, create `.plating` bundles for your undocumented components:
 
 ```bash
 # Dress all missing components
-plating dress
+plating adorn
 
 # Dress only resources
-plating dress --component-type resource
+plating adorn --component-type resource
 ```
 
 ### 2. Customize Templates
@@ -121,7 +121,7 @@ Plating follows a modular architecture:
 
 - **PlatingBundle** - Represents documentation bundles
 - **PlatingPlater** - Renders documentation
-- **PlatingDresser** - Creates documentation templates
+- **PlatingAdorner** - Creates documentation templates
 - **PlatingDiscovery** - Finds components and bundles
 - **SchemaProcessor** - Extracts provider schemas
 

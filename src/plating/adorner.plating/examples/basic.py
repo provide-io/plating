@@ -1,14 +1,14 @@
 import asyncio
 
-from plating.dresser import PlatingDresser
+from plating.adorner import PlatingAdorner
 
 
 async def dress_all_components():
     """Dress all components missing .plating directories."""
-    dresser = PlatingDresser()
+    adorner = PlatingAdorner()
 
     # Find and dress all missing components
-    results = await dresser.dress_missing()
+    results = await adorner.adorn_missing()
 
     # Display results
     total = sum(results.values())

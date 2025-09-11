@@ -20,15 +20,15 @@ class TestPlatingCli:
         result = runner.invoke(main, ["--help"])
         assert result.exit_code == 0
         assert "Plating - Documentation generator" in result.output
-        assert "dress" in result.output
+        assert "adorn" in result.output
         assert "plate" in result.output
         assert "test" in result.output
 
-    def test_dress_command_exists(self, runner: CliRunner):
-        """Test that the dress subcommand exists."""
-        result = runner.invoke(main, ["dress", "--help"])
+    def test_adorn_command_exists(self, runner: CliRunner):
+        """Test that the adorn subcommand exists."""
+        result = runner.invoke(main, ["adorn", "--help"])
         assert result.exit_code == 0
-        assert "Dress" in result.output
+        assert "Adorn" in result.output
 
     def test_plate_command_exists(self, runner: CliRunner):
         """Test that the plate subcommand exists."""
@@ -42,14 +42,14 @@ class TestPlatingCli:
         assert result.exit_code == 0
         assert "Run all plating example files" in result.output
 
-    @patch("plating.cli.dress_components")
-    def test_dress_invokes_correct_logic(self, mock_dress, runner: CliRunner):
-        """Test that dress command invokes the dressing logic."""
+    @patch("plating.cli.adorn_components")
+    def test_adorn_invokes_correct_logic(self, mock_dress, runner: CliRunner):
+        """Test that adorn command invokes the adorning logic."""
         mock_dress.return_value = {"resource": 1}
-        result = runner.invoke(main, ["dress"])
+        result = runner.invoke(main, ["adorn"])
         assert result.exit_code == 0
         mock_dress.assert_called_once()
-        assert "Dressed 1 components" in result.output
+        assert "Adorned 1 components" in result.output
 
     @patch("plating.cli.generate_docs")
     def test_plate_invokes_correct_logic(self, mock_render, runner: CliRunner):
