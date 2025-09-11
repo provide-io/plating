@@ -5,8 +5,10 @@
 
 import json
 from pathlib import Path
-import subprocess
 from typing import Any
+
+from provide.foundation import logger
+from provide.foundation.process import ProcessError, run_command
 
 
 class MarkdownLinter:
