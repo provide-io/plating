@@ -42,14 +42,14 @@ class SchemaProcessor:
         """Extract provider schema using Pyvider's component discovery."""
         import asyncio
 
-        with timed_block("schema_extraction_total") as timer:
+        with timed_block(logger, "schema_extraction_total") as timer:
             try:
                 result = asyncio.run(self._extract_schema_via_discovery())
-                metrics.increment_counter("plating.schema_extractions_success")
-                metrics.record_gauge("plating.schema_extraction_duration", timer.elapsed)
+                metrics.counter("plating.schema_extractions_success").inc()
+                metrics.gauge("plating.schema_extraction_duration").set(timer.get("duration", 0))
                 return result
             except Exception as e:
-                metrics.increment_counter("plating.schema_extractions_failed")
+                metrics.counter("plating.schema_extractions_failed").inc()
                 raise
 
     async def _extract_schema_via_discovery(self) -> dict[str, Any]:

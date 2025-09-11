@@ -157,11 +157,10 @@ class PlatingValidator:
             fallback_to_simple: Whether to fall back to simple runner if stir unavailable
         """
         self.output_dir = output_dir
-        # Rate limiter for validation operations (max 2 operations per second)
+        # Rate limiter for validation operations (max 10 operations burst, 2 per second refill)
         self.rate_limiter = TokenBucketRateLimiter(
-            tokens=2,
-            refill_period=1.0,
-            max_tokens=10
+            capacity=10.0,
+            refill_rate=2.0
         )
         self.fallback_to_simple = fallback_to_simple
         self._temp_dir = None

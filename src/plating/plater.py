@@ -7,7 +7,6 @@ from pathlib import Path
 
 from jinja2 import DictLoader, Environment, select_autoescape
 from provide.foundation import logger, metrics
-from provide.foundation.context import CLIContext
 from provide.foundation.utils import timed_block
 
 from plating.errors import PlatingRenderError, handle_error
@@ -50,25 +49,25 @@ class PlatingPlater:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        with timed_block("plating_total_time") as timer:
+        with timed_block(logger, "plating_total_time") as timer:
             for bundle in self.bundles:
                 try:
-                    with timed_block(f"bundle_plating_{bundle.name}"):
+                    with timed_block(logger, f"bundle_plating_{bundle.name}"):
                         self._plate_bundle(bundle, output_dir, force)
                         # Track successful bundle processing
-                        metrics.increment_counter("plating.bundles_processed")
+                        metrics.counter("plating.bundles_processed").inc()
                 except PlatingRenderError:
-                    metrics.increment_counter("plating.bundle_errors")
+                    metrics.counter("plating.bundle_errors").inc()
                     raise  # Re-raise our custom errors
                 except Exception as e:
-                    metrics.increment_counter("plating.bundle_errors")
+                    metrics.counter("plating.bundle_errors").inc()
                     error = PlatingRenderError(bundle.name, str(e))
                     handle_error(error, logger)
                     logger.error(f"Failed to plate bundle {bundle.name}: {e}")
                     
-        # Record overall metrics
-        metrics.record_gauge("plating.total_duration_seconds", timer.elapsed)
-        metrics.record_gauge("plating.bundles_count", len(self.bundles))
+        # Record overall metrics  
+        metrics.gauge("plating.total_duration_seconds").set(timer.get("duration", 0))
+        metrics.gauge("plating.bundles_count").set(len(self.bundles))
 
     def _plate_bundle(self, bundle: PlatingBundle, output_dir: Path, force: bool) -> None:
         """Plate a single bundle.
@@ -88,29 +87,25 @@ class PlatingPlater:
         examples = bundle.load_examples()
         partials = bundle.load_partials()
 
-        # Create plating context using CLIContext
-        cli_context = CLIContext()
-        
         # Get schema for this component
         schema = self._get_schema_for_component(bundle)
         provider_name = self.schema_processor.provider_name if self.schema_processor else "provider"
         
         # Build context data
-        context_data = self._build_context_data(bundle, schema, provider_name)
-        context = cli_context.create_context(context_data)
+        context = self._build_context_data(bundle, schema, provider_name)
 
         # Add examples to context
         context["examples"] = examples
 
         # Plate template
         try:
-            with timed_block(f"template_rendering_{bundle.name}") as render_timer:
+            with timed_block(logger, f"template_rendering_{bundle.name}") as render_timer:
                 plated = self._plate_template(template_content, context, partials)
                 # Track template rendering metrics
-                metrics.record_gauge(f"plating.template_render_time_{bundle.component_type}", render_timer.elapsed)
-                metrics.increment_counter("plating.templates_rendered")
+                metrics.gauge(f"plating.template_render_time_{bundle.component_type}").set(render_timer.get("duration", 0))
+                metrics.counter("plating.templates_rendered").inc()
         except Exception as e:
-            metrics.increment_counter("plating.template_render_errors")
+            metrics.counter("plating.template_render_errors").inc()
             logger.error(f"Template rendering failed for {bundle.name}: {e}")
             return  # Skip this bundle on error
 
