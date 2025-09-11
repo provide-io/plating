@@ -1,12 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cloc:*)"
-    ],
-    "additionalDirectories": [
-      "/Users/tim/code/gh/provide-io"
+      "Bash(cloc:*)",
+      "Bash(xargs ls:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "/Users/tim/code/gh/provide-io"
+    ]
   }
 }
