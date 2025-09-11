@@ -47,10 +47,16 @@ class TestPlatingCli:
         assert "Deprecated" in result.output
         assert "validate" in result.output
 
-    @patch("plating.operations.adorn_components")
+    @patch("plating.cli.adorn_missing_components")
     def test_adorn_invokes_correct_logic(self, mock_adorn, runner: CliRunner):
         """Test that adorn command invokes the adorning logic."""
-        mock_adorn.return_value = {"resource": 1}
+        from plating.results import AdornResult
+        mock_adorn.return_value = AdornResult(
+            adorned={"resource": 1},
+            skipped=[],
+            errors=[],
+            duration=0.0
+        )
         result = runner.invoke(main, ["adorn"])
         assert result.exit_code == 0
         mock_adorn.assert_called_once()
