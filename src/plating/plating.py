@@ -47,7 +47,7 @@ class PlatingBundle:
 
     def load_examples(self) -> dict[str, str]:
         """Load all example files as a dictionary."""
-        examples = {}
+        examples: dict[str, str] = {}
 
         if not self.examples_dir.exists():
             return examples
@@ -65,7 +65,7 @@ class PlatingBundle:
 
         Partials are files starting with underscore (_) in the docs directory.
         """
-        partials = {}
+        partials: dict[str, str] = {}
 
         if not self.docs_dir.exists():
             return partials
@@ -74,9 +74,7 @@ class PlatingBundle:
         for partial_file in self.docs_dir.glob("_*"):
             if partial_file.is_file():
                 try:
-                    partials[partial_file.name] = partial_file.read_text(
-                        encoding="utf-8"
-                    )
+                    partials[partial_file.name] = partial_file.read_text(encoding="utf-8")
                 except Exception:
                     continue
 
@@ -84,7 +82,7 @@ class PlatingBundle:
 
     def load_fixtures(self) -> dict[str, str]:
         """Load all fixture files from fixtures directory."""
-        fixtures = {}
+        fixtures: dict[str, str] = {}
 
         if not self.fixtures_dir.exists():
             return fixtures
@@ -107,11 +105,9 @@ class PlatingDiscovery:
     def __init__(self, package_name: str = "pyvider.components"):
         self.package_name = package_name
 
-    def discover_bundles(
-        self, component_type: str | None = None
-    ) -> list[PlatingBundle]:
+    def discover_bundles(self, component_type: str | None = None) -> list[PlatingBundle]:
         """Discover all .plating bundles from the installed package."""
-        bundles = []
+        bundles: list[PlatingBundle] = []
 
         # Find the package location
         try:
@@ -139,9 +135,7 @@ class PlatingDiscovery:
                 continue
 
             # Check if this is a multi-component bundle
-            sub_component_bundles = self._discover_sub_components(
-                plating_dir, bundle_component_type
-            )
+            sub_component_bundles = self._discover_sub_components(plating_dir, bundle_component_type)
             if sub_component_bundles:
                 # Multi-component bundle - use individual components
                 bundles.extend(sub_component_bundles)
@@ -159,9 +153,7 @@ class PlatingDiscovery:
 
         return bundles
 
-    def _discover_sub_components(
-        self, plating_dir: Path, component_type: str
-    ) -> list[PlatingBundle]:
+    def _discover_sub_components(self, plating_dir: Path, component_type: str) -> list[PlatingBundle]:
         """Discover individual components within a multi-component .plating bundle."""
         sub_bundles = []
 

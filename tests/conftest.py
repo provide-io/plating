@@ -1,23 +1,16 @@
-import pytest
 from pathlib import Path
 import sys
-import os
-from unittest.mock import patch
+
+import pytest
+
 
 def pytest_configure(config):
     """Register custom marks."""
-    config.addinivalue_line(
-        "markers", "tdd: marks tests as TDD (test-driven development)"
-    )
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
-    config.addinivalue_line(
-        "markers", "requires_textual: marks tests that require Textual app context"
-    )
-    config.addinivalue_line(
-        "markers", "skip_in_ci: marks tests to skip in CI environments"
-    )
+    config.addinivalue_line("markers", "tdd: marks tests as TDD (test-driven development)")
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "requires_textual: marks tests that require Textual app context")
+    config.addinivalue_line("markers", "skip_in_ci: marks tests to skip in CI environments")
+
 
 @pytest.fixture(scope="session", autouse=True)
 def add_sibling_source_to_path(request):
@@ -43,6 +36,7 @@ def add_sibling_source_to_path(request):
         if src_path.is_dir() and str(src_path) not in sys.path:
             sys.path.insert(0, str(src_path))
 
+
 @pytest.fixture(autouse=True)
 def disable_textual_ui_in_tests(monkeypatch):
     """
@@ -52,6 +46,7 @@ def disable_textual_ui_in_tests(monkeypatch):
     # Set environment variable to disable any Textual UI features during testing
     monkeypatch.setenv("TOFUSOUP_DISABLE_UI", "1")
     monkeypatch.setenv("TEXTUAL_LOG", "none")
+
 
 @pytest.fixture(scope="session")
 def go_soup_harness_path() -> Path:

@@ -5,12 +5,13 @@
 
 import inspect
 from pathlib import Path
+from typing import Any
 
 
 class ComponentFinder:
     """Finds source files for components."""
 
-    async def find_source(self, component_class) -> Path | None:
+    async def find_source(self, component_class: Any) -> Path | None:
         """Find the source file for a component class."""
         try:
             source_file = inspect.getfile(component_class)

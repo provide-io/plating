@@ -3,13 +3,13 @@
 #
 """Template generation for adorned components."""
 
+from typing import Any
+
 
 class TemplateGenerator:
     """Generates templates and examples for components."""
 
-    async def generate_template(
-        self, name: str, component_type: str, component_class
-    ) -> str:
+    async def generate_template(self, name: str, component_type: str, component_class: Any) -> str:
         """Generate template content based on component type."""
         # Get component description if available
         try:
@@ -20,9 +20,7 @@ class TemplateGenerator:
                 if not doc_stripped.startswith("Create a new `Mock`"):
                     description = doc_stripped.split("\n")[0]  # First line only
                 else:
-                    description = (
-                        f"Terraform {component_type.replace('_', ' ')} for {name}"
-                    )
+                    description = f"Terraform {component_type.replace('_', ' ')} for {name}"
             else:
                 description = f"Terraform {component_type.replace('_', ' ')} for {name}"
         except AttributeError:
@@ -128,9 +126,7 @@ description: |-
 {{% endif %}}
 """
 
-    def _generic_template(
-        self, name: str, description: str, component_type: str
-    ) -> str:
+    def _generic_template(self, name: str, description: str, component_type: str) -> str:
         """Generate generic template content."""
         return f"""---
 page_title: "{component_type.title()}: {name}"

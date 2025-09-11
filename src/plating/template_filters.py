@@ -24,21 +24,11 @@ def schema_to_markdown(schema: Any, prefix: str = "") -> str:
 
         # Process attributes
         for attr_name, attr_schema in attributes.items():
-            attr_type = (
-                attr_schema.type.__name__ if hasattr(attr_schema, "type") else "string"
-            )
-            description = (
-                attr_schema.description if hasattr(attr_schema, "description") else ""
-            )
-            required = (
-                attr_schema.required if hasattr(attr_schema, "required") else False
-            )
-            optional = (
-                attr_schema.optional if hasattr(attr_schema, "optional") else False
-            )
-            computed = (
-                attr_schema.computed if hasattr(attr_schema, "computed") else False
-            )
+            attr_type = attr_schema.type.__name__ if hasattr(attr_schema, "type") else "string"
+            description = attr_schema.description if hasattr(attr_schema, "description") else ""
+            required = attr_schema.required if hasattr(attr_schema, "required") else False
+            optional = attr_schema.optional if hasattr(attr_schema, "optional") else False
+            computed = attr_schema.computed if hasattr(attr_schema, "computed") else False
 
             status = []
             if required:
@@ -50,9 +40,7 @@ def schema_to_markdown(schema: Any, prefix: str = "") -> str:
 
             status_str = ", ".join(status) if status else "Optional"
 
-            lines.append(
-                f"- `{prefix}{attr_name}` ({attr_type}) - {description} ({status_str})"
-            )
+            lines.append(f"- `{prefix}{attr_name}` ({attr_type}) - {description} ({status_str})")
 
         # Process nested blocks
         for block_name, block_schema in nested_blocks.items():
@@ -95,20 +83,14 @@ def attrs_schema_to_markdown(schema: dict[str, Any], prefix: str = "") -> str:
 
             status_str = ", ".join(status) if status else "Optional"
 
-            lines.append(
-                f"- `{prefix}{attr_name}` ({attr_type}) - {description} ({status_str})"
-            )
+            lines.append(f"- `{prefix}{attr_name}` ({attr_type}) - {description} ({status_str})")
 
         # Process nested blocks
         for block in nested_blocks:
             if isinstance(block, dict):
                 block_name = block.get("type_name", "")
-                lines.append(
-                    f"- `{prefix}{block_name}` - {block.get('description', '')}"
-                )
-                nested_markdown = attrs_schema_to_markdown(
-                    block.get("block", {}), f"{prefix}{block_name}."
-                )
+                lines.append(f"- `{prefix}{block_name}` - {block.get('description', '')}")
+                nested_markdown = attrs_schema_to_markdown(block.get("block", {}), f"{prefix}{block_name}.")
                 lines.append(nested_markdown)
 
     return "\n".join(lines)

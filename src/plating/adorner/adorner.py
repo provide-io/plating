@@ -34,9 +34,7 @@ class PlatingAdorner:
         components = hub.list_components()
 
         # Find existing plating bundles
-        existing_bundles = await asyncio.to_thread(
-            self.plating_discovery.discover_bundles
-        )
+        existing_bundles = await asyncio.to_thread(self.plating_discovery.discover_bundles)
         existing_names = {bundle.name for bundle in existing_bundles}
 
         # Track adorning results
@@ -50,17 +48,13 @@ class PlatingAdorner:
             if component_type in components:
                 for name, component_class in components[component_type].items():
                     if name not in existing_names:
-                        success = await self._adorn_component(
-                            name, component_type, component_class
-                        )
+                        success = await self._adorn_component(name, component_type, component_class)
                         if success:
                             adorned[component_type] += 1
 
         return adorned
 
-    async def _adorn_component(
-        self, name: str, component_type: str, component_class
-    ) -> bool:
+    async def _adorn_component(self, name: str, component_type: str, component_class) -> bool:
         """Adorn a single component with a .plating directory."""
         try:
             # Find the component's source file location
@@ -81,9 +75,7 @@ class PlatingAdorner:
                 await asyncio.to_thread(docs_dir.mkdir, parents=True, exist_ok=True)
                 await asyncio.to_thread(examples_dir.mkdir, parents=True, exist_ok=True)
             except OSError as e:
-                raise AdorningError(
-                    name, component_type, f"Failed to create directories: {e}"
-                )
+                raise AdorningError(name, component_type, f"Failed to create directories: {e}")
 
             # Generate and write template
             template_content = await self.template_generator.generate_template(
@@ -93,9 +85,7 @@ class PlatingAdorner:
             await asyncio.to_thread(template_file.write_text, template_content)
 
             # Generate and write example
-            example_content = await self.template_generator.generate_example(
-                name, component_type
-            )
+            example_content = await self.template_generator.generate_example(name, component_type)
             example_file = examples_dir / "example.tf"
             await asyncio.to_thread(example_file.write_text, example_content)
 

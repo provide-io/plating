@@ -82,10 +82,7 @@ provider "{{ provider.short_name }}" {
 
         # Get provider schema if available
         provider_schema = ""
-        if (
-            hasattr(self.generator, "schema_processor")
-            and self.generator.schema_processor
-        ):
+        if hasattr(self.generator, "schema_processor") and self.generator.schema_processor:
             try:
                 provider_schema = self.generator.schema_processor.get_provider_schema()
                 if not provider_schema:
@@ -132,9 +129,7 @@ provider "{{ provider.short_name }}" {
 
         # Add custom template functions
         env.globals["schema"] = lambda: component_info.get("schema_markdown", "")
-        env.globals["example"] = (
-            lambda name: f"```terraform\n{examples.get(name, '')}\n```"
-        )
+        env.globals["example"] = lambda name: f"```terraform\n{examples.get(name, '')}\n```"
         env.globals["include"] = lambda filename: partials.get(filename, "")
         env.globals["render"] = lambda filename: self._render_partial(
             env, filename, component_info, examples, partials
@@ -144,9 +139,7 @@ provider "{{ provider.short_name }}" {
         template = env.get_template("main.tmpl.md")
 
         # Create render context, excluding keys that conflict with template globals
-        render_context = {
-            k: v for k, v in component_info.items() if k not in ["schema"]
-        }
+        render_context = {k: v for k, v in component_info.items() if k not in ["schema"]}
         render_context.update(
             {
                 "bundle_name": bundle.name,

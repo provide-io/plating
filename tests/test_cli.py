@@ -1,9 +1,11 @@
 """
 Tests for the garnish CLI.
 """
-import pytest
+
+from unittest.mock import patch
+
 from click.testing import CliRunner
-from unittest.mock import patch, MagicMock
+import pytest
 
 from plating.cli import main
 
