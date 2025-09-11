@@ -31,10 +31,10 @@ class SchemaProcessor:
         # Set up retry policy for schema operations
         self.retry_policy = RetryPolicy(
             max_attempts=3,
-            backoff_strategy=BackoffStrategy.EXPONENTIAL,
+            backoff=BackoffStrategy.EXPONENTIAL,
             base_delay=1.0,
             max_delay=10.0,
-            exceptions=(ProcessError, SchemaError, Exception)
+            retryable_errors=(ProcessError, SchemaError, Exception)
         )
         self.retry_executor = RetryExecutor(self.retry_policy)
 
@@ -122,7 +122,7 @@ class SchemaProcessor:
         # Build the provider binary with retry
         pout(f"Building provider in {self.generator.provider_dir}")
         try:
-            self.retry_executor.execute(
+            self.retry_executor.execute_sync(
                 run_command,
                 ["python", "-m", "build"],
                 cwd=self.generator.provider_dir,
@@ -164,7 +164,7 @@ provider "{self.generator.provider_name}" {{}}
 
             # Initialize Terraform with retry
             try:
-                self.retry_executor.execute(
+                self.retry_executor.execute_sync(
                     run_command,
                     [tf_binary, "init"],
                     cwd=temp_dir,
@@ -182,7 +182,7 @@ provider "{self.generator.provider_name}" {{}}
 
             # Extract schema with retry
             try:
-                schema_result = self.retry_executor.execute(
+                schema_result = self.retry_executor.execute_sync(
                     run_command,
                     [tf_binary, "providers", "schema", "-json"],
                     cwd=temp_dir,

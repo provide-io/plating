@@ -179,9 +179,11 @@ class PlatingPlater:
             Dictionary of context data for template rendering
         """
         # Start with basic bundle info
+        formatted_type = _format_component_type(bundle.component_type)
         context = {
             "name": bundle.name,
-            "component_type": _format_component_type(bundle.component_type),
+            "component_type": formatted_type,
+            "type": formatted_type,  # Backward compatibility
             "provider_name": provider_name,
         }
 
@@ -194,6 +196,8 @@ class PlatingPlater:
             if bundle.component_type == "function" and "signature" in schema:
                 context["signature"] = _format_function_signature(schema)
                 context["arguments"] = _format_function_arguments(schema)
+        else:
+            context["description"] = ""
 
         return context
 
