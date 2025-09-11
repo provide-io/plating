@@ -337,7 +337,7 @@ class TestStirResultParsing:
 class TestPlatingValidator:
     """Tests for the main adapter that coordinates the migration."""
 
-    @patch("plating.plating.PlatingDiscovery")
+    @patch("plating.validator.adapters.PlatingDiscovery")
     @patch("plating.validator.suite_builder.prepare_validation_suites")
     @patch("plating.validator.adapters.run_validation_with_stir")
     @patch("plating.validator.adapters.parse_validation_results")
@@ -345,8 +345,20 @@ class TestPlatingValidator:
         """Test the complete flow from garnish discovery to stir execution."""
         # Given: Mock plating bundles and stir results
         mock_bundles = [
-            Mock(name="test1", component_type="resource"),
-            Mock(name="test2", component_type="data_source"),
+            Mock(
+                name="test1", 
+                component_type="resource",
+                load_examples=Mock(return_value={"example1.tf": "# test content"}),
+                load_fixtures=Mock(return_value={}),
+                fixtures_dir=Mock(exists=Mock(return_value=False)),
+            ),
+            Mock(
+                name="test2", 
+                component_type="data_source",
+                load_examples=Mock(return_value={"example2.tf": "# test content"}),
+                load_fixtures=Mock(return_value={}),
+                fixtures_dir=Mock(exists=Mock(return_value=False)),
+            ),
         ]
         mock_discovery.return_value.discover_bundles.return_value = mock_bundles
 
@@ -431,9 +443,14 @@ class TestPlatingValidator:
             with patch.object(adapter, "_prepare_validation_suites") as mock_prepare:
                 mock_prepare.return_value = [Path("/test")]
                 
-                # This should raise an error since stir is not available
-                with pytest.raises(RuntimeError):
-                    results = adapter.run_validation()
+                # Should fallback gracefully to simple validation since fallback_to_simple=True
+                results = adapter.run_validation()
+                
+                # Should return valid results from simple runner
+                assert isinstance(results, dict)
+                assert "total" in results
+                assert "passed" in results
+                assert "failed" in results
 
 
 class TestCLIIntegration:
