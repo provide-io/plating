@@ -1,7 +1,7 @@
 #
-# plating/test_runner/adapters.py
+# plating/validator/adapters.py
 #
-"""Test adapters for integrating with external test runners."""
+"""Validation adapters for integrating with external validation runners."""
 
 import json
 import os
@@ -11,40 +11,38 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from provide.foundation import logger
+from provide.foundation import logger, pout
 from provide.foundation.process import ProcessError, run_command
-from rich.console import Console
 
 from plating.config import get_config
 from plating.plating import PlatingBundle, PlatingDiscovery
 
-from .core import _run_simple_tests
-from .suite_builder import prepare_bundles_summary, prepare_test_suites_for_stir
+from .core import _run_simple_validation
+from .suite_builder import prepare_bundles_summary, prepare_validation_suites
 from .utils import get_terraform_version
 
-console = Console()
 
 
-def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
-    """Run tests using tofusoup stir command.
+def run_validation_with_stir(validation_dir: Path, parallel: int = 4) -> dict[str, Any]:
+    """Run validation using tofusoup stir command.
 
     Args:
-        test_dir: Directory containing test suites
-        parallel: Number of parallel tests to run
+        validation_dir: Directory containing validation suites
+        parallel: Number of parallel validations to run
 
     Returns:
-        Dictionary with test results from stir
+        Dictionary with validation results from stir
     """
     # Check if soup command is available
     soup_cmd = shutil.which("soup")
     if not soup_cmd:
         raise RuntimeError(
-            "tofusoup is not installed or not in PATH. Please install tofusoup to use the test command."
+            "tofusoup is not installed or not in PATH. Please install tofusoup to use the validation command."
         )
 
     # Build stir command - ensure absolute path
-    test_dir_abs = test_dir.resolve()
-    cmd = ["soup", "stir", str(test_dir_abs), "--json"]
+    validation_dir_abs = validation_dir.resolve()
+    cmd = ["soup", "stir", str(validation_dir_abs), "--json"]
 
     # Run stir with plugin cache to avoid re-downloading providers
     env = os.environ.copy()
@@ -71,8 +69,8 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
             if tofusoup_dir.exists() and (tofusoup_dir / "pyproject.toml").exists():
                 run_dir = tofusoup_dir
             else:
-                # Fallback: run from test directory (will likely fail but allows graceful fallback)
-                run_dir = test_dir
+                # Fallback: run from validation directory (will likely fail but allows graceful fallback)
+                run_dir = validation_dir
 
     try:
         result = run_command(
@@ -84,7 +82,7 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
     except FileNotFoundError as e:
         # Handle case where command is not found
         raise RuntimeError(
-            f"TofuSoup not found or not installed. Please install tofusoup to use stir testing. Error: {e}"
+            f"TofuSoup not found or not installed. Please install tofusoup to use stir validation. Error: {e}"
         ) from e
     except ProcessError as e:
         # Check if this is the pyproject.toml error
@@ -102,7 +100,7 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
         # Check if this is a command not found error
         if any(phrase in error_msg.lower() for phrase in ["not found", "no such file", "command not found"]):
             raise RuntimeError(
-                f"TofuSoup not found or not installed. Please install tofusoup to use stir testing. Error: {e}"
+                f"TofuSoup not found or not installed. Please install tofusoup to use stir validation. Error: {e}"
             ) from e
 
         # For other process errors, log and re-raise
@@ -116,7 +114,7 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
         return {"total": 0, "passed": 0, "failed": 0, "test_details": {}}
 
 
-def parse_stir_results(stir_output: dict[str, Any], bundles: list[PlatingBundle] = None) -> dict[str, Any]:
+def parse_validation_results(stir_output: dict[str, Any], bundles: list[PlatingBundle] = None) -> dict[str, Any]:
     """Parse and enrich stir results with plating bundle information.
 
     Args:
@@ -124,7 +122,7 @@ def parse_stir_results(stir_output: dict[str, Any], bundles: list[PlatingBundle]
         bundles: Optional list of plating bundles for enrichment
 
     Returns:
-        Dictionary with plating-formatted test results
+        Dictionary with plating-formatted validation results
     """
     # Start with stir results, ensuring required keys exist
     results = dict(stir_output)
@@ -147,42 +145,42 @@ def parse_stir_results(stir_output: dict[str, Any], bundles: list[PlatingBundle]
     return results
 
 
-class PlatingTestAdapter:
-    """Adapter to run plating tests using tofusoup stir."""
+class PlatingValidator:
+    """Adapter to run plating validation using tofusoup stir."""
 
     def __init__(self, output_dir: Path = None, fallback_to_simple: bool = False):
-        """Initialize the test adapter.
+        """Initialize the validation adapter.
 
         Args:
-            output_dir: Directory for test suites (temp if not specified)
+            output_dir: Directory for validation suites (temp if not specified)
             fallback_to_simple: Whether to fall back to simple runner if stir unavailable
         """
         self.output_dir = output_dir
         self.fallback_to_simple = fallback_to_simple
         self._temp_dir = None
 
-    def run_tests(
+    def run_validation(
         self,
         component_types: list[str] = None,
         parallel: int = 4,
         output_file: Path = None,
         output_format: str = "json",
     ) -> dict[str, Any]:
-        """Run plating tests using stir.
+        """Run plating validation using stir.
 
         Args:
             component_types: Optional list of component types to filter
-            parallel: Number of parallel tests
+            parallel: Number of parallel validations
             output_file: Optional file to write report to
             output_format: Format for report (json, markdown, html)
 
         Returns:
-            Dictionary with test results
+            Dictionary with validation results
         """
         try:
             # Setup output directory
             if self.output_dir is None:
-                self._temp_dir = Path(tempfile.mkdtemp(prefix="plating-tests-"))
+                self._temp_dir = Path(tempfile.mkdtemp(prefix="plating-validation-"))
                 self.output_dir = self._temp_dir
             else:
                 self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -202,11 +200,11 @@ class PlatingTestAdapter:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-            # Prepare test suites
-            test_suites = self._prepare_test_suites(bundles)
+            # Prepare validation suites
+            validation_suites = self._prepare_validation_suites(bundles)
 
-            if not test_suites:
-                console.print("[yellow]No test suites created (no components with examples found)[/yellow]")
+            if not validation_suites:
+                pout("[yellow]No validation suites created (no components with examples found)[/yellow]")
                 return {
                     "total": 0,
                     "passed": 0,
@@ -216,13 +214,13 @@ class PlatingTestAdapter:
 
             # Try to run with stir first, fall back to simple if needed
             try:
-                results = run_tests_with_stir(self.output_dir, parallel)
-                results = parse_stir_results(results, bundles)
+                results = run_validation_with_stir(self.output_dir, parallel)
+                results = parse_validation_results(results, bundles)
             except RuntimeError as e:
                 if self.fallback_to_simple:
-                    console.print(f"[yellow]Stir unavailable ({e}), falling back to simple runner[/yellow]")
-                    results = _run_simple_tests(self.output_dir)
-                    results = parse_stir_results(results, bundles)
+                    pout(f"[yellow]Stir unavailable ({e}), falling back to simple runner[/yellow]")
+                    results = _run_simple_validation(self.output_dir)
+                    results = parse_validation_results(results, bundles)
                 else:
                     raise
 
@@ -244,7 +242,7 @@ class PlatingTestAdapter:
                 shutil.rmtree(self._temp_dir, ignore_errors=True)
 
     def _discover_bundles(self, component_types: list[str] = None) -> list[PlatingBundle]:
-        """Discover plating bundles for testing.
+        """Discover plating bundles for validation.
 
         Args:
             component_types: Optional filter for component types
@@ -264,16 +262,16 @@ class PlatingTestAdapter:
 
         return all_bundles
 
-    def _prepare_test_suites(self, bundles: list[PlatingBundle]) -> list[Path]:
-        """Prepare test suites from bundles.
+    def _prepare_validation_suites(self, bundles: list[PlatingBundle]) -> list[Path]:
+        """Prepare validation suites from bundles.
 
         Args:
             bundles: List of bundles to prepare
 
         Returns:
-            List of test suite directory paths
+            List of validation suite directory paths
         """
-        return prepare_test_suites_for_stir(bundles, self.output_dir)
+        return prepare_validation_suites(bundles, self.output_dir)
 
 
 # 🔌⚡🧪

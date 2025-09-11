@@ -10,13 +10,10 @@ from typing import Any
 
 from provide.foundation import logger, pout
 from provide.foundation.process import ProcessError, run_command
-from rich.console import Console
 
 from plating.config import get_config
 from plating.plating import PlatingDiscovery
 from plating.results import ValidationResult
-
-console = Console()
 
 
 def run_validation(
@@ -160,7 +157,7 @@ def _run_simple_validation(validation_dir: Path) -> dict[str, Any]:
 
                 match = re.search(r"(\d+) added", output)
                 if match:
-                    test_info["resources"] = int(match.group(1))
+                    validation_info["resources"] = int(match.group(1))
 
             # Run terraform destroy
             destroy_result = subprocess.run(
@@ -179,34 +176,34 @@ def _run_simple_validation(validation_dir: Path) -> dict[str, Any]:
                     destroy_result.stderr,
                 )
 
-            test_info["success"] = True
+            validation_info["success"] = True
             results["passed"] += 1
-            console.print(f"  ✅ {test_name}: PASS")
+            pout(f"  ✅ {validation_name}: PASS")
 
         except subprocess.CalledProcessError as e:
-            test_info["success"] = False
-            test_info["last_log"] = str(e.stderr if e.stderr else e.stdout)
+            validation_info["success"] = False
+            validation_info["last_log"] = str(e.stderr if e.stderr else e.stdout)
             results["failed"] += 1
-            results["failures"][test_name] = test_info["last_log"]
-            console.print(f"  ❌ {test_name}: FAIL")
+            results["failures"][validation_name] = validation_info["last_log"]
+            pout(f"  ❌ {validation_name}: FAIL")
 
         except subprocess.TimeoutExpired:
-            test_info["success"] = False
-            test_info["last_log"] = "Test timed out"
+            validation_info["success"] = False
+            validation_info["last_log"] = "Validation timed out"
             results["failed"] += 1
-            results["failures"][test_name] = "Test timed out"
-            console.print(f"  ⏱️ {test_name}: TIMEOUT")
+            results["failures"][validation_name] = "Validation timed out"
+            pout(f"  ⏱️ {validation_name}: TIMEOUT")
 
         except Exception as e:
-            test_info["success"] = False
-            test_info["last_log"] = str(e)
+            validation_info["success"] = False
+            validation_info["last_log"] = str(e)
             results["failed"] += 1
-            results["failures"][test_name] = str(e)
-            console.print(f"  ❌ {test_name}: ERROR")
+            results["failures"][validation_name] = str(e)
+            pout(f"  ❌ {validation_name}: ERROR")
 
         end_time = datetime.now()
-        test_info["duration"] = (end_time - start_time).total_seconds()
-        results["test_details"][test_name] = test_info
+        validation_info["duration"] = (end_time - start_time).total_seconds()
+        results["test_details"][validation_name] = validation_info
 
     return results
 
@@ -231,7 +228,7 @@ def _extract_warnings_from_log(log_file: Path) -> list[dict[str, str]]:
                 except json.JSONDecodeError:
                     continue
     except Exception as e:
-        console.print(f"[yellow]Warning: Failed to parse log file: {e}[/yellow]")
+        pout(f"[yellow]Warning: Failed to parse log file: {e}[/yellow]")
     return warnings
 
 
