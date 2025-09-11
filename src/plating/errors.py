@@ -8,7 +8,7 @@ from provide.foundation.errors import FoundationError
 
 
 class PlatingError(FoundationError):
-    """Base error for all garnish-related errors."""
+    """Base error for all plating-related errors."""
 
     pass
 
@@ -21,7 +21,7 @@ class BundleError(PlatingError):
         super().__init__(f"Bundle '{bundle_name}': {message}")
 
 
-class PlatingError(PlatingError):
+class PlatingRenderError(PlatingError):
     """Error during documentation plating."""
 
     def __init__(self, bundle_name: str, reason: str):
@@ -70,7 +70,7 @@ class DiscoveryError(PlatingError):
 
 
 class ConfigurationError(PlatingError):
-    """Error in garnish configuration."""
+    """Error in plating configuration."""
 
     def __init__(self, config_key: str, reason: str):
         self.config_key = config_key
