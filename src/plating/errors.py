@@ -82,13 +82,13 @@ class ConfigurationError(PlatingError):
         super().__init__(f"Configuration error for '{config_key}': {reason}")
 
 
-class TestRunnerError(PlatingError):
-    """Error during test execution."""
+class ValidationError(PlatingError):
+    """Error during validation execution."""
 
-    def __init__(self, test_name: str, reason: str):
-        self.test_name = test_name
+    def __init__(self, validation_name: str, reason: str):
+        self.validation_name = validation_name
         self.reason = reason
-        super().__init__(f"Test '{test_name}' failed: {reason}")
+        super().__init__(f"Validation '{validation_name}' failed: {reason}")
 
 
 class FileSystemError(PlatingError):
