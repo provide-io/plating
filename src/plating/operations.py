@@ -56,7 +56,23 @@ def adorn_missing_components(component_types: list[str] = None, force: bool = Fa
         >>> print(f"Adorned {result.total_adorned} resources")
     """
     pout("✨ Adorning components with documentation templates...")
-    return adorn_components(component_types)
+    
+    try:
+        adorned_dict = adorn_components(component_types)
+        return AdornResult(
+            adorned=adorned_dict,
+            skipped=[],  # TODO: Track skipped components in adorn_components
+            errors=[],
+            duration=0.0,  # TODO: Track duration in adorn_components
+        )
+    except Exception as e:
+        logger.error("Adorning failed", error=str(e))
+        return AdornResult(
+            adorned={},
+            skipped=[],
+            errors=[str(e)],
+            duration=0.0,
+        )
 
 
 def plate_documentation(

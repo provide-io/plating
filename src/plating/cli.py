@@ -40,9 +40,9 @@ def adorn_command(component_type: tuple[str, ...], force: bool) -> None:
 
         if result.total_adorned > 0:
             pout(f"✅ Adorned {result.total_adorned} components")
-            for comp_type, bundles in result.adorned.items():
-                if bundles:
-                    pout(f"  - {len(bundles)} {comp_type}{'s' if len(bundles) != 1 else ''}")
+            for comp_type, count in result.adorned.items():
+                if count > 0:
+                    pout(f"  - {count} {comp_type}{'s' if count != 1 else ''}")
         else:
             pout("ℹ️ No missing .plating directories found")
 
