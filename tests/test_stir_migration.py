@@ -439,7 +439,7 @@ class TestPlatingValidator:
 class TestCLIIntegration:
     """Tests for CLI integration with new stir-based flow."""
 
-    @patch("plating.validator.run_validation")
+    @patch("plating.cli.validate_examples")
     def test_cli_test_command_uses_adapter(self, mock_validate):
         """Test that CLI test command uses the new validation function."""
         # Given: Mock validation function
@@ -464,7 +464,7 @@ class TestCLIIntegration:
         import re
         assert re.search(r"All.*passed", result.output, re.IGNORECASE)
 
-    @patch("plating.validator.run_validation")
+    @patch("plating.cli.validate_examples")
     def test_cli_passes_options_to_adapter(self, mock_validate):
         """Test that CLI options are passed to the validation function."""
         # Given: Mock validation function
