@@ -319,40 +319,42 @@ class TestPlatingPlater:
 class TestHelperFunctions:
     """Test helper functions in the renderer module."""
 
-    def test_create_plating_context_basic(self):
-        """Test _create_plating_context with basic inputs."""
+    def test_build_context_data_basic(self):
+        """Test _build_context_data with basic inputs."""
         bundle = PlatingBundle(name="test", plating_dir=Path("/tmp/test.plating"), component_type="resource")
+        plater = PlatingPlater()
 
-        context = _create_plating_context(bundle, None, "test_provider")
+        context = plater._build_context_data(bundle, None, "test_provider")
 
         assert context["name"] == "test"
-        assert context["type"] == "Resource"
+        assert context["component_type"] == "Resource"
         assert context["provider_name"] == "test_provider"
-        assert context["component_type"] == "resource"
 
-    def test_create_plating_context_with_schema(self):
-        """Test _create_plating_context with schema."""
+    def test_build_context_data_with_schema(self):
+        """Test _build_context_data with schema."""
         bundle = PlatingBundle(name="test", plating_dir=Path("/tmp/test.plating"), component_type="resource")
+        plater = PlatingPlater()
 
         schema = {
             "description": "Test resource",
             "block": {"attributes": {"id": {"type": "string", "computed": True}}},
         }
 
-        context = _create_plating_context(bundle, schema, "test_provider")
+        context = plater._build_context_data(bundle, schema, "test_provider")
 
         assert context["description"] == "Test resource"
         assert "schema_markdown" in context
 
-    def test_create_plating_context_with_function_schema(self):
-        """Test _create_plating_context with function schema."""
+    def test_build_context_data_with_function_schema(self):
+        """Test _build_context_data with function schema."""
         bundle = PlatingBundle(
             name="test_func", plating_dir=Path("/tmp/test.plating"), component_type="function"
         )
+        plater = PlatingPlater()
 
         schema = {"signature": {"parameters": [{"name": "input", "type": "string"}], "return_type": "string"}}
 
-        context = _create_plating_context(bundle, schema, "test_provider")
+        context = plater._build_context_data(bundle, schema, "test_provider")
 
         assert "signature" in context
         assert "arguments" in context
