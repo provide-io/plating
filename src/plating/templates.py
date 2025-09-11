@@ -9,8 +9,8 @@ from jinja2 import DictLoader, Environment, select_autoescape
 from provide.foundation import pout
 
 if TYPE_CHECKING:
-    from .plating import PlatingBundle
     from .generator import DocsGenerator
+    from .plating import PlatingBundle
 
 
 class TemplateProcessor:

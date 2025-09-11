@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from plating.plating import PlatingDiscovery
 from plating.plater import PlatingPlater
+from plating.plating import PlatingDiscovery
 
 # Discover all bundles in the provider
 discovery = PlatingDiscovery(package_name="my_provider")

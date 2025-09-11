@@ -5,8 +5,8 @@
 
 import asyncio
 
+from provide.foundation import logger, perr, pout
 from pyvider.hub import ComponentDiscovery, hub
-from provide.foundation import logger, pout, perr
 
 from plating.adorner.finder import ComponentFinder
 from plating.adorner.templates import TemplateGenerator

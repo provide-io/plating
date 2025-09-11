@@ -10,14 +10,12 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
-
-from rich.console import Console
-from rich.table import Table
-
 from typing import Any
 
-from provide.foundation import logger, pout, perr
-from provide.foundation.process import run_command, ProcessError
+from provide.foundation import logger
+from provide.foundation.process import ProcessError, run_command
+from rich.console import Console
+from rich.table import Table
 
 from plating.config import get_config
 from plating.plating import PlatingBundle, PlatingDiscovery
@@ -46,9 +44,7 @@ def _get_terraform_version() -> tuple[str, str]:
     binary_name = "OpenTofu" if "tofu" in tf_binary else "Terraform"
 
     try:
-        result = run_command(
-            [tf_binary, "-version"], capture_output=True, timeout=5
-        )
+        result = run_command([tf_binary, "-version"], capture_output=True, timeout=5)
         version_lines = result.stdout.strip().split("\n")
         if version_lines:
             version_string = version_lines[0]
@@ -99,7 +95,6 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
         Dictionary with test results from stir
     """
     import json
-    import subprocess
 
     # Check if soup command is available
     soup_cmd = shutil.which("soup")
@@ -149,17 +144,17 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
             cwd=str(run_dir),  # Run from directory with pyproject.toml
         )
     except FileNotFoundError as e:
-        # Handle case where command is not found  
+        # Handle case where command is not found
         raise RuntimeError(
             f"TofuSoup not found or not installed. Please install tofusoup to use stir testing. "
             f"Error: {e}"
         ) from e
     except ProcessError as e:
-        # Check if this is the pyproject.toml error  
+        # Check if this is the pyproject.toml error
         error_msg = str(e)
-        if hasattr(e, 'stderr') and e.stderr:
+        if hasattr(e, "stderr") and e.stderr:
             error_msg += f" {e.stderr}"
-        if hasattr(e, 'stdout') and e.stdout:
+        if hasattr(e, "stdout") and e.stdout:
             error_msg += f" {e.stdout}"
         if "pyproject.toml" in error_msg:
             # This is a known issue with soup tool install - raise RuntimeError to trigger fallback
@@ -167,14 +162,17 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
                 "soup stir requires pyproject.toml context. "
                 "Falling back to simple runner."
             ) from e
-        
+
         # Check if this is a command not found error
-        if any(phrase in error_msg.lower() for phrase in ["not found", "no such file", "command not found"]):
+        if any(
+            phrase in error_msg.lower()
+            for phrase in ["not found", "no such file", "command not found"]
+        ):
             raise RuntimeError(
                 f"TofuSoup not found or not installed. Please install tofusoup to use stir testing. "
                 f"Error: {e}"
             ) from e
-        
+
         # For other process errors, log and re-raise
         logger.error("TofuSoup stir execution failed", error=str(e))
         raise RuntimeError(f"Failed to run tofusoup stir: {e}") from e
@@ -525,7 +523,6 @@ def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
     Returns:
         Dictionary with test results
     """
-    import subprocess
 
     results = {
         "total": 0,
@@ -568,7 +565,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
         try:
             # Run terraform init
             try:
-                init_result = run_command(
+                run_command(
                     [tf_binary, "init"],
                     cwd=suite_dir,
                     capture_output=True,
@@ -576,8 +573,14 @@ def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
                     env=config.get_terraform_env(),
                 )
             except ProcessError as e:
-                logger.error("Terraform init failed", command=e.cmd, returncode=e.returncode,
-                           stdout=e.stdout, stderr=e.stderr, suite=suite_dir.name)
+                logger.error(
+                    "Terraform init failed",
+                    command=e.cmd,
+                    returncode=e.returncode,
+                    stdout=e.stdout,
+                    stderr=e.stderr,
+                    suite=suite_dir.name,
+                )
                 raise
 
             # Run terraform apply
@@ -590,8 +593,14 @@ def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
                     env=config.get_terraform_env(),
                 )
             except ProcessError as e:
-                logger.error("Terraform apply failed", command=e.cmd, returncode=e.returncode,
-                           stdout=e.stdout, stderr=e.stderr, suite=suite_dir.name)
+                logger.error(
+                    "Terraform apply failed",
+                    command=e.cmd,
+                    returncode=e.returncode,
+                    stdout=e.stdout,
+                    stderr=e.stderr,
+                    suite=suite_dir.name,
+                )
                 raise
 
             # Parse output for resource counts
@@ -904,7 +913,7 @@ def _generate_html_report(results: dict[str, any], output_file: Path) -> None:
     <h1>Garnish Test Report</h1>
     <p>Generated: {results["timestamp"]}</p>
     <p><strong>Terraform Version</strong>: {results.get("terraform_version", "Unknown")}</p>
-    
+
     <div class="summary">
         <h2>Summary</h2>
         <ul>
@@ -915,7 +924,7 @@ def _generate_html_report(results: dict[str, any], output_file: Path) -> None:
             <li><strong>Skipped</strong>: {results["skipped"]}</li>
         </ul>
     </div>
-    
+
     <div class="test-details">
         <h2>Test Details</h2>
 """

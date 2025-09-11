@@ -7,7 +7,7 @@
 from pathlib import Path
 
 import click
-from provide.foundation import logger, pout, perr
+from provide.foundation import logger, pout
 
 from plating.adorner import adorn_components
 from plating.errors import PlatingError, handle_error

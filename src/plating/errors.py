@@ -4,6 +4,7 @@ Custom error types for plating.
 
 from pathlib import Path
 from typing import Any
+
 from provide.foundation.errors import FoundationError
 
 

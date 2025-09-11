@@ -9,7 +9,6 @@ examples, and generates Terraform Registry-compliant documentation.
 """
 
 from plating._version import __version__
-
 from plating.cli import main
 from plating.generator import DocsGenerator
 from plating.models import FunctionInfo, ProviderInfo, ResourceInfo

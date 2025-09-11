@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from plating.plating import PlatingBundle
 from plating.plater import PlatingPlater
+from plating.plating import PlatingBundle
 
 # Create a bundle
 bundle = PlatingBundle(

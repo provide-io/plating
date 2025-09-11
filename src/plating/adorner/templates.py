@@ -184,7 +184,7 @@ output "example_data" {{
 }}
 
 output "function_result" {{
-  description = "Result of {name} function"  
+  description = "Result of {name} function"
   value       = local.example_result
 }}
 """
