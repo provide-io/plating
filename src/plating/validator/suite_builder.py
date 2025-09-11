@@ -8,7 +8,7 @@ from pathlib import Path
 
 from provide.foundation import pout
 
-from plating.plating import PlatingBundle, PlatingDiscovery
+from plating.plating import PlatingBundle
 
 
 def prepare_validation_suites(bundles: list[PlatingBundle], output_dir: Path) -> list[Path]:
