@@ -1,31 +1,31 @@
 #
-# plating/test_runner/core.py
+# plating/validator/core.py
 #
-"""Core test execution functionality."""
+"""Core validation execution functionality."""
 
 import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from provide.foundation import logger
+from provide.foundation import logger, pout
 from provide.foundation.process import ProcessError, run_command
 from rich.console import Console
 
 from plating.config import get_config
 from plating.plating import PlatingDiscovery
-from plating.results import TestResult
+from plating.results import ValidationResult
 
 console = Console()
 
 
-def run_tests(
+def run_validation(
     component_types: list[str] = None,
     parallel: int = 4,
     output_file: Path = None,
     output_format: str = "json",
-) -> TestResult:
-    """Run tests for plating bundles.
+) -> ValidationResult:
+    """Run validation for plating bundles.
 
     Args:
         component_types: Optional list of component types to filter
@@ -34,21 +34,25 @@ def run_tests(
         output_format: Format for report (json, markdown, html)
 
     Returns:
-        TestResult with test execution results
+        ValidationResult with validation execution results
     """
-    from .adapters import PlatingTestAdapter
-    from .reporters import generate_report
+    # Dogfood foundation for user output
+    pout("🔍 Running validation on plating examples...")
+    
+    # Dogfood our own adapters and reporters
+    from plating.validator.adapters import PlatingValidator
+    from plating.validator.reporters import generate_report
 
-    adapter = PlatingTestAdapter(fallback_to_simple=True)
-    results_dict = adapter.run_tests(
+    adapter = PlatingValidator(fallback_to_simple=True)
+    results_dict = adapter.run_validation(
         component_types=component_types,
         parallel=parallel,
         output_file=output_file,
         output_format=output_format,
     )
 
-    # Convert dict to TestResult
-    return TestResult(
+    # Convert dict to ValidationResult (dogfood our results)
+    return ValidationResult(
         total=results_dict.get("total", 0),
         passed=results_dict.get("passed", 0),
         failed=results_dict.get("failed", 0),
@@ -62,17 +66,17 @@ def run_tests(
     )
 
 
-def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
-    """Run simple terraform tests without stir.
+def _run_simple_validation(validation_dir: Path) -> dict[str, Any]:
+    """Run simple terraform validation without stir.
 
     Note: This is a simplified version without parallel execution or rich UI.
     For advanced test running with rich UI, use tofusoup.
 
     Args:
-        test_dir: Directory containing test suites
+        validation_dir: Directory containing validation suites
 
     Returns:
-        Dictionary with test results
+        Dictionary with validation results
     """
     results = {
         "total": 0,
@@ -85,20 +89,25 @@ def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
         "timestamp": datetime.now().isoformat(),
     }
 
-    # Find all test directories
-    test_dirs = [d for d in test_dir.iterdir() if d.is_dir()]
-    results["total"] = len(test_dirs)
+    # Dogfood foundation for user output
+    pout("🔍 Running simple validation (no stir)...")
+    
+    # Find all validation directories
+    validation_dirs = [d for d in validation_dir.iterdir() if d.is_dir()]
+    results["total"] = len(validation_dirs)
 
-    # Get terraform binary from config
+    # Dogfood our config system
     config = get_config()
+    logger.debug("Using terraform binary", binary=config.terraform_binary)
     tf_binary = config.terraform_binary
 
-    for suite_dir in test_dirs:
-        test_name = suite_dir.name
-        console.print(f"Running test: {test_name}")
+    for suite_dir in validation_dirs:
+        validation_name = suite_dir.name
+        pout(f"🔍 Validating: {validation_name}")
+        logger.debug("Starting validation", suite=validation_name)
 
-        test_info = {
-            "name": test_name,
+        validation_info = {
+            "name": validation_name,
             "success": False,
             "skipped": False,
             "duration": 0,
