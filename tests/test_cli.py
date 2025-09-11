@@ -56,18 +56,10 @@ class TestPlatingCli:
         mock_adorn.assert_called_once()
         assert "Adorned 1 components" in result.output
 
-    @patch("plating.plating.PlatingDiscovery")
-    @patch("plating.operations.plate_documentation")
-    def test_plate_invokes_correct_logic(self, mock_plate, mock_discovery, runner: CliRunner):
+    @patch("plating.cli.plate_documentation")  
+    def test_plate_invokes_correct_logic(self, mock_plate, runner: CliRunner):
         """Test that plate command invokes the plating logic."""
         from plating.results import PlateResult
-        from unittest.mock import Mock
-        
-        # Mock discovery to return some bundles so plate_documentation gets called
-        mock_bundle = Mock()
-        mock_bundle.name = "test_resource"
-        mock_bundle.component_type = "resource"
-        mock_discovery.return_value.discover_bundles.return_value = [mock_bundle]
         
         mock_plate.return_value = PlateResult(
             plated=["test.md"], 
