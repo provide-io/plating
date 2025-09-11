@@ -10,6 +10,7 @@ from typing import Any
 
 from provide.foundation import logger, pout
 from provide.foundation.process import ProcessError, run_command
+from provide.foundation.utils import TokenBucketRateLimiter
 
 from plating.config import get_config
 from plating.results import ValidationResult

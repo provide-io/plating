@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 import attrs
 from provide.foundation import logger, pout
 from provide.foundation.process import ProcessError, run_command
+from provide.foundation.resilience import RetryExecutor, RetryPolicy, BackoffStrategy
 from pyvider.hub import ComponentDiscovery, hub
 
 from plating.config import get_config
@@ -26,6 +27,15 @@ class SchemaProcessor:
 
     def __init__(self, generator: "DocsGenerator"):
         self.generator = generator
+        # Set up retry policy for schema operations
+        self.retry_policy = RetryPolicy(
+            max_attempts=3,
+            backoff_strategy=BackoffStrategy.EXPONENTIAL,
+            base_delay=1.0,
+            max_delay=10.0,
+            exceptions=(ProcessError, SchemaError, Exception)
+        )
+        self.retry_executor = RetryExecutor(self.retry_policy)
 
     def extract_provider_schema(self) -> dict[str, Any]:
         """Extract provider schema using Pyvider's component discovery."""
@@ -100,10 +110,11 @@ class SchemaProcessor:
         config = get_config()
         tf_binary = config.terraform_binary or "terraform"
 
-        # Build the provider binary
+        # Build the provider binary with retry
         pout(f"Building provider in {self.generator.provider_dir}")
         try:
-            run_command(
+            self.retry_executor.execute(
+                run_command,
                 ["python", "-m", "build"],
                 cwd=self.generator.provider_dir,
                 capture_output=True,
@@ -142,9 +153,10 @@ provider "{self.generator.provider_name}" {{}}
             tf_file = temp_dir / "main.tf"
             tf_file.write_text(tf_config)
 
-            # Initialize Terraform
+            # Initialize Terraform with retry
             try:
-                run_command(
+                self.retry_executor.execute(
+                    run_command,
                     [tf_binary, "init"],
                     cwd=temp_dir,
                     capture_output=True,
@@ -159,9 +171,10 @@ provider "{self.generator.provider_name}" {{}}
                 )
                 raise SchemaError(f"Failed to initialize Terraform: {e}")
 
-            # Extract schema
+            # Extract schema with retry
             try:
-                schema_result = run_command(
+                schema_result = self.retry_executor.execute(
+                    run_command,
                     [tf_binary, "providers", "schema", "-json"],
                     cwd=temp_dir,
                     capture_output=True,

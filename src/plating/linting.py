@@ -9,6 +9,7 @@ from typing import Any
 
 from provide.foundation import logger
 from provide.foundation.process import ProcessError, run_command
+from provide.foundation.resilience import CircuitBreaker, CircuitState
 
 
 class MarkdownLinter:
@@ -16,6 +17,12 @@ class MarkdownLinter:
 
     def __init__(self, config_file: Path | None = None):
         self.config_file = config_file
+        # Circuit breaker for markdownlint operations
+        self.circuit_breaker = CircuitBreaker(
+            failure_threshold=3,
+            recovery_timeout=30.0,
+            expected_exception=ProcessError
+        )
 
     def lint_templates(self, template_dir: Path) -> tuple[bool, list[dict[str, Any]]]:
         """Lint template files before generation.
@@ -70,12 +77,17 @@ class MarkdownLinter:
         Returns:
             Tuple of (success, errors)
         """
+        # Check circuit breaker state
+        if self.circuit_breaker.state == CircuitState.OPEN:
+            logger.warning("Markdownlint circuit breaker is open, skipping lint check")
+            return False, [{"message": "Markdownlint temporarily unavailable (circuit breaker open)"}]
+        
         cmd = ["markdownlint-cli2", pattern]
         if self.config_file:
             cmd.extend(["--config", str(self.config_file)])
 
         try:
-            result = run_command(cmd, capture_output=True, check=False)
+            result = self.circuit_breaker.call(run_command, cmd, capture_output=True, check=False)
 
             errors = []
             if result.returncode != 0:
@@ -112,12 +124,17 @@ class MarkdownLinter:
         Returns:
             True if fixes were applied successfully
         """
+        # Check circuit breaker state
+        if self.circuit_breaker.state == CircuitState.OPEN:
+            logger.warning("Markdownlint circuit breaker is open, skipping fix operation")
+            return False
+            
         cmd = ["markdownlint-cli2", "--fix", pattern]
         if self.config_file:
             cmd.extend(["--config", str(self.config_file)])
 
         try:
-            result = run_command(cmd, capture_output=True, check=False)
+            result = self.circuit_breaker.call(run_command, cmd, capture_output=True, check=False)
 
             return result.returncode == 0
 
