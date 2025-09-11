@@ -7,8 +7,8 @@ from pathlib import Path
 
 from provide.foundation import pout
 
-from plating.plating import PlatingDiscovery
 from plating.models import FunctionInfo, ProviderInfo, ResourceInfo
+from plating.plating import PlatingDiscovery
 from plating.schema import SchemaProcessor
 from plating.templates import TemplateProcessor
 

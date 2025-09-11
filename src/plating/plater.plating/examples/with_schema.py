@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from plating.plating import PlatingBundle
 from plating.generator import DocsGenerator
 from plating.plater import PlatingPlater
+from plating.plating import PlatingBundle
 from plating.schema import SchemaProcessor
 
 # Setup schema processor

@@ -8,6 +8,7 @@ from typing import Any, TypedDict
 
 class TestResult(TypedDict):
     """Result from a single test execution."""
+
     name: str
     status: str  # "passed", "failed", "skipped"
     duration: float
@@ -17,6 +18,7 @@ class TestResult(TypedDict):
 
 class TestSuiteResult(TypedDict):
     """Result from a test suite execution."""
+
     suite_name: str
     test_dir: str
     results: list[TestResult]
@@ -28,6 +30,7 @@ class TestSuiteResult(TypedDict):
 
 class StirResult(TypedDict):
     """Result from soup stir execution."""
+
     success: bool
     test_suites: list[TestSuiteResult]
     total_tests: int
@@ -40,6 +43,7 @@ class StirResult(TypedDict):
 
 class AdornResult(TypedDict):
     """Result from adorning components."""
+
     resources: int
     data_sources: int
     functions: int
@@ -49,6 +53,7 @@ class AdornResult(TypedDict):
 
 class ValidationResult(TypedDict):
     """Result from validation operations."""
+
     valid: bool
     errors: list[str]
     warnings: list[str]
@@ -56,6 +61,7 @@ class ValidationResult(TypedDict):
 
 class SchemaInfo(TypedDict):
     """Schema information for a component."""
+
     name: str
     type: str
     description: str
@@ -65,6 +71,7 @@ class SchemaInfo(TypedDict):
 
 class ProviderInfo(TypedDict):
     """Provider information."""
+
     short_name: str
     rendered_name: str
     description: str

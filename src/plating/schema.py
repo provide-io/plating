@@ -6,13 +6,12 @@
 import json
 from pathlib import Path
 import shutil
-import subprocess
 from typing import TYPE_CHECKING, Any
 
 import attrs
+from provide.foundation import logger, pout
+from provide.foundation.process import ProcessError, run_command
 from pyvider.hub import ComponentDiscovery, hub
-from provide.foundation import logger, pout, perr
-from provide.foundation.process import run_command, ProcessError
 
 from plating.config import get_config
 from plating.errors import SchemaError
@@ -110,22 +109,27 @@ class SchemaProcessor:
         """Fallback: Extract schema by building provider and using Terraform CLI."""
         config = get_config()
         tf_binary = config.terraform_binary or "terraform"
-        
+
         # Build the provider binary
         pout(f"Building provider in {self.generator.provider_dir}")
         try:
-            build_result = run_command(
+            run_command(
                 ["python", "-m", "build"],
                 cwd=self.generator.provider_dir,
                 capture_output=True,
             )
         except ProcessError as e:
-            logger.error("Provider build failed", command=e.cmd, returncode=e.returncode, 
-                        stdout=e.stdout, stderr=e.stderr)
+            logger.error(
+                "Provider build failed",
+                command=e.cmd,
+                returncode=e.returncode,
+                stdout=e.stdout,
+                stderr=e.stderr,
+            )
             raise SchemaError(f"Failed to build provider: {e}")
 
         # Find the built provider binary
-        provider_binary = self._find_provider_binary()
+        self._find_provider_binary()
 
         # Create a temporary directory for Terraform operations
         temp_dir = self.generator.provider_dir / ".pyvbuild_temp"
@@ -156,8 +160,13 @@ provider "{self.generator.provider_name}" {{}}
                     capture_output=True,
                 )
             except ProcessError as e:
-                logger.error("Terraform init failed", command=e.cmd, returncode=e.returncode,
-                           stdout=e.stdout, stderr=e.stderr)
+                logger.error(
+                    "Terraform init failed",
+                    command=e.cmd,
+                    returncode=e.returncode,
+                    stdout=e.stdout,
+                    stderr=e.stderr,
+                )
                 raise SchemaError(f"Failed to initialize Terraform: {e}")
 
             # Extract schema
@@ -168,8 +177,13 @@ provider "{self.generator.provider_name}" {{}}
                     capture_output=True,
                 )
             except ProcessError as e:
-                logger.error("Schema extraction failed", command=e.cmd, returncode=e.returncode,
-                           stdout=e.stdout, stderr=e.stderr)
+                logger.error(
+                    "Schema extraction failed",
+                    command=e.cmd,
+                    returncode=e.returncode,
+                    stdout=e.stdout,
+                    stderr=e.stderr,
+                )
                 raise SchemaError(f"Failed to extract provider schema: {e}")
 
             schema_data = json.loads(schema_result.stdout)
@@ -385,7 +399,6 @@ provider "{self.generator.provider_name}" {{}}
             markdown_lines.append("## Blocks\n")
             for block_name, block_spec in nested_blocks.items():
                 description = block_spec.get("description", "")
-                nesting_mode = block_spec.get("nesting_mode", "single")
 
                 markdown_lines.append(f"### {block_name}")
                 if description:

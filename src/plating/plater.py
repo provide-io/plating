@@ -8,7 +8,7 @@ from pathlib import Path
 from jinja2 import DictLoader, Environment, select_autoescape
 from provide.foundation import logger
 
-from plating.errors import PlatingRenderError, TemplateError, handle_error
+from plating.errors import PlatingRenderError, handle_error
 from plating.plating import PlatingBundle, PlatingDiscovery
 from plating.schema import SchemaProcessor
 
