@@ -183,7 +183,6 @@ class PlatingPlater:
         context = {
             "name": bundle.name,
             "component_type": formatted_type,
-            "type": formatted_type,  # Backward compatibility
             "provider_name": provider_name,
         }
 
