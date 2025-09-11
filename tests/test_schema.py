@@ -66,9 +66,9 @@ class TestSchemaProcessor:
         """Test _extract_schema_via_discovery method."""
         with patch("plating.schema.ComponentDiscovery") as MockDiscovery:
             with patch("plating.schema.hub") as mock_hub:
-                # Setup mocks
-                mock_discovery = MockDiscovery.return_value
-                mock_discovery.discover_all = AsyncMock()
+                # Setup mocks with AsyncMock to properly handle async methods
+                mock_discovery = AsyncMock()
+                MockDiscovery.return_value = mock_discovery
 
                 # Create mock components without get_schema method (will use default)
                 mock_provider = Mock(spec=[])  # No get_schema method
