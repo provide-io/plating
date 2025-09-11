@@ -50,15 +50,25 @@ class PlatingPlater:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        for bundle in self.bundles:
-            try:
-                self._plate_bundle(bundle, output_dir, force)
-            except PlatingRenderError:
-                raise  # Re-raise our custom errors
-            except Exception as e:
-                error = PlatingRenderError(bundle.name, str(e))
-                handle_error(error, logger)
-                logger.error(f"Failed to plate bundle {bundle.name}: {e}")
+        with timed_block("plating_total_time") as timer:
+            for bundle in self.bundles:
+                try:
+                    with timed_block(f"bundle_plating_{bundle.name}"):
+                        self._plate_bundle(bundle, output_dir, force)
+                        # Track successful bundle processing
+                        metrics.increment_counter("plating.bundles_processed")
+                except PlatingRenderError:
+                    metrics.increment_counter("plating.bundle_errors")
+                    raise  # Re-raise our custom errors
+                except Exception as e:
+                    metrics.increment_counter("plating.bundle_errors")
+                    error = PlatingRenderError(bundle.name, str(e))
+                    handle_error(error, logger)
+                    logger.error(f"Failed to plate bundle {bundle.name}: {e}")
+                    
+        # Record overall metrics
+        metrics.record_gauge("plating.total_duration_seconds", timer.elapsed)
+        metrics.record_gauge("plating.bundles_count", len(self.bundles))
 
     def _plate_bundle(self, bundle: PlatingBundle, output_dir: Path, force: bool) -> None:
         """Plate a single bundle.
@@ -94,8 +104,13 @@ class PlatingPlater:
 
         # Plate template
         try:
-            plated = self._plate_template(template_content, context, partials)
+            with timed_block(f"template_rendering_{bundle.name}") as render_timer:
+                plated = self._plate_template(template_content, context, partials)
+                # Track template rendering metrics
+                metrics.record_gauge(f"plating.template_render_time_{bundle.component_type}", render_timer.elapsed)
+                metrics.increment_counter("plating.templates_rendered")
         except Exception as e:
+            metrics.increment_counter("plating.template_render_errors")
             logger.error(f"Template rendering failed for {bundle.name}: {e}")
             return  # Skip this bundle on error
 
