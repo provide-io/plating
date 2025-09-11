@@ -148,14 +148,31 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
             env=env,
             cwd=str(run_dir),  # Run from directory with pyproject.toml
         )
+    except FileNotFoundError as e:
+        # Handle case where command is not found  
+        raise RuntimeError(
+            f"TofuSoup not found or not installed. Please install tofusoup to use stir testing. "
+            f"Error: {e}"
+        ) from e
     except ProcessError as e:
-        # Check if this is the pyproject.toml error
-        error_msg = getattr(e, 'stderr', '') or getattr(e, 'stdout', '') or str(e)
+        # Check if this is the pyproject.toml error  
+        error_msg = str(e)
+        if hasattr(e, 'stderr') and e.stderr:
+            error_msg += f" {e.stderr}"
+        if hasattr(e, 'stdout') and e.stdout:
+            error_msg += f" {e.stdout}"
         if "pyproject.toml" in error_msg:
             # This is a known issue with soup tool install - raise RuntimeError to trigger fallback
             raise RuntimeError(
                 "soup stir requires pyproject.toml context. "
                 "Falling back to simple runner."
+            ) from e
+        
+        # Check if this is a command not found error
+        if any(phrase in error_msg.lower() for phrase in ["not found", "no such file", "command not found"]):
+            raise RuntimeError(
+                f"TofuSoup not found or not installed. Please install tofusoup to use stir testing. "
+                f"Error: {e}"
             ) from e
         
         # For other process errors, log and re-raise
