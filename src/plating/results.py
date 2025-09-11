@@ -99,20 +99,41 @@ class TestResult:
 class ValidationResult:
     """Result from validation operations."""
 
-    valid: bool
-    errors: list[str]
-    warnings: list[str]
+    total: int
+    passed: int
+    failed: int
+    warnings: int = 0
+    skipped: int = 0
+    failures: dict[str, str] = None  # validation_name -> error_message
+    test_details: dict[str, dict[str, Any]] = None  # Detailed validation info
+    duration: float = 0.0
+    terraform_version: str = ""
+    bundles: dict[str, dict[str, Any]] = None  # Bundle information
 
     def __post_init__(self):
-        if self.errors is None:
-            self.errors = []
-        if self.warnings is None:
-            self.warnings = []
+        if self.failures is None:
+            self.failures = {}
+        if self.test_details is None:
+            self.test_details = {}
+        if self.bundles is None:
+            self.bundles = {}
+
+    @property
+    def success(self) -> bool:
+        """Whether all validations passed."""
+        return self.failed == 0
+
+    @property
+    def success_rate(self) -> float:
+        """Success rate as percentage."""
+        if self.total == 0:
+            return 100.0
+        return (self.passed / self.total) * 100.0
 
     @property
     def has_issues(self) -> bool:
-        """Whether there are any errors or warnings."""
-        return len(self.errors) > 0 or len(self.warnings) > 0
+        """Whether there are any failures or warnings."""
+        return self.failed > 0 or self.warnings > 0
 
 
 # 📊📈✅

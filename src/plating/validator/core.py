@@ -12,7 +12,7 @@ from provide.foundation import logger, pout
 from provide.foundation.process import ProcessError, run_command
 
 from plating.config import get_config
-from plating.results import TestResult
+from plating.results import ValidationResult
 
 
 def run_validation(
@@ -20,7 +20,7 @@ def run_validation(
     parallel: int = 4,
     output_file: Path = None,
     output_format: str = "json",
-) -> TestResult:
+) -> ValidationResult:
     """Run validation for plating bundles.
 
     Args:
