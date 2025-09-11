@@ -9,9 +9,10 @@ import shutil
 from typing import TYPE_CHECKING, Any
 
 import attrs
-from provide.foundation import logger, pout
+from provide.foundation import logger, pout, metrics
 from provide.foundation.process import ProcessError, run_command
 from provide.foundation.resilience import RetryExecutor, RetryPolicy, BackoffStrategy
+from provide.foundation.utils import timed_block
 from pyvider.hub import ComponentDiscovery, hub
 
 from plating.config import get_config
@@ -41,7 +42,15 @@ class SchemaProcessor:
         """Extract provider schema using Pyvider's component discovery."""
         import asyncio
 
-        return asyncio.run(self._extract_schema_via_discovery())
+        with timed_block("schema_extraction_total") as timer:
+            try:
+                result = asyncio.run(self._extract_schema_via_discovery())
+                metrics.increment_counter("plating.schema_extractions_success")
+                metrics.record_gauge("plating.schema_extraction_duration", timer.elapsed)
+                return result
+            except Exception as e:
+                metrics.increment_counter("plating.schema_extractions_failed")
+                raise
 
     async def _extract_schema_via_discovery(self) -> dict[str, Any]:
         """Extract schema by discovering components and inspecting their schemas."""
