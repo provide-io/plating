@@ -26,8 +26,9 @@ dependencies = [
     "jinja2>=3.1.6",
     "rich>=13.0.0",
     "pyvider>=0.0.0.post0",
-    "pyvider-cty>=0.0.111",
     "pyvider-hcl>=0.0.113",
+    "pyvider-cty>=0.0.111",
+    "provide-foundation>=0.0.0.dev3",
 ]
 
 [project.optional-dependencies]
