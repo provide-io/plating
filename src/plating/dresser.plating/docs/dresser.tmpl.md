@@ -1,17 +1,17 @@
 ---
-page_title: "GarnishDresser - garnish"
+page_title: "PlatingDresser - plating"
 subcategory: "Core Components"
 description: |-
-  Automatic .garnish bundle creation for components.
+  Automatic .plating bundle creation for components.
 ---
 
-# GarnishDresser
+# PlatingDresser
 
-The `GarnishDresser` class automatically creates `.garnish` directories for components that don't have documentation yet. It "dresses" components with the necessary bundle structure.
+The `PlatingDresser` class automatically creates `.plating` directories for components that don't have documentation yet. It "dresses" components with the necessary bundle structure.
 
 ## Overview
 
-The dresser automates the creation of garnish bundles by:
+The dresser automates the creation of plating bundles by:
 1. Discovering components via pyvider hub
 2. Finding components without existing bundles
 3. Generating template documentation based on component metadata
@@ -61,7 +61,7 @@ print(f"Dressed {results['resource']} resources")
 For each component, the dresser creates:
 
 ```
-component_name.garnish/
+component_name.plating/
 ├── docs/
 │   └── component_name.tmpl.md  # Generated template
 └── examples/
@@ -87,9 +87,9 @@ Examples include:
 
 ## Integration
 
-The GarnishDresser integrates with:
+The PlatingDresser integrates with:
 - **ComponentDiscovery**: For finding components
-- **GarnishDiscovery**: For checking existing bundles
+- **PlatingDiscovery**: For checking existing bundles
 - **TemplateGenerator**: For creating content
 - **ComponentFinder**: For locating source files
 
@@ -99,13 +99,13 @@ The dresser is available via CLI:
 
 ```bash
 # Dress all missing components
-garnish dress
+plating dress
 
 # Dress only resources
-garnish dress --component-type resource
+plating dress --component-type resource
 
 # Dress multiple types
-garnish dress --component-type resource --component-type data_source
+plating dress --component-type resource --component-type data_source
 ```
 
 ## Best Practices
@@ -127,4 +127,4 @@ The dresser handles:
 
 - [TemplateGenerator](../templates) - Template creation
 - [ComponentFinder](../finder) - Source file location
-- [GarnishBundle](../garnish) - Bundle structure
+- [PlatingBundle](../plating) - Bundle structure

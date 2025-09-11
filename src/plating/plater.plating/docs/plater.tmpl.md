@@ -1,17 +1,17 @@
 ---
-page_title: "GarnishPlater - garnish"
+page_title: "PlatingPlater - plating"
 subcategory: "Core Components"
 description: |-
-  Documentation rendering engine for garnish bundles.
+  Documentation rendering engine for plating bundles.
 ---
 
-# GarnishPlater
+# PlatingPlater
 
-The `GarnishPlater` class is responsible for rendering garnish bundles into final documentation. It processes templates, applies examples, and generates markdown output.
+The `PlatingPlater` class is responsible for rendering plating bundles into final documentation. It processes templates, applies examples, and generates markdown output.
 
 ## Overview
 
-The plater is the heart of the garnish documentation system. It takes garnish bundles as input and "plates" them into beautifully formatted documentation, much like a chef plates a dish for presentation.
+The plater is the heart of the plating documentation system. It takes plating bundles as input and "plates" them into beautifully formatted documentation, much like a chef plates a dish for presentation.
 
 ## Features
 
@@ -38,15 +38,15 @@ The plater is the heart of the garnish documentation system. It takes garnish bu
 ## Constructor
 
 ```python
-GarnishPlater(
-    bundles: list[GarnishBundle] | None = None,
+PlatingPlater(
+    bundles: list[PlatingBundle] | None = None,
     schema_processor: SchemaProcessor | None = None
 )
 ```
 
 ### Parameters
 
-- **bundles**: List of GarnishBundle objects to render
+- **bundles**: List of PlatingBundle objects to render
 - **schema_processor**: Optional schema processor for schema extraction
 
 ## Methods
@@ -97,9 +97,9 @@ The plater includes robust error handling:
 
 ## Integration
 
-The GarnishPlater integrates with:
+The PlatingPlater integrates with:
 - **SchemaProcessor**: For schema extraction
-- **GarnishBundle**: For content loading
+- **PlatingBundle**: For content loading
 - **Template Functions**: For extended functionality
 
 ## Best Practices
@@ -111,6 +111,6 @@ The GarnishPlater integrates with:
 
 ## See Also
 
-- [GarnishBundle](../garnish) - Bundle structure
+- [PlatingBundle](../plating) - Bundle structure
 - [SchemaProcessor](../schema) - Schema extraction
 - [Template Functions](../template_functions) - Available template functions

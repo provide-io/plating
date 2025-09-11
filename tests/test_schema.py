@@ -38,8 +38,8 @@ class TestSchemaProcessor:
         processor = SchemaProcessor(mock_generator)
         assert processor.generator == mock_generator
 
-    @patch('garnish.schema.ComponentDiscovery')
-    @patch('garnish.schema.hub')
+    @patch('plating.schema.ComponentDiscovery')
+    @patch('plating.schema.hub')
     @patch('asyncio.run')
     def test_extract_provider_schema(self, mock_asyncio_run, mock_hub, MockDiscovery, schema_processor):
         """Test extract_provider_schema method."""

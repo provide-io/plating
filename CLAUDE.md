@@ -4,15 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Garnish is a documentation generation system for Terraform/OpenTofu providers that was extracted from the tofusoup project. It automatically generates Terraform Registry-compliant documentation by discovering components via pyvider.hub and processing Jinja2 templates.
+Plating is a documentation generation system for Terraform/OpenTofu providers that was extracted from the tofusoup project. It automatically generates Terraform Registry-compliant documentation by discovering components via pyvider.hub and processing Jinja2 templates.
 
 ## Development Setup
 
 ### Environment Setup
 ```bash
 # Clone the repository (if not already done)
-git clone https://github.com/provide-io/garnish.git
-cd garnish
+git clone https://github.com/provide-io/plating.git
+cd plating
 
 # Create virtual environment
 uv venv
@@ -36,24 +36,24 @@ pytest -xvs                   # Stop on first failure, verbose output
 
 ### Code Quality
 ```bash
-ruff format src/garnish tests    # Format code
-ruff check src/garnish tests     # Check linting
-mypy src/garnish                 # Type checking
+ruff format src/plating tests    # Format code
+ruff check src/plating tests     # Check linting
+mypy src/plating                 # Type checking
 ```
 
 ## Architecture
 
 ### Core Components
 
-**GarnishBundle System** (`garnish.py`)
-- Central abstraction representing a `.garnish` directory containing documentation assets
+**PlatingBundle System** (`plating.py`)
+- Central abstraction representing a `.plating` directory containing documentation assets
 - Each bundle maps to a provider component (resource, data_source, or function)
-- Structure: `component_name.garnish/` with `docs/` (templates) and `examples/` (Terraform files)
+- Structure: `component_name.plating/` with `docs/` (templates) and `examples/` (Terraform files)
 
-**Discovery System** (`garnish.py:GarnishDiscovery`)
-- Searches installed packages for `.garnish` directories
+**Discovery System** (`plating.py:PlatingDiscovery`)
+- Searches installed packages for `.plating` directories
 - Uses `pyvider.hub` for component discovery (hard dependency)
-- Supports multi-component bundles (subdirectories within .garnish)
+- Supports multi-component bundles (subdirectories within .plating)
 
 **Template Processing** (`async_renderer.py`, `templates.py`)
 - Async rendering pipeline using Jinja2
@@ -73,7 +73,7 @@ mypy src/garnish                 # Type checking
 
 ### Key Design Patterns
 
-1. **Absolute Imports**: All imports use `from garnish.X import Y` (no relative imports)
+1. **Absolute Imports**: All imports use `from plating.X import Y` (no relative imports)
 
 2. **Attrs for Data Classes**: Uses `@attrs.define` instead of dataclasses
 
@@ -99,12 +99,12 @@ mypy src/garnish                 # Type checking
 2. Register in `TemplateEngine` class
 3. Update `async_renderer.py` to include in env.globals
 
-### Testing Garnish Commands
+### Testing Plating Commands
 ```bash
 # Test without installation
-python -m garnish.cli --help
-python -m garnish.cli scaffold --component-type resource
-python -m garnish.cli render --output-dir docs
+python -m plating.cli --help
+python -m plating.cli scaffold --component-type resource
+python -m plating.cli render --output-dir docs
 ```
 
 ### Working with Sibling Packages
@@ -117,7 +117,7 @@ uv pip install -e ../pyvider-telemetry
 
 ## Testing Philosophy
 
-- CLI tests mock the underlying functions (scaffold_garnish, generate_docs)
+- CLI tests mock the underlying functions (scaffold_plating, generate_docs)
 - No integration tests for actual Terraform execution after stir removal
 - Focus on unit testing individual components
 

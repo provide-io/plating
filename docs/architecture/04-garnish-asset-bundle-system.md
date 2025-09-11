@@ -1,6 +1,6 @@
-# Garnish Component Asset Bundle System: Design Specification
+# Plating Component Asset Bundle System: Design Specification
 
-This document specifies the design for the `.garnish` system, a robust, automated, and developer-friendly system for managing all non-code assets related to a `pyvider` framework component.
+This document specifies the design for the `.plating` system, a robust, automated, and developer-friendly system for managing all non-code assets related to a `pyvider` framework component.
 
 ## 1. Guiding Principles
 
@@ -12,32 +12,32 @@ This document specifies the design for the `.garnish` system, a robust, automate
 ## 2. Core Concepts
 
 -   **Component:** A single unit within a provider (Resource, Data Source, or Function).
--   **Garnish Bundle:** A version-controlled `.garnish` directory containing all non-Python assets for one or more components. This includes documentation templates, examples, and co-located conformance tests.
+-   **Plating Bundle:** A version-controlled `.plating` directory containing all non-Python assets for one or more components. This includes documentation templates, examples, and co-located conformance tests.
 -   **Template:** A Jinja2 file (`.tmpl.md`) that serves as the blueprint for a documentation page.
 -   **Partial:** A reusable snippet of content (static Markdown or a dynamic template).
 
 ## 3. Workflow Commands
 
-The system is driven by three primary CLI commands under `soup garnish`:
+The system is driven by three primary CLI commands under `soup plating`:
 
-### `soup garnish scaffold`
+### `soup plating scaffold`
 
 -   **Purpose:** To **scaffold new, missing asset bundles** for components.
--   **Behavior:** The tool scans for components and creates a default `.garnish` bundle with standard templates, examples, and test stubs if one does not already exist. **This command is non-destructive and will never overwrite existing files.**
+-   **Behavior:** The tool scans for components and creates a default `.plating` bundle with standard templates, examples, and test stubs if one does not already exist. **This command is non-destructive and will never overwrite existing files.**
 
-### `soup garnish render`
+### `soup plating render`
 
 -   **Purpose:** To **render all existing templates** into final, static Markdown documentation.
--   **Behavior:** The tool discovers all `.garnish` bundles, introspects the live Python schema for each component, and renders the corresponding template to an output directory (e.g., `docs/`). **This command always overwrites the output files** to ensure they are up-to-date.
+-   **Behavior:** The tool discovers all `.plating` bundles, introspects the live Python schema for each component, and renders the corresponding template to an output directory (e.g., `docs/`). **This command always overwrites the output files** to ensure they are up-to-date.
 
-### `soup garnish test`
+### `soup plating test`
 
 -   **Purpose:** To **discover and run all co-located conformance tests** for one or more components.
--   **Behavior:** The tool will scan the `tests/` subdirectory within `.garnish` bundles and execute any `souptest_*.py` files found. This provides a powerful way to run targeted conformance tests for a specific component or a group of related components, aggregating them into a single test run.
+-   **Behavior:** The tool will scan the `tests/` subdirectory within `.plating` bundles and execute any `souptest_*.py` files found. This provides a powerful way to run targeted conformance tests for a specific component or a group of related components, aggregating them into a single test run.
 
 ## 4. File and Directory Conventions
 
-The `.garnish` directory is the core convention.
+The `.plating` directory is the core convention.
 
 ### Single-Component Bundle (Sidecar)
 
@@ -46,7 +46,7 @@ This is the standard for most components.
 ```
 src/pyvider/components/resources/
 ├── my_resource.py
-└── my_resource.garnish/
+└── my_resource.plating/
     ├── docs/
     │   ├── my_resource.tmpl.md
     │   └── notes.md
@@ -58,12 +58,12 @@ src/pyvider/components/resources/
 
 ### Multi-Component Bundle (Sidecar)
 
-For `.py` files containing multiple components (e.g., `numeric_functions.py`), the `.garnish` directory contains subdirectories for each component.
+For `.py` files containing multiple components (e.g., `numeric_functions.py`), the `.plating` directory contains subdirectories for each component.
 
 ```
 src/pyvider/components/functions/
 ├── numeric_functions.py
-└── numeric_functions.garnish/
+└── numeric_functions.plating/
     ├── add/
     │   ├── docs/
     │   │   └── add.tmpl.md
