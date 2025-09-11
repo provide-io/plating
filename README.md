@@ -7,7 +7,7 @@ Plating is a powerful documentation system that brings culinary elegance to tech
 ## ✨ Features
 
 - **🎯 Automatic Documentation Generation** - Generate comprehensive docs from your provider code
-- **👗 Smart Component Dressing** - Automatically create documentation templates for undocumented components
+- **✨ Smart Component Adorning** - Automatically create documentation templates for undocumented components
 - **🍽️ Beautiful Plating** - Render documentation with examples, schemas, and rich formatting
 - **🔍 Component Discovery** - Automatically find and document resources, data sources, and functions
 - **📝 Jinja2 Templates** - Flexible templating with custom functions and filters
@@ -41,8 +41,8 @@ uv self update
 
 ```bash
 # Clone the repository
-git clone https://github.com/provide-io/plating.git
-cd plating
+git clone https://github.com/provide-io/garnish.git
+cd garnish
 
 # Create virtual environment
 uv venv
@@ -73,11 +73,11 @@ uv add git+https://github.com/provide-io/plating.git
 First, create `.plating` bundles for your undocumented components:
 
 ```bash
-# Dress all missing components
-plating dress
+# Adorn all missing components
+plating adorn
 
-# Dress only resources
-plating dress --component-type resource
+# Adorn only resources
+plating adorn --component-type resource
 ```
 
 ### 2. Customize Templates
@@ -164,7 +164,7 @@ Plating follows a modular architecture:
 
 - **PlatingBundle** - Represents documentation bundles
 - **PlatingPlater** - Renders documentation
-- **PlatingDresser** - Creates documentation templates
+- **PlatingAdorner** - Creates documentation templates
 - **PlatingDiscovery** - Finds components and bundles
 - **SchemaProcessor** - Extracts provider schemas
 
