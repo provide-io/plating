@@ -8,7 +8,7 @@ from pathlib import Path
 from jinja2 import DictLoader, Environment, select_autoescape
 from provide.foundation import logger
 
-from plating.errors import PlatingError, TemplateError, handle_error
+from plating.errors import PlatingRenderError, TemplateError, handle_error
 from plating.plating import PlatingBundle, PlatingDiscovery
 from plating.schema import SchemaProcessor
 
@@ -51,10 +51,10 @@ class PlatingPlater:
         for bundle in self.bundles:
             try:
                 self._plate_bundle(bundle, output_dir, force)
-            except PlatingError:
+            except PlatingRenderError:
                 raise  # Re-raise our custom errors
             except Exception as e:
-                error = PlatingError(bundle.name, str(e))
+                error = PlatingRenderError(bundle.name, str(e))
                 handle_error(error, logger)
                 logger.error(f"Failed to plate bundle {bundle.name}: {e}")
 
@@ -94,7 +94,8 @@ class PlatingPlater:
         try:
             plated = self._plate_template(template_content, context, partials)
         except Exception as e:
-            raise TemplateError(bundle.name, f"Template rendering failed: {e}")
+            logger.error(f"Template rendering failed for {bundle.name}: {e}")
+            return  # Skip this bundle on error
 
         # Determine output path
         subdir = _get_output_subdir(bundle.component_type)
@@ -113,7 +114,7 @@ class PlatingPlater:
             output_path.write_text(plated)
             logger.info(f"Successfully plated {bundle.name} to {output_path}")
         except OSError as e:
-            raise PlatingError(bundle.name, f"Failed to write output file: {e}")
+            raise PlatingRenderError(bundle.name, f"Failed to write output file: {e}")
 
     def _get_schema_for_component(self, bundle: PlatingBundle) -> dict | None:
         """Get schema for a component from the provider schema.

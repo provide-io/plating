@@ -30,15 +30,15 @@ class PlatingRenderError(PlatingError):
         super().__init__(f"Failed to plate '{bundle_name}': {reason}")
 
 
-class DressingError(PlatingError):
-    """Error during component dressing."""
+class AdorningError(PlatingError):
+    """Error during component adorning."""
 
     def __init__(self, component_name: str, component_type: str, reason: str):
         self.component_name = component_name
         self.component_type = component_type
         self.reason = reason
         super().__init__(
-            f"Failed to dress {component_type} '{component_name}': {reason}"
+            f"Failed to adorn {component_type} '{component_name}': {reason}"
         )
 
 

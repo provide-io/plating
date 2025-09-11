@@ -9,7 +9,7 @@ from pathlib import Path
 import click
 from provide.foundation import logger, pout, perr
 
-from plating.dresser import dress_components
+from plating.adorner import adorn_components
 from plating.errors import PlatingError, handle_error
 from plating.plater import generate_docs
 
@@ -20,42 +20,42 @@ def main() -> None:
     pass
 
 
-@main.command("dress")
+@main.command("adorn")
 @click.option(
     "--component-type",
     type=click.Choice(["resource", "data_source", "function"]),
     multiple=True,
     help="Filter by component type (can be used multiple times).",
 )
-def dress_command(component_type: tuple[str, ...]) -> None:
-    """Dress components with missing .plating directories."""
+def adorn_command(component_type: tuple[str, ...]) -> None:
+    """Adorn components with missing .plating directories."""
     try:
-        pout("👗 Dressing components with .plating directories...")
+        pout("💎 Adorning components with .plating directories...")
 
         component_types = list(component_type) if component_type else None
-        results = dress_components(component_types)
+        results = adorn_components(component_types)
 
         total = sum(results.values())
         if total > 0:
-            pout(f"✅ Dressed {total} components:")
+            pout(f"✅ Adorned {total} components:")
             for comp_type, count in results.items():
                 if count > 0:
                     pout(f"  - {count} {comp_type}{'s' if count != 1 else ''}")
         else:
             pout("ℹ️ No missing .plating directories found")
 
-        click.secho("✅ Dressing completed successfully!", fg="green")
+        click.secho("✅ Adorning completed successfully!", fg="green")
 
     except PlatingError as e:
         # Our custom errors have good messages
         click.secho(f"❌ {e}", fg="red", err=True)
-        logger.error(f"Dressing failed: {e}")
+        logger.error(f"Adorning failed: {e}")
         raise click.Abort() from e
     except Exception as e:
         import traceback
 
         error_msg = handle_error(e, logger)
-        click.secho(f"❌ Dressing failed: {error_msg}", fg="red", err=True)
+        click.secho(f"❌ Adorning failed: {error_msg}", fg="red", err=True)
         click.secho(f"Stack trace:\n{traceback.format_exc()}", fg="red", err=True)
         raise click.Abort() from e
 

@@ -38,8 +38,8 @@ class StirResult(TypedDict):
     errors: list[str]
 
 
-class DressResult(TypedDict):
-    """Result from dressing components."""
+class AdornResult(TypedDict):
+    """Result from adorning components."""
     resources: int
     data_sources: int
     functions: int

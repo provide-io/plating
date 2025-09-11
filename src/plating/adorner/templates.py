@@ -1,7 +1,7 @@
 #
-# plating/dresser/templates.py
+# plating/adorner/templates.py
 #
-"""Template generation for dressed components."""
+"""Template generation for adorned components."""
 
 
 class TemplateGenerator:

@@ -1,23 +1,23 @@
 """
-Comprehensive tests for the dresser module.
+Comprehensive tests for the adorner module.
 """
 import asyncio
 from pathlib import Path
 from unittest.mock import Mock, patch, AsyncMock, MagicMock
 import pytest
 
-from plating.dresser import PlatingDresser, dress_components, dress_missing_components
-from plating.dresser.templates import TemplateGenerator
-from plating.dresser.finder import ComponentFinder
+from plating.adorner import PlatingAdorner, adorn_components, adorn_missing_components
+from plating.adorner.templates import TemplateGenerator
+from plating.adorner.finder import ComponentFinder
 
 
-class TestPlatingDresser:
-    """Test suite for PlatingDresser."""
+class TestPlatingAdorner:
+    """Test suite for PlatingAdorner."""
 
     @pytest.fixture
-    def dresser(self):
-        """Create a PlatingDresser instance."""
-        return PlatingDresser()
+    def adorner(self):
+        """Create a PlatingAdorner instance."""
+        return PlatingAdorner()
 
     @pytest.fixture
     def mock_component_class(self):
@@ -26,33 +26,33 @@ class TestPlatingDresser:
         mock.__doc__ = "Test component documentation"
         return mock
 
-    def test_initialization(self, dresser):
-        """Test PlatingDresser initialization."""
-        assert dresser.plating_discovery is not None
-        assert dresser.template_generator is not None
-        assert dresser.component_finder is not None
+    def test_initialization(self, adorner):
+        """Test PlatingAdorner initialization."""
+        assert adorner.plating_discovery is not None
+        assert adorner.template_generator is not None
+        assert adorner.component_finder is not None
 
     @pytest.mark.asyncio
-    async def test_dress_missing_no_components(self, dresser):
-        """Test dress_missing when no components are found."""
-        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('plating.dresser.dresser.hub') as mock_hub:
+    async def test_adorn_missing_no_components(self, adorner):
+        """Test adorn_missing when no components are found."""
+        with patch('plating.adorner.adorner.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.adorner.adorner.hub') as mock_hub:
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
                 mock_hub.list_components.return_value = {}
                 
-                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(adorner.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = []
                     
-                    result = await dresser.dress_missing()
+                    result = await adorner.adorn_missing()
                     
                     assert result == {"resource": 0, "data_source": 0, "function": 0}
 
     @pytest.mark.asyncio
-    async def test_dress_missing_with_existing_bundles(self, dresser):
-        """Test dress_missing skips components with existing bundles."""
-        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('plating.dresser.dresser.hub') as mock_hub:
+    async def test_adorn_missing_with_existing_bundles(self, adorner):
+        """Test adorn_missing skips components with existing bundles."""
+        with patch('plating.adorner.adorner.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.adorner.adorner.hub') as mock_hub:
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
                 
@@ -65,19 +65,19 @@ class TestPlatingDresser:
                 mock_bundle = Mock()
                 mock_bundle.name = "existing_resource"
                 
-                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(adorner.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = [mock_bundle]
                     
-                    result = await dresser.dress_missing()
+                    result = await adorner.adorn_missing()
                     
                     # Should not dress the existing component
                     assert result == {"resource": 0, "data_source": 0, "function": 0}
 
     @pytest.mark.asyncio
-    async def test_dress_missing_with_new_components(self, dresser, mock_component_class):
-        """Test dress_missing dresses new components."""
-        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('plating.dresser.dresser.hub') as mock_hub:
+    async def test_adorn_missing_with_new_components(self, adorner, mock_component_class):
+        """Test adorn_missing dresses new components."""
+        with patch('plating.adorner.adorner.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.adorner.adorner.hub') as mock_hub:
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
                 
@@ -86,13 +86,13 @@ class TestPlatingDresser:
                     "resource": {"new_resource": mock_component_class}
                 }
                 
-                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(adorner.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = []  # No existing bundles
                     
-                    with patch.object(dresser, '_dress_component') as mock_dress:
+                    with patch.object(adorner, '_adorn_component') as mock_dress:
                         mock_dress.return_value = True
                         
-                        result = await dresser.dress_missing()
+                        result = await adorner.adorn_missing()
                         
                         mock_dress.assert_called_once_with(
                             "new_resource", "resource", mock_component_class
@@ -100,10 +100,10 @@ class TestPlatingDresser:
                         assert result == {"resource": 1, "data_source": 0, "function": 0}
 
     @pytest.mark.asyncio
-    async def test_dress_missing_with_component_type_filter(self, dresser, mock_component_class):
-        """Test dress_missing filters by component type."""
-        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('plating.dresser.dresser.hub') as mock_hub:
+    async def test_adorn_missing_with_component_type_filter(self, adorner, mock_component_class):
+        """Test adorn_missing filters by component type."""
+        with patch('plating.adorner.adorner.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.adorner.adorner.hub') as mock_hub:
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
                 
@@ -113,35 +113,35 @@ class TestPlatingDresser:
                     "data_source": {"test_data": mock_component_class}
                 }
                 
-                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(adorner.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = []
                     
-                    with patch.object(dresser, '_dress_component') as mock_dress:
+                    with patch.object(adorner, '_adorn_component') as mock_dress:
                         mock_dress.return_value = True
                         
                         # Only dress resources
-                        result = await dresser.dress_missing(["resource"])
+                        result = await adorner.adorn_missing(["resource"])
                         
                         assert mock_dress.call_count == 1
                         assert result == {"resource": 1, "data_source": 0, "function": 0}
 
     @pytest.mark.asyncio
-    async def test_dress_component_success(self, dresser, mock_component_class, tmp_path):
+    async def test_adorn_component_success(self, adorner, mock_component_class, tmp_path):
         """Test successful dressing of a component."""
         # Setup mock source file
         source_file = tmp_path / "test_component.py"
         source_file.write_text("# Test component")
         
-        with patch.object(dresser.component_finder, 'find_source') as mock_find:
+        with patch.object(adorner.component_finder, 'find_source') as mock_find:
             mock_find.return_value = source_file
             
-            with patch.object(dresser.template_generator, 'generate_template') as mock_template:
+            with patch.object(adorner.template_generator, 'generate_template') as mock_template:
                 mock_template.return_value = "# Template content"
                 
-                with patch.object(dresser.template_generator, 'generate_example') as mock_example:
+                with patch.object(adorner.template_generator, 'generate_example') as mock_example:
                     mock_example.return_value = "# Example content"
                     
-                    result = await dresser._dress_component(
+                    result = await adorner._adorn_component(
                         "test_component", "resource", mock_component_class
                     )
                     
@@ -164,24 +164,24 @@ class TestPlatingDresser:
                     assert example_file.read_text() == "# Example content"
 
     @pytest.mark.asyncio
-    async def test_dress_component_no_source_file(self, dresser, mock_component_class):
+    async def test_adorn_component_no_source_file(self, adorner, mock_component_class):
         """Test dressing fails when source file cannot be found."""
-        with patch.object(dresser.component_finder, 'find_source') as mock_find:
+        with patch.object(adorner.component_finder, 'find_source') as mock_find:
             mock_find.return_value = None
             
-            result = await dresser._dress_component(
+            result = await adorner._adorn_component(
                 "test_component", "resource", mock_component_class
             )
             
             assert result is False
 
     @pytest.mark.asyncio
-    async def test_dress_component_handles_exceptions(self, dresser, mock_component_class):
+    async def test_adorn_component_handles_exceptions(self, adorner, mock_component_class):
         """Test dressing handles exceptions gracefully."""
-        with patch.object(dresser.component_finder, 'find_source') as mock_find:
+        with patch.object(adorner.component_finder, 'find_source') as mock_find:
             mock_find.side_effect = Exception("Test error")
             
-            result = await dresser._dress_component(
+            result = await adorner._adorn_component(
                 "test_component", "resource", mock_component_class
             )
             
@@ -327,28 +327,28 @@ class TestComponentFinder:
             assert result is None
 
 
-class TestDresserAPI:
+class TestAdornerAPI:
     """Test the public API functions."""
 
-    @patch('plating.dresser.api.PlatingDresser')
+    @patch('plating.adorner.api.PlatingAdorner')
     @pytest.mark.asyncio
-    async def test_dress_missing_components_async(self, MockDresser):
-        """Test async dress_missing_components function."""
-        mock_dresser = MockDresser.return_value
-        mock_dresser.dress_missing = AsyncMock(return_value={"resource": 2})
+    async def test_adorn_missing_components_async(self, MockDresser):
+        """Test async adorn_missing_components function."""
+        mock_adorner = MockDresser.return_value
+        mock_adorner.adorn_missing = AsyncMock(return_value={"resource": 2})
         
-        result = await dress_missing_components(["resource"])
+        result = await adorn_missing_components(["resource"])
         
         MockDresser.assert_called_once()
-        mock_dresser.dress_missing.assert_called_once_with(["resource"])
+        mock_adorner.adorn_missing.assert_called_once_with(["resource"])
         assert result == {"resource": 2}
 
-    @patch('plating.dresser.api.asyncio.run')
-    def test_dress_components_sync(self, mock_run):
-        """Test sync dress_components function."""
+    @patch('plating.adorner.api.asyncio.run')
+    def test_adorn_components_sync(self, mock_run):
+        """Test sync adorn_components function."""
         mock_run.return_value = {"resource": 3}
         
-        result = dress_components(["resource"])
+        result = adorn_components(["resource"])
         
         mock_run.assert_called_once()
         assert result == {"resource": 3}

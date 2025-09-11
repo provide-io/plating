@@ -133,10 +133,10 @@ Loads all partial templates from the docs directory.
 The PlatingBundle integrates with:
 - **PlatingDiscovery**: For automatic bundle discovery
 - **PlatingPlater**: For rendering documentation
-- **PlatingDresser**: For creating new bundles
+- **PlatingAdorner**: For creating new bundles
 
 ## See Also
 
 - [PlatingPlater](../plater) - Documentation rendering
 - [PlatingDiscovery](../discovery) - Bundle discovery
-- [PlatingDresser](../dresser) - Bundle creation
+- [PlatingAdorner](../adorner) - Bundle creation

@@ -1,14 +1,14 @@
 import asyncio
 
-from plating.dresser import PlatingDresser
+from plating.adorner import PlatingAdorner
 
 
 async def dress_resources_only():
     """Dress only resource components."""
-    dresser = PlatingDresser()
+    adorner = PlatingAdorner()
 
     # Dress only resources
-    results = await dresser.dress_missing(["resource"])
+    results = await adorner.adorn_missing(["resource"])
 
     print(f"Dressed {results['resource']} resources")
     print(f"Skipped {results['data_source']} data sources")
@@ -20,10 +20,10 @@ async def dress_resources_only():
 # Dress multiple types
 async def dress_multiple_types():
     """Dress resources and data sources."""
-    dresser = PlatingDresser()
+    adorner = PlatingAdorner()
 
     # Dress resources and data sources
-    results = await dresser.dress_missing(["resource", "data_source"])
+    results = await adorner.adorn_missing(["resource", "data_source"])
 
     for component_type in ["resource", "data_source"]:
         count = results[component_type]

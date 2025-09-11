@@ -8,7 +8,7 @@ import pytest
 
 from plating.plating import PlatingBundle
 from plating.plater import PlatingPlater
-from plating.dresser import PlatingDresser
+from plating.adorner import PlatingAdorner
 
 
 class TestEndToEnd:
@@ -316,16 +316,16 @@ class DatabaseResource:
     with automatic backups and high availability.
     """
             
-            # Create dresser and dress the component
-            dresser = PlatingDresser()
+            # Create adorner and dress the component
+            adorner = PlatingAdorner()
             
             # Mock finding the source file
             from unittest.mock import patch
-            with patch.object(dresser.component_finder, 'find_source') as mock_find:
+            with patch.object(adorner.component_finder, 'find_source') as mock_find:
                 mock_find.return_value = resource_file
                 
                 # Dress the component
-                success = await dresser._dress_component(
+                success = await adorner._adorn_component(
                     "database", "resource", mock_component
                 )
                 assert success
