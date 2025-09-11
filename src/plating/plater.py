@@ -6,8 +6,9 @@
 from pathlib import Path
 
 from jinja2 import DictLoader, Environment, select_autoescape
-from provide.foundation import logger
+from provide.foundation import logger, metrics
 from provide.foundation.context import CLIContext
+from provide.foundation.utils import timed_block
 
 from plating.errors import PlatingRenderError, handle_error
 from plating.plating import PlatingBundle, PlatingDiscovery
@@ -155,6 +156,36 @@ class PlatingPlater:
                     return functions[f"pyvider_{bundle.name}"]
 
         return None
+        
+    def _build_context_data(self, bundle: PlatingBundle, schema: dict | None, provider_name: str) -> dict:
+        """Build context data for template rendering.
+        
+        Args:
+            bundle: The PlatingBundle
+            schema: Component schema dict or None
+            provider_name: Name of the provider
+            
+        Returns:
+            Dictionary of context data for template rendering
+        """
+        # Start with basic bundle info
+        context = {
+            "name": bundle.name,
+            "component_type": _format_component_type(bundle.component_type),
+            "provider_name": provider_name,
+        }
+
+        # Add schema-related context if available
+        if schema:
+            context["description"] = schema.get("description", "")
+            context["schema_markdown"] = _plate_schema_markdown(schema)
+
+            # For functions, add signature and arguments
+            if bundle.component_type == "function" and "signature" in schema:
+                context["signature"] = _format_function_signature(schema)
+                context["arguments"] = _format_function_arguments(schema)
+
+        return context
 
     def _plate_template(self, template_content: str, context: dict, partials: dict[str, str]) -> str:
         """Plate a Jinja2 template with context.
@@ -186,34 +217,6 @@ class PlatingPlater:
         return template.render(**context)
 
 
-def _build_context_data(bundle: PlatingBundle, schema: dict | None, provider_name: str) -> dict:
-    """Create plating context for a bundle.
-
-    Args:
-        bundle: The PlatingBundle
-        schema: Component schema dict or None
-        provider_name: Name of the provider
-
-    Returns:
-        Context dictionary for template plating
-    """
-    context = {
-        "name": bundle.name,
-        "type": _format_component_type(bundle.component_type),
-        "provider_name": provider_name,
-        "component_type": bundle.component_type,
-    }
-
-    if schema:
-        context["description"] = schema.get("description", "")
-        context["schema_markdown"] = _plate_schema_markdown(schema)
-
-        # Add function-specific fields
-        if bundle.component_type == "function" and "signature" in schema:
-            context["signature"] = _format_function_signature(schema)
-            context["arguments"] = _format_function_arguments(schema)
-
-    return context
 
 
 def _format_component_type(component_type: str) -> str:
