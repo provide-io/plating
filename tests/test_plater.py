@@ -9,7 +9,6 @@ import pytest
 
 from plating.plater import (
     PlatingPlater,
-    _create_plating_context,
     _format_component_type,
     _format_example,
     _format_function_arguments,
