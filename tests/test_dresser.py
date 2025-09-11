@@ -35,8 +35,8 @@ class TestPlatingDresser:
     @pytest.mark.asyncio
     async def test_dress_missing_no_components(self, dresser):
         """Test dress_missing when no components are found."""
-        with patch('garnish.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('garnish.dresser.dresser.hub') as mock_hub:
+        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.dresser.dresser.hub') as mock_hub:
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
                 mock_hub.list_components.return_value = {}
@@ -51,8 +51,8 @@ class TestPlatingDresser:
     @pytest.mark.asyncio
     async def test_dress_missing_with_existing_bundles(self, dresser):
         """Test dress_missing skips components with existing bundles."""
-        with patch('garnish.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('garnish.dresser.dresser.hub') as mock_hub:
+        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.dresser.dresser.hub') as mock_hub:
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
                 
@@ -76,8 +76,8 @@ class TestPlatingDresser:
     @pytest.mark.asyncio
     async def test_dress_missing_with_new_components(self, dresser, mock_component_class):
         """Test dress_missing dresses new components."""
-        with patch('garnish.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('garnish.dresser.dresser.hub') as mock_hub:
+        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.dresser.dresser.hub') as mock_hub:
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
                 
@@ -102,8 +102,8 @@ class TestPlatingDresser:
     @pytest.mark.asyncio
     async def test_dress_missing_with_component_type_filter(self, dresser, mock_component_class):
         """Test dress_missing filters by component type."""
-        with patch('garnish.dresser.dresser.ComponentDiscovery') as MockDiscovery:
-            with patch('garnish.dresser.dresser.hub') as mock_hub:
+        with patch('plating.dresser.dresser.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.dresser.dresser.hub') as mock_hub:
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
                 

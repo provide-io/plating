@@ -445,11 +445,11 @@ class TestPlatingTestAdapter:
         adapter = PlatingTestAdapter(fallback_to_simple=True)
         
         # Mock the simple runner
-        with patch('garnish.test_runner._run_simple_tests') as mock_simple:
+        with patch('plating.test_runner._run_simple_tests') as mock_simple:
             mock_simple.return_value = {"total": 1, "passed": 1, "failed": 0}
             
             # Create a mock bundle
-            with patch('garnish.test_runner.PlatingDiscovery') as mock_disc:
+            with patch('plating.test_runner.PlatingDiscovery') as mock_disc:
                 mock_bundle = Mock(
                     name="test", 
                     component_type="resource",
@@ -624,7 +624,7 @@ class TestErrorHandling:
         # Given: Garnish bundle with invalid structure
         from plating.errors import PlatingError
         
-        with patch('garnish.test_runner.PlatingDiscovery') as mock_disc:
+        with patch('plating.test_runner.PlatingDiscovery') as mock_disc:
             mock_disc.return_value.discover_bundles.side_effect = PlatingError(
                 "Invalid plating bundle structure"
             )
