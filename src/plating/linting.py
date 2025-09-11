@@ -75,7 +75,7 @@ class MarkdownLinter:
             cmd.extend(["--config", str(self.config_file)])
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            result = run_command(cmd, capture_output=True, check=False)
 
             errors = []
             if result.returncode != 0:
@@ -96,8 +96,12 @@ class MarkdownLinter:
 
             return result.returncode == 0, errors
 
-        except FileNotFoundError:
-            raise RuntimeError("markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2")
+        except ProcessError as e:
+            # Check if it's a command not found error
+            if "not found" in str(e).lower() or "no such file" in str(e).lower():
+                raise RuntimeError("markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2") from e
+            logger.error("Error running markdownlint", error=str(e))
+            raise RuntimeError(f"Error running markdownlint: {e}") from e
 
     def _run_markdownlint_fix(self, pattern: str) -> bool:
         """Run markdownlint-cli2 with --fix flag.
@@ -113,12 +117,16 @@ class MarkdownLinter:
             cmd.extend(["--config", str(self.config_file)])
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            result = run_command(cmd, capture_output=True, check=False)
 
             return result.returncode == 0
 
-        except FileNotFoundError:
-            raise RuntimeError("markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2")
+        except ProcessError as e:
+            # Check if it's a command not found error
+            if "not found" in str(e).lower() or "no such file" in str(e).lower():
+                raise RuntimeError("markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2") from e
+            logger.error("Error running markdownlint", error=str(e))
+            raise RuntimeError(f"Error running markdownlint: {e}") from e
 
     def generate_lint_report(self, errors: list[dict[str, Any]], output_file: Path) -> None:
         """Generate a JSON report of linting errors for CI/CD integration.
