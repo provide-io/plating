@@ -1,0 +1,412 @@
+# Plating API Documentation
+
+This document provides comprehensive API documentation for the Plating documentation generation system.
+
+## Core Classes
+
+### PlatingBundle
+
+Represents a single `.plating` bundle containing documentation assets.
+
+```python
+from plating.plating import PlatingBundle
+
+bundle = PlatingBundle(
+    name="my_resource",
+    plating_dir=Path("my_resource.plating"),
+    component_type="resource"
+)
+```
+
+#### Properties
+
+- `docs_dir: Path` - Directory containing documentation templates and partials
+- `examples_dir: Path` - Directory containing example Terraform files  
+- `fixtures_dir: Path` - Directory containing fixture files for tests
+
+#### Methods
+
+- `load_main_template() -> str | None` - Load the main template file
+- `load_examples() -> dict[str, str]` - Load all example files as dictionary
+- `load_partials() -> dict[str, str]` - Load partial files (starting with `_`)
+- `load_fixtures() -> dict[str, str]` - Load fixture files from fixtures directory
+
+### PlatingPlater
+
+Documentation plater using `.plating` bundles for rendering.
+
+```python
+from plating.plater import PlatingPlater
+from plating.schema import SchemaProcessor
+
+# Initialize with bundles
+plater = PlatingPlater(bundles=[bundle])
+
+# Initialize with schema processor
+schema_processor = SchemaProcessor(provider_name="aws")
+plater = PlatingPlater(bundles=[bundle], schema_processor=schema_processor)
+
+# Render documentation
+plater.plate(output_dir=Path("docs"))
+```
+
+#### Methods
+
+- `plate(output_dir: Path) -> None` - Render all bundles to output directory
+- `_get_schema_for_component(bundle: PlatingBundle) -> dict | None` - Get schema for bundle component
+- `_render_template(template_content: str, context: dict, partials: dict) -> str` - Render Jinja2 template
+
+### PlatingAdorner
+
+Creates documentation templates and examples for components.
+
+```python
+from plating.adorner import PlatingAdorner
+
+adorner = PlatingAdorner()
+
+# Adorn missing components
+results = await adorner.adorn_missing(component_types=["resource"])
+
+# Adorn specific component
+success = await adorner._adorn_component("my_resource", "resource", component_class)
+```
+
+#### Methods
+
+- `adorn_missing(component_types: list[str] | None = None) -> dict[str, int]` - Adorn components with missing bundles
+- `_adorn_component(name: str, component_type: str, component_class: Any) -> bool` - Adorn single component
+
+### PlatingDiscovery
+
+Discovers `.plating` bundles from installed packages.
+
+```python
+from plating.plating import PlatingDiscovery
+
+discovery = PlatingDiscovery(package_name="pyvider.components")
+bundles = discovery.discover_bundles(component_type="resource")
+```
+
+#### Methods
+
+- `discover_bundles(component_type: str | None = None) -> list[PlatingBundle]` - Discover all bundles
+
+### SchemaProcessor
+
+Handles schema extraction and processing for documentation generation.
+
+```python
+from plating.schema import SchemaProcessor
+
+processor = SchemaProcessor(provider_name="aws")
+schema = processor.extract_provider_schema()
+processor.parse_provider_schema()
+```
+
+#### Methods
+
+- `extract_provider_schema() -> dict[str, Any]` - Extract provider schema using Pyvider discovery
+- `parse_provider_schema() -> None` - Parse extracted schema into internal structures
+- `_parse_schema_to_markdown(schema: dict[str, Any]) -> str` - Convert schema to markdown
+
+## Template Functions
+
+Plating provides custom Jinja2 template functions for documentation generation.
+
+### schema()
+
+Renders the schema information for the current component.
+
+```jinja2
+## Arguments
+
+{{ schema() }}
+```
+
+### example(name)
+
+Includes an example file by name from the examples directory.
+
+```jinja2
+### Basic Usage
+
+{{ example("basic") }}
+```
+
+### include(filename)
+
+Includes a partial file from the docs directory.
+
+```jinja2
+{{ include("_common_note.md") }}
+```
+
+### render(template_string, context)
+
+Renders a template string with additional context.
+
+```jinja2
+{{ render("Resource: {{ name }}", {"name": "aws_s3_bucket"}) }}
+```
+
+## CLI Interface
+
+### Commands
+
+#### adorn
+
+Create `.plating` bundles for components missing documentation.
+
+```bash
+# Adorn all missing components
+plating adorn
+
+# Adorn specific component types
+plating adorn --component-type resource
+plating adorn --component-type data_source
+plating adorn --component-type function
+
+# Multiple component types
+plating adorn --component-type resource --component-type function
+```
+
+#### plate
+
+Generate documentation from `.plating` bundles.
+
+```bash
+# Generate to default directory (docs)
+plating plate
+
+# Custom output directory
+plating plate --output-dir ./documentation
+
+# Clean output directory first
+plating plate --clean
+```
+
+#### scaffold
+
+Create a new `.plating` bundle structure.
+
+```bash
+# Create resource bundle
+plating scaffold --name my_resource --component-type resource
+
+# Create with custom directory
+plating scaffold --name my_data_source --component-type data_source --output-dir ./custom
+```
+
+## Configuration
+
+Configure Plating behavior in `pyproject.toml`:
+
+```toml
+[tool.plating]
+# Provider name for schema extraction
+provider_name = "my_provider"
+
+# Default output directory
+output_dir = "docs"
+
+# Component types to process
+component_types = ["resource", "data_source", "function"]
+
+# Ignore deprecated components
+ignore_deprecated = true
+
+# Template rendering options
+template_debug = false
+template_strict = true
+
+# Schema processing options
+extract_schema = true
+schema_format = "terraform"
+```
+
+## Error Handling
+
+Plating provides structured error handling with custom exception types.
+
+### Exception Hierarchy
+
+- `PlatingError` - Base error for all plating operations
+  - `BundleError` - Bundle-related errors
+  - `PlatingRenderError` - Template rendering errors
+  - `SchemaError` - Schema extraction/processing errors
+
+### Error Handling Example
+
+```python
+from plating.errors import PlatingError, BundleError, PlatingRenderError
+
+try:
+    plater.plate(output_dir)
+except PlatingRenderError as e:
+    logger.error(f"Template rendering failed: {e}")
+except BundleError as e:
+    logger.error(f"Bundle error: {e}")
+except PlatingError as e:
+    logger.error(f"Plating operation failed: {e}")
+```
+
+## Integration with Pyvider
+
+Plating integrates deeply with the Pyvider ecosystem:
+
+### Component Discovery
+
+```python
+from pyvider.hub import ComponentDiscovery, hub
+
+# Discover components
+discovery = ComponentDiscovery(hub)
+await discovery.discover_all()
+components = hub.list_components()
+```
+
+### Schema Extraction
+
+```python
+# Extract component schema
+schema = component.get_schema()
+schema_dict = attrs.asdict(schema)
+```
+
+### Telemetry Integration
+
+```python
+from provide.foundation import logger, pout
+
+# Structured logging
+logger.info("Processing component", component_name=name)
+
+# User-friendly output  
+pout(f"✨ Adorning {component_name}...")
+```
+
+## Testing
+
+### Mocking Components
+
+```python
+from unittest.mock import Mock
+
+# Mock component for testing
+mock_component = Mock()
+mock_component.__doc__ = "Test component documentation"
+mock_component.get_schema.return_value = test_schema
+```
+
+### Test Utilities
+
+```python
+import tempfile
+from pathlib import Path
+
+# Create temporary bundle for testing
+with tempfile.TemporaryDirectory() as tmp_dir:
+    bundle_dir = Path(tmp_dir) / "test.plating"
+    bundle_dir.mkdir()
+    
+    # Create test bundle
+    bundle = PlatingBundle(
+        name="test",
+        plating_dir=bundle_dir,
+        component_type="resource"
+    )
+```
+
+## Advanced Usage
+
+### Custom Template Functions
+
+Register custom template functions:
+
+```python
+from jinja2 import Environment
+
+def custom_function(value):
+    return f"Custom: {value}"
+
+# Add to environment
+env = Environment()
+env.globals["custom"] = custom_function
+```
+
+### Batch Processing
+
+Process multiple providers:
+
+```python
+providers = ["aws", "azure", "gcp"]
+
+for provider in providers:
+    schema_processor = SchemaProcessor(provider_name=provider)
+    discovery = PlatingDiscovery(f"pyvider.{provider}")
+    bundles = discovery.discover_bundles()
+    
+    plater = PlatingPlater(bundles=bundles, schema_processor=schema_processor)
+    plater.plate(Path(f"docs/{provider}"))
+```
+
+### Async Operations
+
+All adorning operations are async:
+
+```python
+import asyncio
+
+async def main():
+    adorner = PlatingAdorner()
+    results = await adorner.adorn_missing()
+    print(f"Adorned {sum(results.values())} components")
+
+asyncio.run(main())
+```
+
+## Performance Considerations
+
+- **Bundle Loading**: Lazy loading of templates and examples
+- **Schema Caching**: Schema extraction results are cached per session
+- **Async Operations**: Component discovery and adorning are async
+- **Memory Usage**: Large schemas may consume significant memory during processing
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Module Not Found**: Ensure pyvider packages are installed
+2. **Schema Extraction Fails**: Check component discovery setup
+3. **Template Rendering Errors**: Verify Jinja2 syntax in templates
+4. **Missing Bundles**: Run `plating adorn` to create missing documentation
+
+### Debug Mode
+
+Enable debug logging:
+
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+# Or use provide.foundation
+from provide.foundation import logger
+logger.setLevel(logging.DEBUG)
+```
+
+### Validation
+
+Validate bundle structure:
+
+```python
+bundle = PlatingBundle(name="test", plating_dir=path, component_type="resource")
+
+# Check required directories exist
+assert bundle.docs_dir.exists()
+assert bundle.examples_dir.exists()
+
+# Validate template loads
+template = bundle.load_main_template()
+assert template is not None
+```
