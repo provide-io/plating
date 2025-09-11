@@ -6,8 +6,8 @@ from unittest.mock import Mock, patch, AsyncMock, MagicMock
 import pytest
 import json
 
-from garnish.schema import SchemaProcessor
-from garnish.models import ProviderInfo, ResourceInfo, FunctionInfo
+from plating.schema import SchemaProcessor
+from plating.models import ProviderInfo, ResourceInfo, FunctionInfo
 
 
 class TestSchemaProcessor:

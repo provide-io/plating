@@ -6,18 +6,18 @@ from pathlib import Path
 from unittest.mock import Mock, patch, AsyncMock, MagicMock
 import pytest
 
-from garnish.dresser import GarnishDresser, dress_components, dress_missing_components
-from garnish.dresser.templates import TemplateGenerator
-from garnish.dresser.finder import ComponentFinder
+from plating.dresser import PlatingDresser, dress_components, dress_missing_components
+from plating.dresser.templates import TemplateGenerator
+from plating.dresser.finder import ComponentFinder
 
 
-class TestGarnishDresser:
-    """Test suite for GarnishDresser."""
+class TestPlatingDresser:
+    """Test suite for PlatingDresser."""
 
     @pytest.fixture
     def dresser(self):
-        """Create a GarnishDresser instance."""
-        return GarnishDresser()
+        """Create a PlatingDresser instance."""
+        return PlatingDresser()
 
     @pytest.fixture
     def mock_component_class(self):
@@ -27,8 +27,8 @@ class TestGarnishDresser:
         return mock
 
     def test_initialization(self, dresser):
-        """Test GarnishDresser initialization."""
-        assert dresser.garnish_discovery is not None
+        """Test PlatingDresser initialization."""
+        assert dresser.plating_discovery is not None
         assert dresser.template_generator is not None
         assert dresser.component_finder is not None
 
@@ -41,7 +41,7 @@ class TestGarnishDresser:
                 mock_discovery.discover_all = AsyncMock()
                 mock_hub.list_components.return_value = {}
                 
-                with patch.object(dresser.garnish_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = []
                     
                     result = await dresser.dress_missing()
@@ -65,7 +65,7 @@ class TestGarnishDresser:
                 mock_bundle = Mock()
                 mock_bundle.name = "existing_resource"
                 
-                with patch.object(dresser.garnish_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = [mock_bundle]
                     
                     result = await dresser.dress_missing()
@@ -86,7 +86,7 @@ class TestGarnishDresser:
                     "resource": {"new_resource": mock_component_class}
                 }
                 
-                with patch.object(dresser.garnish_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = []  # No existing bundles
                     
                     with patch.object(dresser, '_dress_component') as mock_dress:
@@ -113,7 +113,7 @@ class TestGarnishDresser:
                     "data_source": {"test_data": mock_component_class}
                 }
                 
-                with patch.object(dresser.garnish_discovery, 'discover_bundles') as mock_discover:
+                with patch.object(dresser.plating_discovery, 'discover_bundles') as mock_discover:
                     mock_discover.return_value = []
                     
                     with patch.object(dresser, '_dress_component') as mock_dress:
@@ -147,19 +147,19 @@ class TestGarnishDresser:
                     
                     assert result is True
                     
-                    # Check that .garnish directory was created
-                    garnish_dir = tmp_path / "test_component.garnish"
-                    assert garnish_dir.exists()
-                    assert (garnish_dir / "docs").exists()
-                    assert (garnish_dir / "examples").exists()
+                    # Check that .plating directory was created
+                    plating_dir = tmp_path / "test_component.plating"
+                    assert plating_dir.exists()
+                    assert (plating_dir / "docs").exists()
+                    assert (plating_dir / "examples").exists()
                     
                     # Check template file
-                    template_file = garnish_dir / "docs" / "test_component.tmpl.md"
+                    template_file = plating_dir / "docs" / "test_component.tmpl.md"
                     assert template_file.exists()
                     assert template_file.read_text() == "# Template content"
                     
                     # Check example file
-                    example_file = garnish_dir / "examples" / "example.tf"
+                    example_file = plating_dir / "examples" / "example.tf"
                     assert example_file.exists()
                     assert example_file.read_text() == "# Example content"
 
@@ -330,7 +330,7 @@ class TestComponentFinder:
 class TestDresserAPI:
     """Test the public API functions."""
 
-    @patch('garnish.dresser.api.GarnishDresser')
+    @patch('garnish.dresser.api.PlatingDresser')
     @pytest.mark.asyncio
     async def test_dress_missing_components_async(self, MockDresser):
         """Test async dress_missing_components function."""
