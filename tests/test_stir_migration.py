@@ -211,32 +211,34 @@ class TestTofusoupStirIntegration:
         # Note: Need to check how stir handles parallel option
         # This might need adjustment based on actual stir CLI
 
-    @patch('subprocess.run')
-    def test_handle_stir_execution_failure(self, mock_run, tmp_path):
+    @patch('plating.test_runner.run_command')
+    def test_handle_stir_execution_failure(self, mock_run_command, tmp_path):
         """Test handling when stir execution fails."""
         # Given: Stir fails to execute
         test_dir = tmp_path / "tests"
         test_dir.mkdir()
         
-        mock_run.return_value = Mock(
+        from provide.foundation.process import ProcessError
+        mock_run_command.side_effect = ProcessError(
+            "Command failed with exit code 1",
             returncode=1,
             stdout="",
             stderr="Error: Failed to initialize terraform"
         )
 
         # When/Then: Should raise appropriate exception
-        with pytest.raises(subprocess.CalledProcessError) as exc_info:
+        with pytest.raises(RuntimeError) as exc_info:
             run_tests_with_stir(test_dir)
         
-        # Just check that it raised CalledProcessError
-        assert exc_info.value.returncode == 1
+        # Just check that it raised RuntimeError with proper message
+        assert "Failed to run tofusoup stir" in str(exc_info.value)
 
-    @patch('subprocess.run')
-    def test_handle_stir_not_found(self, mock_run, tmp_path):
+    @patch('plating.test_runner.run_command')
+    def test_handle_stir_not_found(self, mock_run_command, tmp_path):
         """Test handling when soup/stir command is not found."""
         # Given: Soup command not found
         test_dir = tmp_path / "tests"
-        mock_run.side_effect = FileNotFoundError("soup command not found")
+        mock_run_command.side_effect = FileNotFoundError("soup command not found")
 
         # When/Then: Should raise informative error
         with pytest.raises(RuntimeError) as exc_info:
@@ -577,8 +579,8 @@ class TestErrorHandling:
     def test_handle_missing_tofusoup_gracefully(self):
         """Test graceful handling when tofusoup is not installed."""
         # Given: Tofusoup not available
-        with patch('subprocess.run') as mock_run:
-            mock_run.side_effect = FileNotFoundError("soup not found")
+        with patch('plating.test_runner.run_command') as mock_run_command:
+            mock_run_command.side_effect = FileNotFoundError("soup not found")
             
             # When: Trying to run tests
             adapter = PlatingTestAdapter(fallback_to_simple=False)
