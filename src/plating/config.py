@@ -67,9 +67,7 @@ class PlatingConfig(RuntimeConfig):
         if self.terraform_binary is None:
             import shutil
 
-            self.terraform_binary = (
-                shutil.which("tofu") or shutil.which("terraform") or "terraform"
-            )
+            self.terraform_binary = shutil.which("tofu") or shutil.which("terraform") or "terraform"
 
         # Set default plugin cache directory
         if self.plugin_cache_dir is None:

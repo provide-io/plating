@@ -58,9 +58,7 @@ class PlatingPlater:
                 handle_error(error, logger)
                 logger.error(f"Failed to plate bundle {bundle.name}: {e}")
 
-    def _plate_bundle(
-        self, bundle: PlatingBundle, output_dir: Path, force: bool
-    ) -> None:
+    def _plate_bundle(self, bundle: PlatingBundle, output_dir: Path, force: bool) -> None:
         """Plate a single bundle.
 
         Args:
@@ -82,9 +80,7 @@ class PlatingPlater:
         context = _create_plating_context(
             bundle,
             self._get_schema_for_component(bundle),
-            self.schema_processor.provider_name
-            if self.schema_processor
-            else "provider",
+            self.schema_processor.provider_name if self.schema_processor else "provider",
         )
 
         # Add examples to context
@@ -103,9 +99,7 @@ class PlatingPlater:
 
         # Check if file exists and force flag
         if output_path.exists() and not force:
-            logger.debug(
-                f"Output file {output_path} exists, skipping (use force=True to overwrite)"
-            )
+            logger.debug(f"Output file {output_path} exists, skipping (use force=True to overwrite)")
             return
 
         # Write output
@@ -157,9 +151,7 @@ class PlatingPlater:
 
         return None
 
-    def _plate_template(
-        self, template_content: str, context: dict, partials: dict[str, str]
-    ) -> str:
+    def _plate_template(self, template_content: str, context: dict, partials: dict[str, str]) -> str:
         """Plate a Jinja2 template with context.
 
         Args:
@@ -181,9 +173,7 @@ class PlatingPlater:
 
         # Add custom template functions
         env.globals["schema"] = lambda: context.get("schema_markdown", "")
-        env.globals["example"] = lambda name: _format_example(
-            context.get("examples", {}).get(name, "")
-        )
+        env.globals["example"] = lambda name: _format_example(context.get("examples", {}).get(name, ""))
         env.globals["include"] = lambda filename: partials.get(filename, "")
 
         # Plate template
@@ -191,9 +181,7 @@ class PlatingPlater:
         return template.render(**context)
 
 
-def _create_plating_context(
-    bundle: PlatingBundle, schema: dict | None, provider_name: str
-) -> dict:
+def _create_plating_context(bundle: PlatingBundle, schema: dict | None, provider_name: str) -> dict:
     """Create plating context for a bundle.
 
     Args:
@@ -364,9 +352,7 @@ def _format_type_string(type_info) -> str:
             return f"Map of {_format_type_string(element_type)}"
         elif container_type == "object":
             if isinstance(element_type, dict):
-                attrs = ", ".join(
-                    f"{k}: {_format_type_string(v)}" for k, v in element_type.items()
-                )
+                attrs = ", ".join(f"{k}: {_format_type_string(v)}" for k, v in element_type.items())
                 return f"Object({attrs})"
             return "Object"
 

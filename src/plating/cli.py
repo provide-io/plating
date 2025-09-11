@@ -85,9 +85,7 @@ def adorn_command(component_type: tuple[str, ...]) -> None:
     default=False,
     help="Force documentation generation even if not in a provider directory.",
 )
-def plate_command(
-    output_dir: str, provider_dir: str, component_type: tuple[str, ...], force: bool
-) -> None:
+def plate_command(output_dir: str, provider_dir: str, component_type: tuple[str, ...], force: bool) -> None:
     """Plate all plating bundles into final documentation."""
     try:
         provider_path = Path(provider_dir)
@@ -188,9 +186,7 @@ def _is_provider_directory(path: Path) -> bool:
     default=False,
     help="Force documentation generation even if not in a provider directory.",
 )
-def render_command(
-    output_dir: str, provider_dir: str, component_type: tuple[str, ...], force: bool
-) -> None:
+def render_command(output_dir: str, provider_dir: str, component_type: tuple[str, ...], force: bool) -> None:
     """(Deprecated) Alias for 'plate' command. Use 'garnish plate' instead."""
     click.echo("Note: 'render' is deprecated. Please use 'plate' instead.")
     # Call the plate command directly

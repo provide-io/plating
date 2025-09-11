@@ -35,9 +35,7 @@ class ErrorReporter:
         console.print(f"[red]Error: {error}[/red]")
 
     @staticmethod
-    def report_validation_error(
-        component: str, errors: list[str], warnings: list[str] | None = None
-    ) -> None:
+    def report_validation_error(component: str, errors: list[str], warnings: list[str] | None = None) -> None:
         """Report validation errors and warnings consistently."""
         console.print(f"[red]Validation failed for {component}[/red]")
         for error in errors:
@@ -95,18 +93,14 @@ def handle_subprocess_execution(
         )
 
         if result.returncode != 0:
-            error = subprocess.CalledProcessError(
-                result.returncode, cmd, result.stdout, result.stderr
-            )
+            error = subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
             ErrorReporter.report_subprocess_error(cmd, error, context)
             raise error
 
         return result
 
     except subprocess.TimeoutExpired:
-        ErrorReporter.report_warning(
-            f"Command timed out after {timeout} seconds", f"Command: {' '.join(cmd)}"
-        )
+        ErrorReporter.report_warning(f"Command timed out after {timeout} seconds", f"Command: {' '.join(cmd)}")
         raise
     except FileNotFoundError:
         ErrorReporter.report_warning(

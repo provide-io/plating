@@ -63,7 +63,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 
 [tool.ruff]
-line-length = 88
+line-length = 111
 indent-width = 4
 target-version = "py311"
 
@@ -93,8 +93,11 @@ warn_unused_ignores = true
 warn_unused_configs = true
 disallow_untyped_decorators = false
 
+# Exclude .plating directories from mypy checking
+exclude = [".*\\.plating/.*"]
+
 [[tool.mypy.overrides]]
-module = ["pyvider.*", "jinja2.*", "rich.*", "click.*", "attrs.*"]
+module = ["pyvider.*", "jinja2.*", "rich.*", "click.*", "attrs.*", "provide.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]
@@ -109,6 +112,7 @@ exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ =
 
 [dependency-groups]
 dev = [
+    "mypy>=1.17.1",
     "pytest-asyncio>=1.1.0",
     "pytest-xdist>=3.8.0",
     "ruff>=0.12.9",

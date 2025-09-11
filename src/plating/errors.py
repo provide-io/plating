@@ -5,7 +5,12 @@ Custom error types for plating.
 from pathlib import Path
 from typing import Any
 
-from provide.foundation.errors import FoundationError
+try:
+    from provide.foundation.errors import FoundationError
+except ImportError:
+    # Fallback if foundation is not available
+    class FoundationError(Exception):  # type: ignore[misc]
+        pass
 
 
 class PlatingError(FoundationError):
@@ -38,9 +43,7 @@ class AdorningError(PlatingError):
         self.component_name = component_name
         self.component_type = component_type
         self.reason = reason
-        super().__init__(
-            f"Failed to adorn {component_type} '{component_name}': {reason}"
-        )
+        super().__init__(f"Failed to adorn {component_type} '{component_name}': {reason}")
 
 
 class SchemaError(PlatingError):
