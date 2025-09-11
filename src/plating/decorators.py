@@ -156,7 +156,7 @@ def with_timing(func: F) -> F:
             from provide.foundation.utils import timed_block
             
             operation_name = f"{func.__module__}.{func.__name__}"
-            async with timed_block(logger, operation_name) as timer:
+            with timed_block(logger, operation_name) as timer:
                 return await func(*args, **kwargs)
         return async_wrapper
     else:
