@@ -207,8 +207,8 @@ class PlatingValidator:
                 }
 
             # Prepare validation suites with rate limiting
-            pout("🔄 Preparing validation suites (rate limited)...")
-            self.rate_limiter.acquire()  # Rate limit suite preparation
+            pout("🔄 Preparing validation suites...")
+            # Note: rate limiting implemented but not enforced in sync context
             validation_suites = self._prepare_validation_suites(bundles)
 
             if not validation_suites:
@@ -222,8 +222,8 @@ class PlatingValidator:
 
             # Try to run with stir first, fall back to simple if needed
             try:
-                pout("⚡ Running validation with stir (rate limited)...")
-                self.rate_limiter.acquire()  # Rate limit validation execution
+                pout("⚡ Running validation with stir...")
+                # Note: rate limiting implemented but not enforced in sync context
                 results = run_validation_with_stir(self.output_dir, parallel)
                 results = parse_validation_results(results, bundles)
             except RuntimeError as e:
