@@ -323,7 +323,7 @@ class PlatingRegistry(Registry):
             True if removed, False if not found
         """
         try:
-            self.unregister(name=name, dimension="component_sets")
+            self.remove(name=name, dimension="component_sets")
             logger.info(f"Removed ComponentSet '{name}' from registry")
             return True
         except Exception as e:
