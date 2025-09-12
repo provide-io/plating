@@ -248,16 +248,22 @@ class TestModernAPI:
         mock_bundle.component_type = "resource"  
         mock_bundle.has_main_template.return_value = True
         mock_bundle.has_examples.return_value = False
-        mock_bundle.load_examples.return_value = {"basic": "resource \"test\" {}"}
+        # Make load_examples return serializable data
+        def mock_load_examples():
+            return {"basic": "resource \"test\" {}"}
+        mock_bundle.load_examples = mock_load_examples
         mock_bundle.plating_dir = Path("/mock/path")
         
         mock_discovery_instance = Mock()
         mock_discovery_instance.discover_bundles.return_value = [mock_bundle]
         mock_discovery.return_value = mock_discovery_instance
         
-        # Mock template engine
-        with patch('plating.async_template_engine.template_engine') as mock_engine:
-            mock_engine.render.return_value = "# Test Resource\n\nGenerated docs"
+        # Mock template engine more completely
+        with patch('plating.api.template_engine') as mock_engine:
+            # Make render method async and return proper coroutine
+            async def mock_render(*args, **kwargs):
+                return "# Test Resource\n\nGenerated docs"
+            mock_engine.render = mock_render
             
             # Mock markdown validator
             mock_md_instance = Mock()
