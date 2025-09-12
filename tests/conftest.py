@@ -4,36 +4,98 @@
 """Centralized test configuration and fixtures using provide-testkit."""
 
 import pytest
-from provide.testkit import (
-    # Foundation test utilities
-    reset_foundation_setup_for_testing,
-    mock_logger,
-    # File and directory fixtures
-    temp_directory,
-    test_files_structure,
-    nested_directory_structure,
-    empty_directory,
-    temp_file,
-    temp_file_with_content,
-    temp_binary_file,
-    temp_named_file,
-    # Mocking utilities
-    mock_factory,
-    magic_mock_factory,
-    async_mock_factory,
-    property_mock_factory,
-    patch_fixture,
-    auto_patch,
-    mock_open_fixture,
-    # Common utilities
-    ANY,
-    AsyncMock,
-    MagicMock,
-    Mock,
-    PropertyMock,
-    call,
-    patch,
-)
+from unittest.mock import ANY, AsyncMock, MagicMock, Mock, PropertyMock, call, patch
+
+# Import testkit utilities from specific modules
+try:
+    from provide.testkit import reset_foundation_setup_for_testing, mock_logger
+    TESTKIT_AVAILABLE = True
+except ImportError:
+    TESTKIT_AVAILABLE = False
+    # Fallback implementations
+    def reset_foundation_setup_for_testing():
+        pass
+    def mock_logger():
+        return Mock()
+
+# Import file fixtures from testkit file module
+try:
+    from provide.testkit.file import (
+        temp_directory,
+        test_files_structure, 
+        nested_directory_structure,
+        empty_directory,
+        temp_file,
+    )
+except ImportError:
+    # Fallback to pytest's tmp_path
+    @pytest.fixture
+    def temp_directory(tmp_path):
+        return tmp_path
+    
+    @pytest.fixture 
+    def test_files_structure(tmp_path):
+        return tmp_path, tmp_path
+    
+    nested_directory_structure = temp_directory
+    empty_directory = temp_directory
+    temp_file = temp_directory
+
+# Import mocking fixtures
+try:
+    from provide.testkit.mocking import (
+        mock_factory,
+        magic_mock_factory,
+        async_mock_factory,
+        property_mock_factory,
+        patch_fixture,
+        auto_patch,
+        mock_open_fixture,
+    )
+except ImportError:
+    # Fallback implementations
+    @pytest.fixture
+    def mock_factory():
+        def _create_mock(name=None, **kwargs):
+            return Mock(name=name, **kwargs)
+        return _create_mock
+    
+    @pytest.fixture
+    def magic_mock_factory():
+        def _create_magic_mock(name=None, **kwargs):
+            return MagicMock(name=name, **kwargs)
+        return _create_magic_mock
+    
+    @pytest.fixture
+    def async_mock_factory():
+        def _create_async_mock(name=None, **kwargs):
+            return AsyncMock(name=name, **kwargs)
+        return _create_async_mock
+    
+    @pytest.fixture
+    def property_mock_factory():
+        def _create_property_mock(**kwargs):
+            return PropertyMock(**kwargs)
+        return _create_property_mock
+    
+    @pytest.fixture
+    def patch_fixture():
+        patches = []
+        def _patch(target, **kwargs):
+            patcher = patch(target, **kwargs)
+            mock = patcher.start()
+            patches.append(patcher)
+            return mock
+        yield _patch
+        for patcher in patches:
+            patcher.stop()
+    
+    auto_patch = patch_fixture
+    
+    @pytest.fixture
+    def mock_open_fixture():
+        from unittest.mock import mock_open
+        return lambda read_data=None: mock_open(read_data=read_data)
 
 
 def pytest_configure(config):
@@ -152,9 +214,6 @@ __all__ = [
     "nested_directory_structure",
     "empty_directory",
     "temp_file",
-    "temp_file_with_content",
-    "temp_binary_file",
-    "temp_named_file",
     # Plating-specific fixtures
     "plating_bundle_structure",
     "mock_plating_bundle",
