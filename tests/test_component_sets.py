@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-from provide.foundation.testing import TempDir
+from provide.foundation.testing import temp_config_file
 
 from plating.component_sets import ComponentSet, ComponentReference
 from plating.registry import PlatingRegistry
@@ -16,9 +16,9 @@ from plating.plating import PlatingBundle
 
 
 @pytest.fixture
-def temp_dir():
+def temp_dir(tmp_path):
     """Temporary directory for tests."""
-    return TempDir()
+    return tmp_path
 
 
 @pytest.fixture
@@ -449,7 +449,7 @@ class TestComponentSetSerialization:
         )
         
         # Save to file
-        set_file = temp_dir.path / "test_set.json"
+        set_file = temp_dir / "test_set.json"
         original_set.save_to_file(set_file)
         
         # Load from file
