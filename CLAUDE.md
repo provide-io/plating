@@ -10,11 +10,19 @@ Garnish is a documentation generation system for Terraform/OpenTofu providers th
 
 ### Environment Setup
 ```bash
-# Use UV package manager (required)
-source setup.sh --dev        # Install with dev dependencies
-# Or manually:
+# Clone the repository (if not already done)
+git clone https://github.com/provide-io/garnish.git
+cd garnish
+
+# Create virtual environment
 uv venv
+
+# Activate virtual environment
 source .venv/bin/activate
+
+# Install dependencies with dev extras
+uv sync --extra dev
+# Or for editable install:
 uv pip install -e ".[dev]"
 ```
 
