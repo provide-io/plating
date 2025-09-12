@@ -1,376 +1,357 @@
 #
 # plating/api.py
 #
-"""Main Plating API class providing unified interface to all operations."""
+"""Unified API for all plating operations."""
 
+import asyncio
 import time
 from pathlib import Path
-from typing import Any
 
 from provide.foundation import logger
 
-from plating.cleaner import PlatingCleaner
-from plating.config import PlatingConfig, get_config
-from plating.plating import PlatingBundle, PlatingDiscovery
-from plating.results import AdornResult, CleanResult, PlateResult, TestResult, ValidationResult
-from plating.schema import SchemaProcessor
+from .async_template_engine import template_engine
+from .decorators import with_metrics, with_retry, with_timing, async_rate_limited, plating_metrics
+from .plating import PlatingBundle, PlatingDiscovery  
+from .schema import SchemaProcessor
+from .types import (
+    ComponentType,
+    PlatingContext,
+    SchemaInfo,
+    ArgumentInfo,
+    AdornResult,
+    PlateResult,
+    ValidationResult
+)
 
 
 class Plating:
-    """Unified API for plating operations.
+    """Unified API for all plating operations."""
     
-    This class provides a single entry point for all plating functionality:
-    - Discovering and managing .plating bundles
-    - Adorning components with documentation templates
-    - Plating (generating) documentation
-    - Cleaning generated documentation
-    - Testing example files
-    - Schema extraction and validation
-    
-    Example:
-        >>> p = Plating()
-        >>> p.clean()                    # Clean old docs
-        >>> p.adorn()                    # Create missing bundles
-        >>> result = p.plate("docs")     # Generate documentation
-        >>> print(f"Generated {len(result.plated)} files")
-    """
-
-    def __init__(self, provider_dir: Path = None, config: PlatingConfig = None):
-        """Initialize plating for a provider directory.
-
-        Args:
-            provider_dir: Directory containing the provider code (default: current directory)
-            config: Configuration object (default: auto-detected)
-        """
-        self.provider_dir = Path(provider_dir) if provider_dir else Path.cwd()
-        self.config = config or get_config()
-        self._bundles = None
-        self._schema_processor = None
-        self._cleaner = None
-
-    @property
-    def bundles(self) -> list[PlatingBundle]:
-        """Get list of discovered plating bundles (cached)."""
-        if self._bundles is None:
-            self._bundles = self.discover_bundles()
-        return self._bundles
-
-    @property
-    def schema_processor(self) -> SchemaProcessor:
-        """Get schema processor (cached)."""
-        if self._schema_processor is None:
-            try:
-                self._schema_processor = SchemaProcessor(provider_name=self.config.provider_name)
-            except Exception as e:
-                logger.warning(f"Failed to initialize schema processor: {e}")
-                self._schema_processor = None
-        return self._schema_processor
-
-    @property
-    def cleaner(self) -> PlatingCleaner:
-        """Get cleaner instance (cached)."""
-        if self._cleaner is None:
-            self._cleaner = PlatingCleaner()
-        return self._cleaner
-
-    def clean(self, output_dir: Path = None, dry_run: bool = False) -> CleanResult:
-        """Remove all generated documentation.
-
-        Args:
-            output_dir: Directory containing generated docs (default: 'docs')
-            dry_run: If True, show what would be removed without actually removing
-
-        Returns:
-            CleanResult with details of what was cleaned
-
-        Example:
-            >>> result = p.clean("docs")
-            >>> print(f"Removed {result.total_items} items, freed {result.bytes_freed} bytes")
-        """
-        if output_dir is None:
-            output_dir = Path("docs")
-        else:
-            output_dir = Path(output_dir)
-
-        return self.cleaner.clean(output_dir, dry_run=dry_run)
-
-    def adorn(self, component_types: list[str] = None, force: bool = False) -> AdornResult:
-        """Create .plating bundles for components missing documentation.
-
-        Args:
-            component_types: Optional list of component types to adorn ["resource", "data_source", "function"]
-            force: Force adorning even if bundles already exist
-
-        Returns:
-            AdornResult with details of what was adorned
-
-        Example:
-            >>> result = p.adorn(["resource"])
-            >>> print(f"Adorned {result.total_adorned} resources")
-        """
-        from plating.adorner import adorn_components
-
-        start_time = time.time()
-        
-        try:
-            adorned = adorn_components(component_types)
-            
-            # Clear cached bundles since we may have created new ones
-            self._bundles = None
-            
-            return AdornResult(
-                adorned=adorned,
-                skipped=[],  # TODO: Track skipped components
-                errors=[],
-                duration=time.time() - start_time
-            )
-        except Exception as e:
-            return AdornResult(
-                adorned={},
-                skipped=[],
-                errors=[str(e)],
-                duration=time.time() - start_time
-            )
-
-    def plate(
+    def __init__(
         self,
-        output_dir: Path = None,
-        component_types: list[str] = None,
-        clean_first: bool = False,
-        force: bool = False,
+        package_name: str = "pyvider.components",
+        provider_name: str | None = None
+    ):
+        """Initialize plating API.
+        
+        Args:
+            package_name: Package to search for plating bundles
+            provider_name: Provider name for schema extraction
+        """
+        self.package_name = package_name
+        self.provider_name = provider_name
+        self._discovery = PlatingDiscovery(package_name)
+        self._schema_processor = None
+        
+        if provider_name:
+            # Create mock generator for schema processor
+            mock_generator = type(
+                "MockGenerator",
+                (),
+                {"provider_name": provider_name, "provider_dir": Path.cwd()},
+            )()
+            self._schema_processor = SchemaProcessor(mock_generator)
+    
+    @with_timing
+    @with_metrics("adorn_operation")
+    async def adorn(self, component_types: list[ComponentType] | None = None) -> AdornResult:
+        """Adorn components with documentation templates and examples.
+        
+        Args:
+            component_types: Optional list of component types to filter
+            
+        Returns:
+            AdornResult with operation statistics
+        """
+        from .adorner import adorn_missing_components
+        
+        # Convert enum to string for adorner compatibility
+        component_type_strs = None
+        if component_types:
+            component_type_strs = [ct.value for ct in component_types]
+        
+        async with plating_metrics.track_operation("adorn", types=len(component_types or [])):
+            # Use existing adorner logic
+            result = await adorn_missing_components(component_type_strs)
+            
+            return AdornResult(
+                components_processed=result.get("total", 0),
+                templates_generated=result.get("resources", 0) + result.get("data_sources", 0) + result.get("functions", 0),
+                examples_created=result.get("total", 0),  # Assume 1:1 ratio
+                errors=result.get("errors", [])
+            )
+    
+    @with_timing  
+    @with_retry(max_attempts=2, retryable_errors=(IOError, OSError))
+    @with_metrics("plate_operation")
+    async def plate(
+        self,
+        output_dir: Path,
+        component_types: list[ComponentType] | None = None,
+        force: bool = False
     ) -> PlateResult:
-        """Generate documentation from .plating bundles.
-
+        """Generate documentation from plating bundles.
+        
         Args:
-            output_dir: Directory to write documentation (default: 'docs')
-            component_types: Optional list of component types to plate
-            clean_first: Whether to clean output directory first
-            force: Force plating even if output exists
-
+            output_dir: Directory to write documentation
+            component_types: Optional list of component types to filter
+            force: Force overwrite existing files
+            
         Returns:
-            PlateResult with details of what was generated
-
-        Example:
-            >>> result = p.plate("docs", clean_first=True)
-            >>> if result.success:
-            ...     print(f"Generated {len(result.plated)} files")
+            PlateResult with operation statistics
         """
-        from plating.plater import generate_docs
-
-        if output_dir is None:
-            output_dir = Path("docs")
-        else:
-            output_dir = Path(output_dir)
-
-        start_time = time.time()
+        start_time = time.perf_counter()
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
         errors = []
-        cleaned = False
-
-        try:
-            # Clean first if requested
-            if clean_first:
-                clean_result = self.clean(output_dir)
-                cleaned = True
-
-            # Generate documentation
-            generate_docs(str(output_dir))
-
-            # Find generated files (simple heuristic)
-            generated_files = []
-            if output_dir.exists():
-                generated_files = [str(f) for f in output_dir.rglob("*.md") if f.is_file()]
-
-            bundles_processed = len([b for b in self.bundles if self._bundle_has_examples(b)])
-
+        output_files = []
+        
+        # Discover bundles
+        bundles = await self._discover_bundles(component_types)
+        
+        if not bundles:
+            logger.warning(f"No plating bundles found in {self.package_name}")
             return PlateResult(
-                plated=generated_files,
-                bundles_processed=bundles_processed,
-                errors=errors,
-                duration=time.time() - start_time,
-                cleaned_first=cleaned,
-            )
-
-        except Exception as e:
-            errors.append(str(e))
-            return PlateResult(
-                plated=[],
                 bundles_processed=0,
-                errors=errors,
-                duration=time.time() - start_time,
-                cleaned_first=cleaned,
+                files_generated=0,
+                duration_seconds=time.perf_counter() - start_time,
+                errors=["No bundles found"],
+                output_files=[]
             )
-
-    def test(self, component_types: list[str] = None, parallel: int = 4) -> TestResult:
-        """Run tests on example files in .plating bundles.
-
-        Args:
-            component_types: Optional list of component types to test
-            parallel: Number of parallel tests to run
-
-        Returns:
-            TestResult with test execution results
-
-        Example:
-            >>> result = p.test()
-            >>> print(f"Tests: {result.passed}/{result.total} passed ({result.success_rate:.1f}%)")
-        """
-        from plating.test_runner import run_tests
-
-        return run_tests(component_types=component_types, parallel=parallel)
-
-    def discover_bundles(self, component_type: str = None) -> list[PlatingBundle]:
-        """Discover all .plating bundles.
-
-        Args:
-            component_type: Optional filter for specific component type
-
-        Returns:
-            List of discovered PlatingBundle objects
-
-        Example:
-            >>> bundles = p.discover_bundles("resource")
-            >>> print(f"Found {len(bundles)} resource bundles")
-        """
-        discovery = PlatingDiscovery()
-        return discovery.discover_bundles(component_type)
-
-    def get_bundle(self, name: str) -> PlatingBundle | None:
-        """Get a specific bundle by name.
-
-        Args:
-            name: Name of the bundle to find
-
-        Returns:
-            PlatingBundle if found, None otherwise
-
-        Example:
-            >>> bundle = p.get_bundle("my_resource")
-            >>> if bundle:
-            ...     template = bundle.load_main_template()
-        """
-        for bundle in self.bundles:
-            if bundle.name == name:
-                return bundle
-        return None
-
-    def add_bundle(self, bundle: PlatingBundle) -> None:
-        """Add a custom bundle to the collection.
-
-        Args:
-            bundle: PlatingBundle to add
-
-        Example:
-            >>> custom_bundle = PlatingBundle(name="custom", plating_dir=path, component_type="resource")
-            >>> p.add_bundle(custom_bundle)
-        """
-        if self._bundles is None:
-            self._bundles = self.discover_bundles()
-        self._bundles.append(bundle)
-
-    def extract_schema(self) -> dict[str, Any] | None:
-        """Extract provider schema.
-
-        Returns:
-            Provider schema dictionary, or None if extraction failed
-
-        Example:
-            >>> schema = p.extract_schema()
-            >>> if schema:
-            ...     resources = schema.get("provider_schemas", {})
-        """
-        if self.schema_processor:
+        
+        # Extract schema if processor available
+        provider_schema = None
+        if self._schema_processor:
             try:
-                return self.schema_processor.extract_provider_schema()
+                provider_schema = self._schema_processor.extract_provider_schema()
             except Exception as e:
-                logger.error(f"Schema extraction failed: {e}")
-                return None
-        return None
-
-    def validate_schema(self) -> ValidationResult:
-        """Validate provider schema.
-
-        Returns:
-            ValidationResult with validation details
-
-        Example:
-            >>> result = p.validate_schema()
-            >>> if not result.valid:
-            ...     print(f"Validation errors: {result.errors}")
-        """
-        errors = []
-        warnings = []
-
-        try:
-            schema = self.extract_schema()
-            if schema is None:
-                errors.append("Failed to extract schema")
-            else:
-                # Basic validation
-                if not schema.get("provider_schemas"):
-                    errors.append("No provider schemas found")
-
-                # Check for common issues
-                for provider_key, provider_data in schema.get("provider_schemas", {}).items():
-                    if not provider_data.get("resource_schemas") and not provider_data.get("data_source_schemas"):
-                        warnings.append(f"Provider {provider_key} has no resources or data sources")
-
-        except Exception as e:
-            errors.append(f"Validation failed: {e}")
-
-        return ValidationResult(
-            valid=len(errors) == 0,
+                logger.warning(f"Schema extraction failed: {e}")
+                errors.append(f"Schema extraction failed: {e}")
+        
+        # Process bundles with rate limiting
+        async with async_rate_limited(rate=5.0, burst=10):  # 5 bundles per second
+            tasks = []
+            for bundle in bundles:
+                task = asyncio.create_task(
+                    self._plate_bundle(bundle, output_dir, provider_schema, force)
+                )
+                tasks.append(task)
+            
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Process results
+        bundles_processed = 0
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                errors.append(f"Bundle {bundles[i].name}: {result}")
+            elif result:  # result is output file path
+                bundles_processed += 1
+                output_files.append(result)
+        
+        duration = time.perf_counter() - start_time
+        
+        return PlateResult(
+            bundles_processed=bundles_processed,
+            files_generated=len(output_files),
+            duration_seconds=duration,
             errors=errors,
-            warnings=warnings,
+            output_files=output_files
         )
-
-    def status(self) -> dict[str, Any]:
-        """Get plating status information.
-
+    
+    @with_timing
+    @with_metrics("validate_operation") 
+    async def validate(self, component_types: list[ComponentType] | None = None) -> ValidationResult:
+        """Validate example files using terraform.
+        
+        Args:
+            component_types: Optional list of component types to filter
+            
         Returns:
-            Dictionary with status information
-
-        Example:
-            >>> status = p.status()
-            >>> print(f"Found {status['bundles']['total']} bundles")
+            ValidationResult with validation statistics
         """
-        bundles = self.bundles
-        bundle_types = {}
-        missing_templates = 0
-        missing_examples = 0
+        from .validator.adapters import PlatingValidator
+        
+        # Convert enum to string for validator compatibility
+        component_type_strs = None
+        if component_types:
+            component_type_strs = [ct.value for ct in component_types]
+        
+        async with plating_metrics.track_operation("validate", types=len(component_types or [])):
+            validator = PlatingValidator(fallback_to_simple=True)
+            
+            # Run validation (currently sync, but wrapped in async for API consistency)
+            result = await asyncio.get_event_loop().run_in_executor(
+                None, 
+                validator.run_validation,
+                component_type_strs
+            )
+            
+            return ValidationResult(
+                total=result.get("total", 0),
+                passed=result.get("passed", 0), 
+                failed=result.get("failed", 0),
+                skipped=result.get("skipped", 0),
+                duration_seconds=result.get("duration", 0.0),
+                failures=result.get("failures", {}),
+                terraform_version=result.get("terraform_version", "")
+            )
+    
+    async def _discover_bundles(self, component_types: list[ComponentType] | None) -> list[PlatingBundle]:
+        """Discover plating bundles asynchronously."""
+        # Run discovery in thread pool since it's I/O bound
+        def discover():
+            if component_types:
+                all_bundles = []
+                for ct in component_types:
+                    bundles = self._discovery.discover_bundles(ct.value)
+                    all_bundles.extend(bundles)
+                return all_bundles
+            else:
+                return self._discovery.discover_bundles()
+        
+        return await asyncio.get_event_loop().run_in_executor(None, discover)
+    
+    async def _plate_bundle(
+        self,
+        bundle: PlatingBundle,
+        output_dir: Path,
+        provider_schema: dict | None,
+        force: bool
+    ) -> Path | None:
+        """Plate a single bundle asynchronously."""
+        # Get schema for component
+        schema = self._get_schema_for_component(bundle, provider_schema)
+        
+        # Create typed context
+        context = PlatingContext(
+            name=bundle.name,
+            component_type=ComponentType(bundle.component_type),
+            provider_name=self.provider_name or "provider",
+            description=schema.get("description", "") if schema else "",
+            schema=SchemaInfo.from_dict(schema) if schema else None
+        )
+        
+        # Load examples
+        examples = await asyncio.get_event_loop().run_in_executor(
+            None, bundle.load_examples
+        )
+        context.examples = examples
+        
+        # Handle function-specific context
+        if bundle.component_type == "function" and schema and "signature" in schema:
+            context.signature = self._format_function_signature(schema)
+            context.arguments = self._parse_function_arguments(schema)
+        
+        # Render template
+        rendered = await template_engine.render(bundle, context)
+        
+        if not rendered:
+            return None
+        
+        # Determine output path
+        output_path = output_dir / context.component_type.output_subdir / f"{bundle.name}.md"
+        
+        # Check if file exists and force flag
+        if output_path.exists() and not force:
+            logger.debug(f"Output file {output_path} exists, skipping (use force=True to overwrite)")
+            return None
+        
+        # Write output
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        await asyncio.get_event_loop().run_in_executor(
+            None, output_path.write_text, rendered
+        )
+        
+        logger.info(f"Successfully plated {bundle.name} to {output_path}")
+        return output_path
+    
+    def _get_schema_for_component(self, bundle: PlatingBundle, provider_schema: dict | None) -> dict | None:
+        """Get schema for a component from the provider schema."""
+        if not provider_schema:
+            return None
+        
+        provider_schemas = provider_schema.get("provider_schemas", {})
+        for provider_key, provider_data in provider_schemas.items():
+            # Check resources
+            if bundle.component_type == "resource":
+                schemas = provider_data.get("resource_schemas", {})
+                if bundle.name in schemas:
+                    return schemas[bundle.name]
+                if f"pyvider_{bundle.name}" in schemas:
+                    return schemas[f"pyvider_{bundle.name}"]
+            
+            # Check data sources
+            elif bundle.component_type == "data_source":
+                schemas = provider_data.get("data_source_schemas", {})
+                if bundle.name in schemas:
+                    return schemas[bundle.name]
+                if f"pyvider_{bundle.name}" in schemas:
+                    return schemas[f"pyvider_{bundle.name}"]
+            
+            # Check functions
+            elif bundle.component_type == "function":
+                functions = provider_data.get("functions", {})
+                if bundle.name in functions:
+                    return functions[bundle.name]
+                if f"pyvider_{bundle.name}" in functions:
+                    return functions[f"pyvider_{bundle.name}"]
+        
+        return None
+    
+    def _format_function_signature(self, schema: dict) -> str:
+        """Format function signature from schema."""
+        signature = schema.get("signature", {})
+        params = []
+        
+        # Parameters
+        for param in signature.get("parameters", []):
+            param_name = param.get("name", "arg")
+            param_type = param.get("type", "any")
+            params.append(f"{param_name}: {param_type}")
+        
+        # Variadic parameter
+        if "variadic_parameter" in signature:
+            variadic = signature["variadic_parameter"]
+            variadic_name = variadic.get("name", "args")
+            variadic_type = variadic.get("type", "any")
+            params.append(f"...{variadic_name}: {variadic_type}")
+        
+        # Return type
+        return_type = signature.get("return_type", "any")
+        param_str = ", ".join(params)
+        
+        return f"({param_str}) -> {return_type}"
+    
+    def _parse_function_arguments(self, schema: dict) -> list[ArgumentInfo]:
+        """Parse function arguments from schema."""
+        signature = schema.get("signature", {})
+        arguments = []
+        
+        # Parameters
+        for param in signature.get("parameters", []):
+            arguments.append(ArgumentInfo(
+                name=param.get("name", "arg"),
+                type=param.get("type", "any"),
+                description=param.get("description", ""),
+                required=True
+            ))
+        
+        # Variadic parameter
+        if "variadic_parameter" in signature:
+            variadic = signature["variadic_parameter"]
+            arguments.append(ArgumentInfo(
+                name=f"...{variadic.get('name', 'args')}",
+                type=variadic.get("type", "any"),
+                description=variadic.get("description", ""),
+                required=False
+            ))
+        
+        return arguments
 
-        for bundle in bundles:
-            comp_type = bundle.component_type
-            if comp_type not in bundle_types:
-                bundle_types[comp_type] = 0
-            bundle_types[comp_type] += 1
 
-            # Check for missing assets
-            if not bundle.load_main_template():
-                missing_templates += 1
-            if not bundle.load_examples():
-                missing_examples += 1
-
-        return {
-            "bundles": {
-                "total": len(bundles),
-                "by_type": bundle_types,
-                "missing_templates": missing_templates,
-                "missing_examples": missing_examples,
-            },
-            "provider_dir": str(self.provider_dir),
-            "config": {
-                "provider_name": self.config.provider_name,
-                "terraform_binary": self.config.terraform_binary,
-            },
-        }
-
-    def _bundle_has_examples(self, bundle: PlatingBundle) -> bool:
-        """Check if a bundle has examples."""
-        try:
-            examples = bundle.load_examples()
-            return len(examples) > 0
-        except Exception:
-            return False
+# Global API instance
+plating = Plating()
 
 
-# 🍽️✨🎯
+# 🍲🚀🎯🔧
