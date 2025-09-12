@@ -5,7 +5,11 @@
       "Bash(xargs ls:*)",
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "Read(//Users/tim/code/gh/provide-io/**)"
+      "Read(//Users/tim/code/gh/provide-io/**)",
+      "Bash(pip show:*)",
+      "Bash(plating sets:*)",
+      "Bash(plating list:*)",
+      "Bash(plating:*)"
     ],
     "deny": [],
     "ask": [],
