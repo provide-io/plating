@@ -3,6 +3,7 @@ Comprehensive tests for the schema module.
 """
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 

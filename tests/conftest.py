@@ -195,9 +195,9 @@ def mock_component_class():
 
 
 @pytest.fixture
-def mock_generator(mock_factory):
+def mock_generator():
     """Create a mock DocsGenerator for schema testing."""
-    generator = mock_factory("DocsGenerator")
+    generator = Mock(name="DocsGenerator")
     generator.provider_name = "test_provider"
     generator.provider_dir = "/test/provider"
     return generator
