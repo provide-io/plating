@@ -245,7 +245,7 @@ class TestMarkdownValidator:
         validator = MarkdownValidator()
         
         # Valid markdown
-        result = validator.validate_string("# Valid Header\n\nContent here.")
+        result = validator.validate_string("# Valid Header\n\nContent here.\n")
         assert result.passed == 1
         assert result.failed == 0
         
