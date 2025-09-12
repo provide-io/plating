@@ -19,11 +19,17 @@ This project uses `uv` for Python environment and package management.
     ```
 
 2.  **Setup Environment:**
-    The `env.sh` script in the project root is the recommended way to set up your development environment.
     ```bash
-    source env.sh
+    # Create virtual environment
+    uv venv
+    
+    # Activate virtual environment
+    source .venv/bin/activate
+    
+    # Install dependencies
+    uv sync
     ```
-    This script will create a Python virtual environment, install all required dependencies in editable mode using `uv`, and make the `soup` CLI available in your shell.
+    This will create a Python virtual environment, install all required dependencies using `uv`, and make the `soup` CLI available in your shell.
 
 3.  **Verify Installation:**
     ```bash
