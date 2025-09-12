@@ -47,7 +47,6 @@ class PlatingRegistry(Registry):
         """
         super().__init__()
         self.package_name = package_name
-        self._discovery = PlatingDiscovery(package_name)
         
         # Foundation resilience for discovery
         self._retry_policy = RetryPolicy(
@@ -59,11 +58,22 @@ class PlatingRegistry(Registry):
         )
         self._retry_executor = RetryExecutor(self._retry_policy)
         
-        # Auto-discover on initialization
-        self._discover_and_register()
+        # Initialize discovery with error handling
+        try:
+            self._discovery = PlatingDiscovery(package_name)
+            # Auto-discover on initialization
+            self._discover_and_register()
+        except Exception as e:
+            logger.error(f"Failed to initialize discovery for {package_name}: {e}")
+            # Set discovery to None so we can still create the registry
+            self._discovery = None
     
     def _discover_and_register(self) -> None:
         """Discover and register all components using foundation patterns."""
+        if not self._discovery:
+            logger.warning("Discovery not initialized, skipping component registration")
+            return
+            
         try:
             bundles = self._retry_executor.execute_sync(
                 self._discovery.discover_bundles
