@@ -6,6 +6,7 @@
 import json
 from pathlib import Path
 import subprocess
+from typing import Any
 
 
 class MarkdownLinter:
@@ -14,7 +15,7 @@ class MarkdownLinter:
     def __init__(self, config_file: Path | None = None):
         self.config_file = config_file
 
-    def lint_templates(self, template_dir: Path) -> tuple[bool, list[dict]]:
+    def lint_templates(self, template_dir: Path) -> tuple[bool, list[dict[str, Any]]]:
         """Lint template files before generation.
 
         Args:
@@ -25,7 +26,7 @@ class MarkdownLinter:
         """
         return self._run_markdownlint(f"{template_dir}/**/*.tmpl.md")
 
-    def lint_generated_docs(self, output_dir: Path) -> tuple[bool, list[dict]]:
+    def lint_generated_docs(self, output_dir: Path) -> tuple[bool, list[dict[str, Any]]]:
         """Lint generated documentation files.
 
         Args:
@@ -58,7 +59,7 @@ class MarkdownLinter:
         """
         return self._run_markdownlint_fix(f"{output_dir}/**/*.md")
 
-    def _run_markdownlint(self, pattern: str) -> tuple[bool, list[dict]]:
+    def _run_markdownlint(self, pattern: str) -> tuple[bool, list[dict[str, Any]]]:
         """Run markdownlint-cli2 on files matching pattern.
 
         Args:
@@ -86,21 +87,15 @@ class MarkdownLinter:
                                     "file": parts[0],
                                     "line": parts[1] if parts[1].isdigit() else None,
                                     "column": parts[2] if parts[2].isdigit() else None,
-                                    "rule": parts[3].split()[0]
-                                    if parts[3]
-                                    else "unknown",
-                                    "message": parts[3]
-                                    if parts[3]
-                                    else "Unknown error",
+                                    "rule": parts[3].split()[0] if parts[3] else "unknown",
+                                    "message": parts[3] if parts[3] else "Unknown error",
                                 }
                             )
 
             return result.returncode == 0, errors
 
         except FileNotFoundError:
-            raise RuntimeError(
-                "markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2"
-            )
+            raise RuntimeError("markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2")
 
     def _run_markdownlint_fix(self, pattern: str) -> bool:
         """Run markdownlint-cli2 with --fix flag.
@@ -121,18 +116,16 @@ class MarkdownLinter:
             return result.returncode == 0
 
         except FileNotFoundError:
-            raise RuntimeError(
-                "markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2"
-            )
+            raise RuntimeError("markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2")
 
-    def generate_lint_report(self, errors: list[dict], output_file: Path) -> None:
+    def generate_lint_report(self, errors: list[dict[str, Any]], output_file: Path) -> None:
         """Generate a JSON report of linting errors for CI/CD integration.
 
         Args:
             errors: List of error dictionaries from linting
             output_file: Path to write JSON report
         """
-        report = {
+        report: dict[str, Any] = {
             "total_errors": len(errors),
             "errors_by_rule": {},
             "errors_by_file": {},

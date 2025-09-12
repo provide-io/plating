@@ -16,9 +16,7 @@ class ErrorReporter:
 
     @staticmethod
     def report_subprocess_error(
-        cmd: list[str],
-        error: subprocess.CalledProcessError,
-        context: str = ""
+        cmd: list[str], error: subprocess.CalledProcessError, context: str = ""
     ) -> None:
         """Report subprocess execution errors consistently."""
         console.print(f"[red]Error executing command: {' '.join(cmd)}[/red]")
@@ -30,22 +28,14 @@ class ErrorReporter:
             console.print(f"[red]Exit code: {error.returncode}[/red]")
 
     @staticmethod
-    def report_file_error(
-        path: Path,
-        operation: str,
-        error: Exception
-    ) -> None:
+    def report_file_error(path: Path, operation: str, error: Exception) -> None:
         """Report file operation errors consistently."""
         console.print(f"[red]File operation failed: {operation}[/red]")
         console.print(f"[yellow]Path: {path}[/yellow]")
         console.print(f"[red]Error: {error}[/red]")
 
     @staticmethod
-    def report_validation_error(
-        component: str,
-        errors: list[str],
-        warnings: list[str] | None = None
-    ) -> None:
+    def report_validation_error(component: str, errors: list[str], warnings: list[str] | None = None) -> None:
         """Report validation errors and warnings consistently."""
         console.print(f"[red]Validation failed for {component}[/red]")
         for error in errors:
@@ -74,20 +64,20 @@ def handle_subprocess_execution(
     cwd: Path | None = None,
     timeout: int = 120,
     context: str = "",
-    capture_output: bool = True
+    capture_output: bool = True,
 ) -> subprocess.CompletedProcess[str]:
     """Execute subprocess with consistent error handling.
-    
+
     Args:
         cmd: Command to execute
         cwd: Working directory for command
         timeout: Command timeout in seconds
         context: Context description for error reporting
         capture_output: Whether to capture stdout/stderr
-        
+
     Returns:
         CompletedProcess result
-        
+
     Raises:
         subprocess.CalledProcessError: If command fails
         subprocess.TimeoutExpired: If command times out
@@ -99,27 +89,22 @@ def handle_subprocess_execution(
             capture_output=capture_output,
             text=True,
             timeout=timeout,
-            check=False
+            check=False,
         )
 
         if result.returncode != 0:
-            error = subprocess.CalledProcessError(
-                result.returncode, cmd, result.stdout, result.stderr
-            )
+            error = subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
             ErrorReporter.report_subprocess_error(cmd, error, context)
             raise error
 
         return result
 
     except subprocess.TimeoutExpired:
-        ErrorReporter.report_warning(
-            f"Command timed out after {timeout} seconds",
-            f"Command: {' '.join(cmd)}"
-        )
+        ErrorReporter.report_warning(f"Command timed out after {timeout} seconds", f"Command: {' '.join(cmd)}")
         raise
     except FileNotFoundError:
         ErrorReporter.report_warning(
             f"Command not found: {cmd[0]}",
-            "Please ensure the required tool is installed"
+            "Please ensure the required tool is installed",
         )
         raise

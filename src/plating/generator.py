@@ -7,8 +7,8 @@ from pathlib import Path
 
 from provide.foundation import pout
 
-from plating.plating import PlatingDiscovery
 from plating.models import FunctionInfo, ProviderInfo, ResourceInfo
+from plating.plating import PlatingDiscovery
 from plating.schema import SchemaProcessor
 from plating.templates import TemplateProcessor
 
@@ -65,9 +65,7 @@ class DocsGenerator:
         # Process provider examples
         provider_example = None
         if (self.examples_dir / "provider" / "provider.tf").exists():
-            provider_example = (
-                self.examples_dir / "provider" / "provider.tf"
-            ).read_text()
+            provider_example = (self.examples_dir / "provider" / "provider.tf").read_text()
         elif (self.examples_dir / "provider.tf").exists():
             provider_example = (self.examples_dir / "provider.tf").read_text()
 

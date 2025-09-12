@@ -6,13 +6,12 @@
 import json
 from pathlib import Path
 import shutil
-import subprocess
 from typing import TYPE_CHECKING, Any
 
 import attrs
+from provide.foundation import logger, pout
+from provide.foundation.process import ProcessError, run_command
 from pyvider.hub import ComponentDiscovery, hub
-from provide.foundation import logger, pout, perr
-from provide.foundation.process import run_command, ProcessError
 
 from plating.config import get_config
 from plating.errors import SchemaError
@@ -43,27 +42,17 @@ class SchemaProcessor:
             discovery = ComponentDiscovery(hub)
             await discovery.discover_all()
         except Exception as e:
-            raise SchemaError(
-                self.generator.provider_name, f"Component discovery failed: {e}"
-            )
+            raise SchemaError(self.generator.provider_name, f"Component discovery failed: {e}")
 
         components = hub.list_components()
 
         provider_schema = {
             "provider_schemas": {
                 f"registry.terraform.io/local/providers/{self.generator.provider_name}": {
-                    "provider": self._get_provider_schema(
-                        components.get("provider", {})
-                    ),
-                    "resource_schemas": self._get_component_schemas(
-                        components.get("resource", {})
-                    ),
-                    "data_source_schemas": self._get_component_schemas(
-                        components.get("data_source", {})
-                    ),
-                    "functions": self._get_function_schemas(
-                        components.get("function", {})
-                    ),
+                    "provider": self._get_provider_schema(components.get("provider", {})),
+                    "resource_schemas": self._get_component_schemas(components.get("resource", {})),
+                    "data_source_schemas": self._get_component_schemas(components.get("data_source", {})),
+                    "functions": self._get_function_schemas(components.get("function", {})),
                 }
             }
         }
@@ -110,22 +99,27 @@ class SchemaProcessor:
         """Fallback: Extract schema by building provider and using Terraform CLI."""
         config = get_config()
         tf_binary = config.terraform_binary or "terraform"
-        
+
         # Build the provider binary
         pout(f"Building provider in {self.generator.provider_dir}")
         try:
-            build_result = run_command(
+            run_command(
                 ["python", "-m", "build"],
                 cwd=self.generator.provider_dir,
                 capture_output=True,
             )
         except ProcessError as e:
-            logger.error("Provider build failed", command=e.cmd, returncode=e.returncode, 
-                        stdout=e.stdout, stderr=e.stderr)
+            logger.error(
+                "Provider build failed",
+                command=e.cmd,
+                returncode=e.returncode,
+                stdout=e.stdout,
+                stderr=e.stderr,
+            )
             raise SchemaError(f"Failed to build provider: {e}")
 
         # Find the built provider binary
-        provider_binary = self._find_provider_binary()
+        self._find_provider_binary()
 
         # Create a temporary directory for Terraform operations
         temp_dir = self.generator.provider_dir / ".pyvbuild_temp"
@@ -156,8 +150,13 @@ provider "{self.generator.provider_name}" {{}}
                     capture_output=True,
                 )
             except ProcessError as e:
-                logger.error("Terraform init failed", command=e.cmd, returncode=e.returncode,
-                           stdout=e.stdout, stderr=e.stderr)
+                logger.error(
+                    "Terraform init failed",
+                    command=e.cmd,
+                    returncode=e.returncode,
+                    stdout=e.stdout,
+                    stderr=e.stderr,
+                )
                 raise SchemaError(f"Failed to initialize Terraform: {e}")
 
             # Extract schema
@@ -168,8 +167,13 @@ provider "{self.generator.provider_name}" {{}}
                     capture_output=True,
                 )
             except ProcessError as e:
-                logger.error("Schema extraction failed", command=e.cmd, returncode=e.returncode,
-                           stdout=e.stdout, stderr=e.stderr)
+                logger.error(
+                    "Schema extraction failed",
+                    command=e.cmd,
+                    returncode=e.returncode,
+                    stdout=e.stdout,
+                    stderr=e.stderr,
+                )
                 raise SchemaError(f"Failed to extract provider schema: {e}")
 
             schema_data = json.loads(schema_result.stdout)
@@ -195,9 +199,7 @@ provider "{self.generator.provider_name}" {{}}
             if matches:
                 return Path(matches[0])
 
-        raise FileNotFoundError(
-            f"Could not find provider binary for {self.generator.provider_name}"
-        )
+        raise FileNotFoundError(f"Could not find provider binary for {self.generator.provider_name}")
 
     def _parse_function_signature(self, func_schema: dict[str, Any]) -> str:
         """Parse function signature from schema."""
@@ -247,10 +249,7 @@ provider "{self.generator.provider_name}" {{}}
 
     def _parse_variadic_argument(self, func_schema: dict[str, Any]) -> str:
         """Parse variadic argument from schema."""
-        if (
-            "signature" not in func_schema
-            or "variadic_parameter" not in func_schema["signature"]
-        ):
+        if "signature" not in func_schema or "variadic_parameter" not in func_schema["signature"]:
             return ""
 
         variadic = func_schema["signature"]["variadic_parameter"]
@@ -286,9 +285,7 @@ provider "{self.generator.provider_name}" {{}}
         if isinstance(resources, tuple):
             resources = {}
         for resource_name, resource_schema in resources.items():
-            if self.generator.ignore_deprecated and resource_schema.get(
-                "deprecated", False
-            ):
+            if self.generator.ignore_deprecated and resource_schema.get("deprecated", False):
                 continue
 
             schema_markdown = self._parse_schema_to_markdown(resource_schema)
@@ -373,9 +370,7 @@ provider "{self.generator.provider_name}" {{}}
                 else:
                     type_text = f"({attr_type})"
 
-                markdown_lines.append(
-                    f"- `{attr_name}` {type_text} {description}".strip()
-                )
+                markdown_lines.append(f"- `{attr_name}` {type_text} {description}".strip())
 
             markdown_lines.append("")
 
@@ -385,7 +380,6 @@ provider "{self.generator.provider_name}" {{}}
             markdown_lines.append("## Blocks\n")
             for block_name, block_spec in nested_blocks.items():
                 description = block_spec.get("description", "")
-                nesting_mode = block_spec.get("nesting_mode", "single")
 
                 markdown_lines.append(f"### {block_name}")
                 if description:
@@ -410,9 +404,7 @@ provider "{self.generator.provider_name}" {{}}
                         else:
                             req_text = ""
 
-                        markdown_lines.append(
-                            f"- `{attr_name}` ({attr_type}){req_text} - {attr_description}"
-                        )
+                        markdown_lines.append(f"- `{attr_name}` ({attr_type}){req_text} - {attr_description}")
 
                 markdown_lines.append("")
 
@@ -446,19 +438,13 @@ provider "{self.generator.provider_name}" {{}}
                 elif type_class == CtyBool:
                     return "Boolean"
                 elif type_class == CtyList:
-                    element_type = self._format_type_string(
-                        getattr(type_info, "element_type", None)
-                    )
+                    element_type = self._format_type_string(getattr(type_info, "element_type", None))
                     return f"List of {element_type}"
                 elif type_class == CtySet:
-                    element_type = self._format_type_string(
-                        getattr(type_info, "element_type", None)
-                    )
+                    element_type = self._format_type_string(getattr(type_info, "element_type", None))
                     return f"Set of {element_type}"
                 elif type_class == CtyMap:
-                    element_type = self._format_type_string(
-                        getattr(type_info, "element_type", None)
-                    )
+                    element_type = self._format_type_string(getattr(type_info, "element_type", None))
                     return f"Map of {element_type}"
                 elif type_class == CtyObject:
                     return "Object"

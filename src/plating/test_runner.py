@@ -10,14 +10,12 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
-
-from rich.console import Console
-from rich.table import Table
-
 from typing import Any
 
-from provide.foundation import logger, pout, perr
-from provide.foundation.process import run_command, ProcessError
+from provide.foundation import logger
+from provide.foundation.process import ProcessError, run_command
+from rich.console import Console
+from rich.table import Table
 
 from plating.config import get_config
 from plating.plating import PlatingBundle, PlatingDiscovery
@@ -46,9 +44,7 @@ def _get_terraform_version() -> tuple[str, str]:
     binary_name = "OpenTofu" if "tofu" in tf_binary else "Terraform"
 
     try:
-        result = run_command(
-            [tf_binary, "-version"], capture_output=True, timeout=5
-        )
+        result = run_command([tf_binary, "-version"], capture_output=True, timeout=5)
         version_lines = result.stdout.strip().split("\n")
         if version_lines:
             version_string = version_lines[0]
@@ -61,9 +57,7 @@ def _get_terraform_version() -> tuple[str, str]:
     return _terraform_version_cache
 
 
-def prepare_test_suites_for_stir(
-    bundles: list[PlatingBundle], output_dir: Path
-) -> list[Path]:
+def prepare_test_suites_for_stir(bundles: list[PlatingBundle], output_dir: Path) -> list[Path]:
     """Prepare test suites from plating bundles for stir execution.
 
     Args:
@@ -99,14 +93,12 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
         Dictionary with test results from stir
     """
     import json
-    import subprocess
 
     # Check if soup command is available
     soup_cmd = shutil.which("soup")
     if not soup_cmd:
         raise RuntimeError(
-            "tofusoup is not installed or not in PATH. "
-            "Please install tofusoup to use the test command."
+            "tofusoup is not installed or not in PATH. Please install tofusoup to use the test command."
         )
 
     # Build stir command - ensure absolute path
@@ -149,32 +141,29 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
             cwd=str(run_dir),  # Run from directory with pyproject.toml
         )
     except FileNotFoundError as e:
-        # Handle case where command is not found  
+        # Handle case where command is not found
         raise RuntimeError(
-            f"TofuSoup not found or not installed. Please install tofusoup to use stir testing. "
-            f"Error: {e}"
+            f"TofuSoup not found or not installed. Please install tofusoup to use stir testing. Error: {e}"
         ) from e
     except ProcessError as e:
-        # Check if this is the pyproject.toml error  
+        # Check if this is the pyproject.toml error
         error_msg = str(e)
-        if hasattr(e, 'stderr') and e.stderr:
+        if hasattr(e, "stderr") and e.stderr:
             error_msg += f" {e.stderr}"
-        if hasattr(e, 'stdout') and e.stdout:
+        if hasattr(e, "stdout") and e.stdout:
             error_msg += f" {e.stdout}"
         if "pyproject.toml" in error_msg:
             # This is a known issue with soup tool install - raise RuntimeError to trigger fallback
             raise RuntimeError(
-                "soup stir requires pyproject.toml context. "
-                "Falling back to simple runner."
+                "soup stir requires pyproject.toml context. Falling back to simple runner."
             ) from e
-        
+
         # Check if this is a command not found error
         if any(phrase in error_msg.lower() for phrase in ["not found", "no such file", "command not found"]):
             raise RuntimeError(
-                f"TofuSoup not found or not installed. Please install tofusoup to use stir testing. "
-                f"Error: {e}"
+                f"TofuSoup not found or not installed. Please install tofusoup to use stir testing. Error: {e}"
             ) from e
-        
+
         # For other process errors, log and re-raise
         logger.error("TofuSoup stir execution failed", error=str(e))
         raise RuntimeError(f"Failed to run tofusoup stir: {e}") from e
@@ -186,9 +175,7 @@ def run_tests_with_stir(test_dir: Path, parallel: int = 4) -> dict[str, Any]:
         return {"total": 0, "passed": 0, "failed": 0, "test_details": {}}
 
 
-def parse_stir_results(
-    stir_output: dict[str, any], bundles: list[PlatingBundle] = None
-) -> dict[str, Any]:
+def parse_stir_results(stir_output: dict[str, any], bundles: list[PlatingBundle] = None) -> dict[str, Any]:
     """Parse and enrich stir results with plating bundle information.
 
     Args:
@@ -214,9 +201,7 @@ def parse_stir_results(
             fixture_count = 0
             if hasattr(bundle.fixtures_dir, "exists") and bundle.fixtures_dir.exists():
                 try:
-                    fixture_count = sum(
-                        1 for _ in bundle.fixtures_dir.rglob("*") if _.is_file()
-                    )
+                    fixture_count = sum(1 for _ in bundle.fixtures_dir.rglob("*") if _.is_file())
                 except (AttributeError, TypeError):
                     # Handle mock objects in tests
                     fixture_count = 0
@@ -228,10 +213,7 @@ def parse_stir_results(
                 examples_count = 0
 
             try:
-                has_fixtures = (
-                    hasattr(bundle.fixtures_dir, "exists")
-                    and bundle.fixtures_dir.exists()
-                )
+                has_fixtures = hasattr(bundle.fixtures_dir, "exists") and bundle.fixtures_dir.exists()
             except (AttributeError, TypeError):
                 has_fixtures = False
 
@@ -308,9 +290,7 @@ class PlatingTestAdapter:
             test_suites = self._prepare_test_suites(bundles)
 
             if not test_suites:
-                console.print(
-                    "[yellow]No test suites created (no components with examples found)[/yellow]"
-                )
+                console.print("[yellow]No test suites created (no components with examples found)[/yellow]")
                 return {
                     "total": 0,
                     "passed": 0,
@@ -325,9 +305,7 @@ class PlatingTestAdapter:
 
             except (RuntimeError, FileNotFoundError):
                 if self.fallback_to_simple:
-                    console.print(
-                        "[yellow]tofusoup not available, falling back to simple runner[/yellow]"
-                    )
+                    console.print("[yellow]tofusoup not available, falling back to simple runner[/yellow]")
                     results = _run_simple_tests(self.output_dir)
                     results = parse_stir_results(results, bundles)
                 else:
@@ -344,9 +322,7 @@ class PlatingTestAdapter:
             if self._temp_dir and self._temp_dir.exists():
                 shutil.rmtree(self._temp_dir, ignore_errors=True)
 
-    def _discover_bundles(
-        self, component_types: list[str] = None
-    ) -> list[PlatingBundle]:
+    def _discover_bundles(self, component_types: list[str] = None) -> list[PlatingBundle]:
         """Discover plating bundles."""
         discovery = PlatingDiscovery()
 
@@ -362,16 +338,12 @@ class PlatingTestAdapter:
         else:
             bundles = discovery.discover_bundles()
 
-        console.print(
-            f"Found [bold green]{len(bundles)}[/bold green] components with plating bundles"
-        )
+        console.print(f"Found [bold green]{len(bundles)}[/bold green] components with plating bundles")
         return bundles
 
     def _prepare_test_suites(self, bundles: list[PlatingBundle]) -> list[Path]:
         """Prepare test suites for stir execution."""
-        console.print(
-            f"\n[bold yellow]📦 Assembling test suites in:[/bold yellow] {self.output_dir}"
-        )
+        console.print(f"\n[bold yellow]📦 Assembling test suites in:[/bold yellow] {self.output_dir}")
 
         test_suites = prepare_test_suites_for_stir(bundles, self.output_dir)
 
@@ -430,9 +402,7 @@ def run_plating_tests(
     )
 
 
-def _create_test_suite(
-    bundle: PlatingBundle, examples: dict[str, str], output_dir: Path
-) -> Path | None:
+def _create_test_suite(bundle: PlatingBundle, examples: dict[str, str], output_dir: Path) -> Path | None:
     """Create a test suite directory for a plating bundle.
 
     Args:
@@ -490,9 +460,7 @@ def _create_test_suite(
         return suite_dir
 
     except Exception as e:
-        console.print(
-            f"[red]⚠️  Failed to create test suite for {bundle.name}: {e}[/red]"
-        )
+        console.print(f"[red]⚠️  Failed to create test suite for {bundle.name}: {e}[/red]")
         return None
 
 
@@ -525,7 +493,6 @@ def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
     Returns:
         Dictionary with test results
     """
-    import subprocess
 
     results = {
         "total": 0,
@@ -568,7 +535,7 @@ def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
         try:
             # Run terraform init
             try:
-                init_result = run_command(
+                run_command(
                     [tf_binary, "init"],
                     cwd=suite_dir,
                     capture_output=True,
@@ -576,8 +543,14 @@ def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
                     env=config.get_terraform_env(),
                 )
             except ProcessError as e:
-                logger.error("Terraform init failed", command=e.cmd, returncode=e.returncode,
-                           stdout=e.stdout, stderr=e.stderr, suite=suite_dir.name)
+                logger.error(
+                    "Terraform init failed",
+                    command=e.cmd,
+                    returncode=e.returncode,
+                    stdout=e.stdout,
+                    stderr=e.stderr,
+                    suite=suite_dir.name,
+                )
                 raise
 
             # Run terraform apply
@@ -590,8 +563,14 @@ def _run_simple_tests(test_dir: Path) -> dict[str, Any]:
                     env=config.get_terraform_env(),
                 )
             except ProcessError as e:
-                logger.error("Terraform apply failed", command=e.cmd, returncode=e.returncode,
-                           stdout=e.stdout, stderr=e.stderr, suite=suite_dir.name)
+                logger.error(
+                    "Terraform apply failed",
+                    command=e.cmd,
+                    returncode=e.returncode,
+                    stdout=e.stdout,
+                    stderr=e.stderr,
+                    suite=suite_dir.name,
+                )
                 raise
 
             # Parse output for resource counts
@@ -697,9 +676,7 @@ def _generate_markdown_report(results: dict[str, any], output_file: Path) -> Non
     with open(output_file, "w") as f:
         f.write("# Garnish Test Report\n\n")
         f.write(f"Generated: {results['timestamp']}\n\n")
-        f.write(
-            f"**Terraform Version**: {results.get('terraform_version', 'Unknown')}\n\n"
-        )
+        f.write(f"**Terraform Version**: {results.get('terraform_version', 'Unknown')}\n\n")
 
         # Summary
         f.write("## Summary\n\n")
@@ -724,9 +701,7 @@ def _generate_markdown_report(results: dict[str, any], output_file: Path) -> Non
                 component_name = test_name.replace("resource_", "").replace("_test", "")
             elif test_name.startswith("data_source_"):
                 component_type = "data_source"
-                component_name = test_name.replace("data_source_", "").replace(
-                    "_test", ""
-                )
+                component_name = test_name.replace("data_source_", "").replace("_test", "")
             else:
                 component_type = "unknown"
                 component_name = test_name.replace("_test", "")
@@ -751,21 +726,15 @@ def _generate_markdown_report(results: dict[str, any], output_file: Path) -> Non
 
                 # Determine which columns have data for this component type
                 has_resources = any(
-                    test["details"].get("resources", 0) > 0
-                    for test in tests_by_type[comp_type]
+                    test["details"].get("resources", 0) > 0 for test in tests_by_type[comp_type]
                 )
                 has_data_sources = any(
-                    test["details"].get("data_sources", 0) > 0
-                    for test in tests_by_type[comp_type]
+                    test["details"].get("data_sources", 0) > 0 for test in tests_by_type[comp_type]
                 )
                 has_functions = any(
-                    test["details"].get("functions", 0) > 0
-                    for test in tests_by_type[comp_type]
+                    test["details"].get("functions", 0) > 0 for test in tests_by_type[comp_type]
                 )
-                has_outputs = any(
-                    test["details"].get("outputs", 0) > 0
-                    for test in tests_by_type[comp_type]
-                )
+                has_outputs = any(test["details"].get("outputs", 0) > 0 for test in tests_by_type[comp_type])
 
                 # Build dynamic headers
                 headers = ["Component", "Status", "Duration"]
@@ -796,39 +765,25 @@ def _generate_markdown_report(results: dict[str, any], output_file: Path) -> Non
                         if not details.get("skipped", False)
                         else "⏭️"
                     )
-                    duration = (
-                        f"{details.get('duration', 0):.1f}s"
-                        if details.get("duration", 0) > 0
-                        else "-"
-                    )
+                    duration = f"{details.get('duration', 0):.1f}s" if details.get("duration", 0) > 0 else "-"
 
                     # Build row data
                     row = [test["name"], status_icon, duration]
 
                     if has_resources:
                         row.append(
-                            str(details.get("resources", 0))
-                            if details.get("resources", 0) > 0
-                            else "-"
+                            str(details.get("resources", 0)) if details.get("resources", 0) > 0 else "-"
                         )
                     if has_data_sources:
                         row.append(
-                            str(details.get("data_sources", 0))
-                            if details.get("data_sources", 0) > 0
-                            else "-"
+                            str(details.get("data_sources", 0)) if details.get("data_sources", 0) > 0 else "-"
                         )
                     if has_functions:
                         row.append(
-                            str(details.get("functions", 0))
-                            if details.get("functions", 0) > 0
-                            else "-"
+                            str(details.get("functions", 0)) if details.get("functions", 0) > 0 else "-"
                         )
                     if has_outputs:
-                        row.append(
-                            str(details.get("outputs", 0))
-                            if details.get("outputs", 0) > 0
-                            else "-"
-                        )
+                        row.append(str(details.get("outputs", 0)) if details.get("outputs", 0) > 0 else "-")
 
                     examples = bundle_info.get("examples_count", 1)
                     fixture_count = bundle_info.get("fixture_count", 0)
@@ -904,7 +859,7 @@ def _generate_html_report(results: dict[str, any], output_file: Path) -> None:
     <h1>Garnish Test Report</h1>
     <p>Generated: {results["timestamp"]}</p>
     <p><strong>Terraform Version</strong>: {results.get("terraform_version", "Unknown")}</p>
-    
+
     <div class="summary">
         <h2>Summary</h2>
         <ul>
@@ -915,22 +870,14 @@ def _generate_html_report(results: dict[str, any], output_file: Path) -> None:
             <li><strong>Skipped</strong>: {results["skipped"]}</li>
         </ul>
     </div>
-    
+
     <div class="test-details">
         <h2>Test Details</h2>
 """
 
     for test_name, details in results.get("test_details", {}).items():
-        status_class = (
-            "success"
-            if details["success"]
-            else "failure"
-            if not details["skipped"]
-            else "skipped"
-        )
-        status_icon = (
-            "✅" if details["success"] else "❌" if not details["skipped"] else "⏭️"
-        )
+        status_class = "success" if details["success"] else "failure" if not details["skipped"] else "skipped"
+        status_icon = "✅" if details["success"] else "❌" if not details["skipped"] else "⏭️"
 
         html_content += f"""
         <div class="test-case {status_class}">
