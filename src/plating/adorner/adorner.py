@@ -7,7 +7,7 @@ import asyncio
 from typing import Any
 
 from provide.foundation import logger, perr, pout
-from provide.foundation.hub import Hub, discover_components
+from provide.foundation.hub import Hub
 
 from plating.adorner.finder import ComponentFinder
 from plating.adorner.templates import TemplateGenerator
@@ -33,7 +33,7 @@ class PlatingAdorner:
         """
         # Discover all components via foundation hub
         try:
-            discover_components("pyvider.components", hub=self.hub)
+            self.hub.discover_components("pyvider.components")
         except Exception as e:
             logger.error(f"Component discovery failed: {e}")
             return {"resource": 0, "data_source": 0, "function": 0}
