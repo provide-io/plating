@@ -11,7 +11,6 @@ import click
 from provide.foundation import pout, perr
 
 from .api import Plating
-from .component_sets import ComponentSet, ComponentReference
 from .types import ComponentType, PlatingContext
 
 
