@@ -7,12 +7,8 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-from provide.foundation.testing import temp_config_file
 
 from plating.component_sets import ComponentSet, ComponentReference
-from plating.registry import PlatingRegistry
-from plating.types import ComponentType
-from plating.plating import PlatingBundle
 
 
 @pytest.fixture
@@ -21,16 +17,6 @@ def temp_dir(tmp_path):
     return tmp_path
 
 
-@pytest.fixture
-def mock_bundle():
-    """Mock PlatingBundle for testing."""
-    bundle = Mock(spec=PlatingBundle)
-    bundle.name = "s3_bucket"
-    bundle.component_type = "resource"
-    bundle.plating_dir = Path("/mock/s3_bucket.plating")
-    bundle.has_main_template.return_value = True
-    bundle.has_examples.return_value = True
-    return bundle
 
 
 @pytest.fixture
