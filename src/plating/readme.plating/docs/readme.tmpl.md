@@ -1,8 +1,8 @@
-# 🍽️ Plating
+# 🍲 Plating
 
 > A sophisticated documentation generation system for Terraform/OpenTofu providers
 
-Plating is a powerful documentation system that brings culinary elegance to technical documentation. Just as a chef carefully plates and garnishes a dish, Plating helps you present your Terraform provider documentation beautifully.
+Plating is a powerful documentation system that brings culinary elegance to technical documentation. Just as a chef carefully plates and platinges a dish, Plating helps you present your Terraform provider documentation beautifully.
 
 ## ✨ Features
 
@@ -13,60 +13,17 @@ Plating is a powerful documentation system that brings culinary elegance to tech
 - **📝 Jinja2 Templates** - Flexible templating with custom functions and filters
 - **🔄 Schema Integration** - Extract and format provider schemas automatically
 
-## 📦 Prerequisites
-
-> **Important:** This project uses `uv` for Python environment and package management.
-
-### Install UV
-
-Visit [UV Documentation](https://github.com/astral-sh/uv) for more information.
+## 📦 Installation
 
 ```bash
-# On macOS and Linux.
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# Using pip
+pip install plating
 
-# On Windows.
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-
-# Using pipx (if you prefer)
-pipx install uv
-
-# Update UV to latest version
-uv self update
-```
-
-## 🚀 Getting Started
-
-### Development Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/provide-io/plating.git
-cd plating
-
-# Create virtual environment
-uv venv
-
-# Activate virtual environment
-source .venv/bin/activate  # On Linux/macOS
-# or
-.venv\Scripts\activate     # On Windows
-
-# Install dependencies
-uv sync
-```
-
-### Installing as a Package
-
-```bash
-# Install from PyPI
+# Using uv (recommended)
 uv add plating
-
-# Or install from source
-uv add git+https://github.com/provide-io/plating.git
 ```
 
-## 📚 Usage Examples
+## 🚀 Quick Start
 
 ### 1. Dress Your Components
 
@@ -74,10 +31,10 @@ First, create `.plating` bundles for your undocumented components:
 
 ```bash
 # Dress all missing components
-plating dress
+plating adorn
 
 # Dress only resources
-plating dress --component-type resource
+plating adorn --component-type resource
 ```
 
 ### 2. Customize Templates
@@ -104,10 +61,10 @@ Render your documentation:
 
 ```bash
 # Generate docs in ./docs directory
-plating plate
+plating render
 
 # Custom output directory
-plating plate --output-dir ./documentation
+plating render --output-dir ./documentation
 ```
 
 ## 📂 Bundle Structure
@@ -164,7 +121,7 @@ Plating follows a modular architecture:
 
 - **PlatingBundle** - Represents documentation bundles
 - **PlatingPlater** - Renders documentation
-- **PlatingDresser** - Creates documentation templates
+- **PlatingAdorner** - Creates documentation templates
 - **PlatingDiscovery** - Finds components and bundles
 - **SchemaProcessor** - Extracts provider schemas
 

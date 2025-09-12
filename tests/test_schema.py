@@ -6,8 +6,8 @@ from unittest.mock import Mock, patch, AsyncMock, MagicMock
 import pytest
 import json
 
-from garnish.schema import SchemaProcessor
-from garnish.models import ProviderInfo, ResourceInfo, FunctionInfo
+from plating.schema import SchemaProcessor
+from plating.models import ProviderInfo, ResourceInfo, FunctionInfo
 
 
 class TestSchemaProcessor:
@@ -38,8 +38,8 @@ class TestSchemaProcessor:
         processor = SchemaProcessor(mock_generator)
         assert processor.generator == mock_generator
 
-    @patch('garnish.schema.ComponentDiscovery')
-    @patch('garnish.schema.hub')
+    @patch('plating.schema.ComponentDiscovery')
+    @patch('plating.schema.hub')
     @patch('asyncio.run')
     def test_extract_provider_schema(self, mock_asyncio_run, mock_hub, MockDiscovery, schema_processor):
         """Test extract_provider_schema method."""
@@ -64,8 +64,8 @@ class TestSchemaProcessor:
     @pytest.mark.asyncio
     async def test_extract_schema_via_discovery(self, schema_processor):
         """Test _extract_schema_via_discovery method."""
-        with patch('garnish.schema.ComponentDiscovery') as MockDiscovery:
-            with patch('garnish.schema.hub') as mock_hub:
+        with patch('plating.schema.ComponentDiscovery') as MockDiscovery:
+            with patch('plating.schema.hub') as mock_hub:
                 # Setup mocks
                 mock_discovery = MockDiscovery.return_value
                 mock_discovery.discover_all = AsyncMock()
