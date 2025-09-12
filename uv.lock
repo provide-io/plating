@@ -773,6 +773,7 @@ dev = [
 [package.dev-dependencies]
 dev = [
     { name = "mypy" },
+    { name = "provide-testkit" },
     { name = "pytest-cov" },
     { name = "pytest-xdist" },
 ]
@@ -795,6 +796,7 @@ provides-extras = ["dev"]
 [package.metadata.requires-dev]
 dev = [
     { name = "mypy", specifier = ">=1.17.1,<2.0.0" },
+    { name = "provide-testkit", directory = "../provide-testkit" },
     { name = "pytest-cov", specifier = ">=6.3.0" },
     { name = "pytest-xdist", specifier = ">=3.8.0,<4.0.0" },
 ]
@@ -824,17 +826,12 @@ wheels = [
 
 [[package]]
 name = "provide-foundation"
-version = "0.0.0.dev3"
-source = { registry = "https://pypi.org/simple" }
+source = { editable = "../provide-foundation" }
 dependencies = [
     { name = "aiofiles" },
     { name = "attrs" },
     { name = "structlog" },
     { name = "tomli-w" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ba/68/1f5474fb8901eed11e7be25da48324cb27a247995a77919edb047ea9f999/provide_foundation-0.0.0.dev3.tar.gz", hash = "sha256:401b69fae014eff9480ee6f2aeb2829a7d30eea404e8269de1f45591c58c288d", size = 261872, upload-time = "2025-09-10T22:23:54.869Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/03/2f/2d394c377cfccf3909b189b8a87b3b6378617eb95f3897d08564d605a0cf/provide_foundation-0.0.0.dev3-py3-none-any.whl", hash = "sha256:05c801fdd3584461803a7d5b0b9d7424db1bf84342feb608fdb964c3a1f9cc93", size = 341263, upload-time = "2025-09-10T22:23:53.263Z" },
 ]
 
 [package.optional-dependencies]
@@ -846,6 +843,94 @@ all = [
     { name = "opentelemetry-exporter-otlp-proto-grpc" },
     { name = "opentelemetry-exporter-otlp-proto-http" },
     { name = "opentelemetry-sdk" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiofiles", specifier = ">=23.2.1" },
+    { name = "attrs", specifier = ">=23.1.0" },
+    { name = "click", marker = "extra == 'cli'", specifier = ">=8.1.7" },
+    { name = "cryptography", marker = "extra == 'crypto'", specifier = ">=45.0.7" },
+    { name = "httpx", marker = "extra == 'transport'", specifier = ">=0.27.0" },
+    { name = "opentelemetry-api", marker = "extra == 'opentelemetry'", specifier = ">=1.22.0" },
+    { name = "opentelemetry-exporter-otlp-proto-grpc", marker = "extra == 'opentelemetry'", specifier = ">=1.22.0" },
+    { name = "opentelemetry-exporter-otlp-proto-http", marker = "extra == 'opentelemetry'", specifier = ">=1.22.0" },
+    { name = "opentelemetry-sdk", marker = "extra == 'opentelemetry'", specifier = ">=1.22.0" },
+    { name = "provide-foundation", extras = ["cli", "crypto", "opentelemetry", "transport"], marker = "extra == 'all'" },
+    { name = "structlog", specifier = ">=25.3.0" },
+    { name = "tomli-w", specifier = ">=1.0.0" },
+]
+provides-extras = ["cli", "crypto", "transport", "opentelemetry", "all"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "bandit", specifier = ">=1.8.3" },
+    { name = "cryptography", specifier = ">=45.0.7" },
+    { name = "h2", specifier = ">=4.3.0" },
+    { name = "hypothesis", specifier = ">=6.131.28" },
+    { name = "mypy", specifier = ">=1.8.0" },
+    { name = "provide-testkit" },
+    { name = "psutil", specifier = ">=7.0.0" },
+    { name = "pyrefly", specifier = ">=0.16.2" },
+    { name = "pytest", specifier = ">=7.4.0" },
+    { name = "pytest-asyncio", specifier = ">=0.21.0" },
+    { name = "pytest-benchmark", specifier = ">=4.0.0" },
+    { name = "pytest-cov", specifier = ">=4.1.0" },
+    { name = "pytest-httpx", specifier = ">=0.35.0" },
+    { name = "pytest-mock", specifier = ">=3.15.0" },
+    { name = "pytest-xdist", specifier = ">=3.3.0" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "reuse", specifier = ">=1.1.0" },
+    { name = "ruff", specifier = ">=0.1.0" },
+    { name = "twine", specifier = ">=6.1.0" },
+    { name = "ty", specifier = ">=0.0.1a6" },
+    { name = "types-cryptography", specifier = ">=3.3.23.2" },
+    { name = "types-toml", specifier = ">=0.10.8.20240310" },
+]
+docs = [
+    { name = "mike", specifier = ">=2.0.0" },
+    { name = "mkdocs", specifier = ">=1.5.0" },
+    { name = "mkdocs-gen-files", specifier = ">=0.5.0" },
+    { name = "mkdocs-literate-nav", specifier = ">=0.6.0" },
+    { name = "mkdocs-material", specifier = ">=9.5.0" },
+    { name = "mkdocs-section-index", specifier = ">=0.3.0" },
+    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.24.0" },
+]
+protobuf = [{ name = "protobuf", specifier = ">=6.32.0" }]
+
+[[package]]
+name = "provide-testkit"
+source = { directory = "../provide-testkit" }
+dependencies = [
+    { name = "click" },
+    { name = "provide-foundation" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-mock" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "click", specifier = ">=8.1.7" },
+    { name = "cryptography", marker = "extra == 'crypto'", specifier = ">=45.0.7" },
+    { name = "httpx", marker = "extra == 'transport'", specifier = ">=0.27.0" },
+    { name = "provide-foundation", editable = "../provide-foundation" },
+    { name = "provide-testkit", extras = ["crypto", "process", "transport"], marker = "extra == 'all'" },
+    { name = "psutil", marker = "extra == 'process'", specifier = ">=7.0.0" },
+    { name = "pytest", specifier = ">=7.4.0" },
+    { name = "pytest-asyncio", specifier = ">=0.21.0" },
+    { name = "pytest-httpx", marker = "extra == 'transport'", specifier = ">=0.35.0" },
+    { name = "pytest-mock", specifier = ">=3.15.0" },
+]
+provides-extras = ["transport", "crypto", "process", "all"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.8.0" },
+    { name = "pytest-cov", specifier = ">=4.1.0" },
+    { name = "pytest-xdist", specifier = ">=3.3.0" },
+    { name = "ruff", specifier = ">=0.1.0" },
+    { name = "twine", specifier = ">=6.1.0" },
 ]
 
 [[package]]
@@ -983,6 +1068,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5e/f7/c933acc76f5208b3b00089573cf6a2bc26dc80a8aece8f52bb7d6b1855ca/pytest_cov-7.0.0.tar.gz", hash = "sha256:33c97eda2e049a0c5298e91f519302a1334c26ac65c1a483d6206fd458361af1", size = 54328, upload-time = "2025-09-09T10:57:02.113Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ee/49/1377b49de7d0c1ce41292161ea0f721913fa8722c19fb9c1e3aa0367eecb/pytest_cov-7.0.0-py3-none-any.whl", hash = "sha256:3b8e9558b16cc1479da72058bdecf8073661c7f57f7d3c5f22a1c23507f2d861", size = 22424, upload-time = "2025-09-09T10:57:00.695Z" },
+]
+
+[[package]]
+name = "pytest-mock"
+version = "3.15.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/61/99/3323ee5c16b3637b4d941c362182d3e749c11e400bea31018c42219f3a98/pytest_mock-3.15.0.tar.gz", hash = "sha256:ab896bd190316b9d5d87b277569dfcdf718b2d049a2ccff5f7aca279c002a1cf", size = 33838, upload-time = "2025-09-04T20:57:48.679Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2b/b3/7fefc43fb706380144bcd293cc6e446e6f637ddfa8b83f48d1734156b529/pytest_mock-3.15.0-py3-none-any.whl", hash = "sha256:ef2219485fb1bd256b00e7ad7466ce26729b30eadfc7cbcdb4fa9a92ca68db6f", size = 10050, upload-time = "2025-09-04T20:57:47.274Z" },
 ]
 
 [[package]]

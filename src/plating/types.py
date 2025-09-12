@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from attrs import define, field
-from provide.foundation import Context
+from provide.foundation import CLIContext
 
 
 class ComponentType(Enum):
@@ -226,7 +226,7 @@ class SchemaInfo:
         return "Dynamic"
 
 
-class PlatingContext(Context):
+class PlatingCLIContext(Context):
     """Type-safe context for plating operations extending foundation.Context."""
     
     def __init__(
