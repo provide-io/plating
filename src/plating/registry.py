@@ -16,10 +16,11 @@ from .types import ComponentType
 class PlatingRegistryEntry(RegistryEntry):
     """Registry entry for plating bundles."""
     
-    def __init__(self, bundle: PlatingBundle):
+    def __init__(self, bundle: PlatingBundle, dimension: str):
         """Initialize entry from bundle."""
         super().__init__(
             name=bundle.name,
+            dimension=dimension,
             value=bundle,
             metadata={
                 "path": str(bundle.plating_dir),
@@ -71,7 +72,7 @@ class PlatingRegistry(Registry):
             logger.info(f"Discovered {len(bundles)} plating bundles")
             
             for bundle in bundles:
-                entry = PlatingRegistryEntry(bundle)
+                entry = PlatingRegistryEntry(bundle, dimension=bundle.component_type)
                 self.register(
                     dimension=bundle.component_type,  # "resource", "data_source", etc.
                     key=bundle.name,

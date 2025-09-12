@@ -161,7 +161,7 @@ class TestModernAPI:
         mock_discovery.return_value = mock_discovery_instance
         
         # Mock the template generator
-        with patch('plating.adorner.TemplateGenerator') as mock_template_gen:
+        with patch('plating.adorner.templates.TemplateGenerator') as mock_template_gen:
             mock_template_gen.return_value.generate_template.return_value = "# Mock Template"
             
             api = Plating()
@@ -181,6 +181,8 @@ class TestModernAPI:
         mock_bundle.name = "test_resource"
         mock_bundle.component_type = "resource"
         mock_bundle.has_main_template.return_value = True
+        mock_bundle.has_examples.return_value = False
+        mock_bundle.plating_dir = Path("/mock/path")
         
         mock_discovery_instance = Mock()
         mock_discovery_instance.discover_bundles.return_value = [mock_bundle]
@@ -195,6 +197,91 @@ class TestModernAPI:
         components = api.registry.get_components(ComponentType.RESOURCE)
         assert len(components) == 1
         assert components[0].name == "test_resource"
+    
+    @pytest.mark.asyncio
+    @patch('plating.registry.PlatingDiscovery')
+    @patch('plating.markdown_validator.PyMarkdownApi')
+    async def test_plate_operation_comprehensive(self, mock_md_api, mock_discovery):
+        """Test comprehensive plate operation."""
+        # Mock discovery
+        mock_bundle = Mock()
+        mock_bundle.name = "test_resource"
+        mock_bundle.component_type = "resource"  
+        mock_bundle.has_main_template.return_value = True
+        mock_bundle.has_examples.return_value = False
+        mock_bundle.load_examples.return_value = {"basic": "resource \"test\" {}"}
+        mock_bundle.plating_dir = Path("/mock/path")
+        
+        mock_discovery_instance = Mock()
+        mock_discovery_instance.discover_bundles.return_value = [mock_bundle]
+        mock_discovery.return_value = mock_discovery_instance
+        
+        # Mock template engine
+        with patch('plating.async_template_engine.template_engine') as mock_engine:
+            mock_engine.render.return_value = "# Test Resource\n\nGenerated docs"
+            
+            # Mock markdown validator
+            mock_md_instance = Mock()
+            mock_md_instance.scan_path.return_value = Mock(
+                scan_failures=[],
+                pragma_errors=[]
+            )
+            mock_md_api.return_value = mock_md_instance
+            
+            api = Plating()
+            
+            with patch('pathlib.Path.mkdir'), \
+                 patch('pathlib.Path.write_text') as mock_write:
+                
+                result = await api.plate(
+                    Path("docs"),
+                    component_types=[ComponentType.RESOURCE],
+                    validate_markdown=True
+                )
+                
+                # Should succeed
+                assert result.success is True
+                assert result.bundles_processed == 1
+                assert result.files_generated == 1
+                assert len(result.output_files) == 1
+                
+                # Should write file
+                mock_write.assert_called_once()
+    
+    @pytest.mark.asyncio
+    @patch('plating.registry.PlatingDiscovery')
+    async def test_validate_operation(self, mock_discovery):
+        """Test validation operation."""
+        # Mock discovery  
+        mock_discovery_instance = Mock()
+        mock_discovery_instance.discover_bundles.return_value = []
+        mock_discovery.return_value = mock_discovery_instance
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            docs_dir = Path(tmpdir)
+            
+            # Create test markdown file
+            test_file = docs_dir / "test.md"
+            test_file.write_text("# Test Header\n\nSome content.\n")
+            
+            api = Plating()
+            result = await api.validate(docs_dir)
+            
+            # Should validate successfully
+            assert result.total == 1
+            assert result.success is True  # With our lenient MD047 config
+    
+    @pytest.mark.asyncio  
+    @patch('plating.registry.PlatingDiscovery')
+    async def test_error_handling(self, mock_discovery):
+        """Test error handling in API operations.""" 
+        # Mock discovery to raise exception
+        mock_discovery.side_effect = Exception("Discovery failed")
+        
+        # Should handle registry creation errors gracefully
+        api = Plating()
+        # API should still be created but registry might have issues
+        assert api is not None
     
     def test_modern_api_imports(self):
         """Test that modern API imports work correctly."""
