@@ -187,9 +187,15 @@ class TestModernAPI:
         mock_discovery_instance.discover_bundles.return_value = [mock_bundle]
         mock_discovery.return_value = mock_discovery_instance
         
-        # Mock the template generator
-        with patch('plating.adorner.templates.TemplateGenerator') as mock_template_gen:
-            mock_template_gen.return_value.generate_template.return_value = "# Mock Template"
+        # Mock the template generator and file operations
+        with patch('plating.adorner.templates.TemplateGenerator') as mock_template_gen, \
+             patch('pathlib.Path.mkdir') as mock_mkdir, \
+             patch('pathlib.Path.write_text') as mock_write_text:
+            
+            # Make the mock method async and return a future
+            async def mock_generate_template(*args, **kwargs):
+                return "# Mock Template"
+            mock_template_gen.return_value.generate_template = mock_generate_template
             
             api = Plating()
             result = await api.adorn([ComponentType.RESOURCE])
@@ -198,6 +204,10 @@ class TestModernAPI:
             assert isinstance(result, AdornResult)
             assert result.templates_generated == 1
             assert result.success is True
+            
+            # Verify file operations were called
+            mock_mkdir.assert_called()
+            mock_write_text.assert_called_once()  # Just verify it was called
     
     @pytest.mark.asyncio
     @patch('plating.registry.PlatingDiscovery')
