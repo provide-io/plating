@@ -226,7 +226,7 @@ class SchemaInfo:
         return "Dynamic"
 
 
-class PlatingCLIContext(Context):
+class PlatingCLIContext(CLIContext):
     """Type-safe context for plating operations extending foundation.Context."""
     
     def __init__(
