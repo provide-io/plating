@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING, Any
 
 import attrs
 from provide.foundation import logger, pout, metrics
+from provide.foundation.hub import Hub, discover_components
 from provide.foundation.process import ProcessError, run_command
 from provide.foundation.resilience import RetryExecutor, RetryPolicy, BackoffStrategy
 from provide.foundation.utils import timed_block
-from pyvider.hub import ComponentDiscovery, hub
 
 from plating.config import get_config
 from plating.errors import SchemaError
@@ -37,14 +37,14 @@ class SchemaProcessor:
             retryable_errors=(ProcessError, SchemaError, Exception)
         )
         self.retry_executor = RetryExecutor(self.retry_policy)
+        # Initialize foundation hub for component discovery
+        self.hub = Hub()
 
     def extract_provider_schema(self) -> dict[str, Any]:
-        """Extract provider schema using Pyvider's component discovery."""
-        import asyncio
-
+        """Extract provider schema using foundation's component discovery."""
         with timed_block(logger, "schema_extraction_total") as timer:
             try:
-                result = asyncio.run(self._extract_schema_via_discovery())
+                result = self._extract_schema_via_discovery()
                 metrics.counter("plating.schema_extractions_success").inc()
                 metrics.gauge("plating.schema_extraction_duration").set(timer.get("duration", 0))
                 return result
@@ -52,30 +52,47 @@ class SchemaProcessor:
                 metrics.counter("plating.schema_extractions_failed").inc()
                 raise
 
-    async def _extract_schema_via_discovery(self) -> dict[str, Any]:
+    def _extract_schema_via_discovery(self) -> dict[str, Any]:
         """Extract schema by discovering components and inspecting their schemas."""
-        logger.info("Discovering components via Pyvider hub...")
-        pout("🔍 Discovering components via Pyvider hub...")
+        logger.info("Discovering components via foundation hub...")
+        pout("🔍 Discovering components via foundation hub...")
 
         try:
-            discovery = ComponentDiscovery(hub)
-            await discovery.discover_all()
+            # Use foundation's discovery with pyvider components entry point
+            discover_components("pyvider.components", hub=self.hub)
         except Exception as e:
             raise SchemaError(self.generator.provider_name, f"Component discovery failed: {e}")
 
-        components = hub.list_components()
+        # Get components by dimension from foundation registry
+        providers = self._get_components_by_dimension("provider")
+        resources = self._get_components_by_dimension("resource") 
+        data_sources = self._get_components_by_dimension("data_source")
+        functions = self._get_components_by_dimension("function")
 
         provider_schema = {
             "provider_schemas": {
                 f"registry.terraform.io/local/providers/{self.generator.provider_name}": {
-                    "provider": self._get_provider_schema(components.get("provider", {})),
-                    "resource_schemas": self._get_component_schemas(components.get("resource", {})),
-                    "data_source_schemas": self._get_component_schemas(components.get("data_source", {})),
-                    "functions": self._get_function_schemas(components.get("function", {})),
+                    "provider": self._get_provider_schema(providers),
+                    "resource_schemas": self._get_component_schemas(resources),
+                    "data_source_schemas": self._get_component_schemas(data_sources),
+                    "functions": self._get_function_schemas(functions),
                 }
             }
         }
         return provider_schema
+
+    def _get_components_by_dimension(self, dimension: str) -> dict[str, Any]:
+        """Get components from foundation hub by dimension."""
+        components = {}
+        try:
+            names = self.hub.registry.list_dimension(dimension)
+            for name in names:
+                entry = self.hub.registry.get_entry(name=name, dimension=dimension)
+                if entry and entry.value:
+                    components[name] = entry.value
+        except Exception as e:
+            logger.warning(f"Failed to get {dimension} components: {e}")
+        return components
 
     def _get_provider_schema(self, providers: dict[str, Any]) -> dict[str, Any]:
         if not providers:

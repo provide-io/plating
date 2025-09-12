@@ -4,9 +4,10 @@
 """Core adorner implementation."""
 
 import asyncio
+from typing import Any
 
 from provide.foundation import logger, perr, pout
-from pyvider.hub import ComponentDiscovery, hub
+from provide.foundation.hub import Hub, discover_components
 
 from plating.adorner.finder import ComponentFinder
 from plating.adorner.templates import TemplateGenerator
@@ -21,6 +22,8 @@ class PlatingAdorner:
         self.plating_discovery = PlatingDiscovery()
         self.template_generator = TemplateGenerator()
         self.component_finder = ComponentFinder()
+        # Initialize foundation hub for component discovery
+        self.hub = Hub()
 
     async def adorn_missing(self, component_types: list[str] = None) -> dict[str, int]:
         """
@@ -28,10 +31,12 @@ class PlatingAdorner:
 
         Returns a dictionary with counts of adorned components by type.
         """
-        # Discover all components via hub
-        discovery = ComponentDiscovery(hub)
-        await discovery.discover_all()
-        components = hub.list_components()
+        # Discover all components via foundation hub
+        try:
+            discover_components("pyvider.components", hub=self.hub)
+        except Exception as e:
+            logger.error(f"Component discovery failed: {e}")
+            return {"resource": 0, "data_source": 0, "function": 0}
 
         # Find existing plating bundles
         existing_bundles = await asyncio.to_thread(self.plating_discovery.discover_bundles)
@@ -45,14 +50,27 @@ class PlatingAdorner:
 
         # Adorn missing components
         for component_type in target_types:
-            if component_type in components:
-                for name, component_class in components[component_type].items():
-                    if name not in existing_names:
-                        success = await self._adorn_component(name, component_type, component_class)
-                        if success:
-                            adorned[component_type] += 1
+            components = self._get_components_by_dimension(component_type)
+            for name, component_class in components.items():
+                if name not in existing_names:
+                    success = await self._adorn_component(name, component_type, component_class)
+                    if success:
+                        adorned[component_type] += 1
 
         return adorned
+
+    def _get_components_by_dimension(self, dimension: str) -> dict[str, Any]:
+        """Get components from foundation hub by dimension."""
+        components = {}
+        try:
+            names = self.hub.registry.list_dimension(dimension)
+            for name in names:
+                entry = self.hub.registry.get_entry(name=name, dimension=dimension)
+                if entry and entry.value:
+                    components[name] = entry.value
+        except Exception as e:
+            logger.warning(f"Failed to get {dimension} components: {e}")
+        return components
 
     async def _adorn_component(self, name: str, component_type: str, component_class) -> bool:
         """Adorn a single component with a .plating directory."""
