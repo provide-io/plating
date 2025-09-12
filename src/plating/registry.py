@@ -93,8 +93,13 @@ class PlatingRegistry(Registry):
         Returns:
             List of PlatingBundle objects
         """
-        entries = self.list_dimension(component_type.value)
-        return [entry.bundle for entry in entries]
+        names = self.list_dimension(component_type.value)
+        entries = []
+        for name in names:
+            entry = self.get_entry(name=name, dimension=component_type.value)
+            if entry:
+                entries.append(entry)
+        return [entry.value.bundle for entry in entries]
     
     def get_component(self, component_type: ComponentType, name: str) -> PlatingBundle | None:
         """Get a specific component by type and name.
@@ -106,8 +111,8 @@ class PlatingRegistry(Registry):
         Returns:
             PlatingBundle if found, None otherwise
         """
-        entry = self.get(name=name, dimension=component_type.value)
-        return entry.bundle if entry else None
+        entry = self.get_entry(name=name, dimension=component_type.value)
+        return entry.value.bundle if entry else None
     
     def get_components_with_templates(self, component_type: ComponentType) -> list[PlatingBundle]:
         """Get components of a type that have templates.
