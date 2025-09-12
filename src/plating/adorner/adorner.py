@@ -63,11 +63,11 @@ class PlatingAdorner:
         """Get components from foundation hub by dimension."""
         components = {}
         try:
-            names = self.hub.registry.list_dimension(dimension)
+            names = self.hub.list_components(dimension=dimension)
             for name in names:
-                entry = self.hub.registry.get_entry(name=name, dimension=dimension)
-                if entry and entry.value:
-                    components[name] = entry.value
+                component = self.hub.get_component(name, dimension=dimension)
+                if component:
+                    components[name] = component
         except Exception as e:
             logger.warning(f"Failed to get {dimension} components: {e}")
         return components
