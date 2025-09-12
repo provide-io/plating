@@ -403,10 +403,15 @@ class TestSchemaProcessorWithCTY:
     """Test SchemaProcessor with CTY types."""
 
     @pytest.fixture
-    def schema_processor(self, mock_factory):
+    def schema_processor(self):
         """Create a SchemaProcessor instance."""
-        mock_generator = mock_factory("DocsGenerator")
+        mock_generator = Mock(name="DocsGenerator")
         mock_generator.provider_name = "test"
+        mock_generator.provider_dir = Path("/test/provider")
+        mock_generator.resources = {}
+        mock_generator.data_sources = {}
+        mock_generator.functions = {}
+        mock_generator.provider_info = None
         return SchemaProcessor(mock_generator)
 
     @patch("pyvider.cty.CtyString")
