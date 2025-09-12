@@ -3,7 +3,6 @@ Comprehensive tests for the schema module.
 """
 
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -14,23 +13,16 @@ class TestSchemaProcessor:
     """Test suite for SchemaProcessor."""
 
     @pytest.fixture
-    def mock_generator(self):
-        """Create a mock DocsGenerator for testing."""
-        generator = Mock()
-        generator.provider_name = "test_provider"
-        generator.provider_dir = Path("/test/provider")
-        generator.rendered_provider_name = "Test Provider"
-        generator.ignore_deprecated = False
-        generator.provider_schema = None
-        generator.provider_info = None
-        generator.resources = {}
-        generator.data_sources = {}
-        generator.functions = {}
-        return generator
-
-    @pytest.fixture
     def schema_processor(self, mock_generator):
         """Create a SchemaProcessor instance."""
+        # Add additional attributes that the schema tests need
+        mock_generator.rendered_provider_name = "Test Provider"
+        mock_generator.ignore_deprecated = False
+        mock_generator.provider_schema = None
+        mock_generator.provider_info = None
+        mock_generator.resources = {}
+        mock_generator.data_sources = {}
+        mock_generator.functions = {}
         return SchemaProcessor(mock_generator)
 
     def test_initialization(self, mock_generator):
@@ -38,59 +30,67 @@ class TestSchemaProcessor:
         processor = SchemaProcessor(mock_generator)
         assert processor.generator == mock_generator
 
-    @patch("plating.schema.ComponentDiscovery")
-    @patch("plating.schema.hub")
-    @patch("asyncio.run")
-    def test_extract_provider_schema(self, mock_asyncio_run, mock_hub, MockDiscovery, schema_processor):
+    def test_extract_provider_schema(self, schema_processor, mock_foundation_hub):
         """Test extract_provider_schema method."""
-        # Setup mock return value
+        # Setup mock schema result
         mock_schema = {
             "provider_schemas": {
                 "registry.terraform.io/local/providers/test_provider": {
-                    "provider": {},
+                    "provider": {"block": {"attributes": {}}},
                     "resource_schemas": {},
                     "data_source_schemas": {},
                     "functions": {},
                 }
             }
         }
-        mock_asyncio_run.return_value = mock_schema
+        
+        # Mock the hub's discovery and component methods
+        mock_foundation_hub.discover_components.return_value = None
+        mock_foundation_hub.list_components.side_effect = [[], [], [], []]  # For each dimension
+        mock_foundation_hub.get_component.return_value = None
+        
+        # Replace the processor's hub with our mock
+        schema_processor.hub = mock_foundation_hub
 
         result = schema_processor.extract_provider_schema()
 
         assert result == mock_schema
-        mock_asyncio_run.assert_called_once()
+        mock_foundation_hub.discover_components.assert_called_once_with("pyvider.components")
 
-    @pytest.mark.asyncio
-    async def test_extract_schema_via_discovery(self, schema_processor):
+    def test_extract_schema_via_discovery(self, schema_processor, mock_foundation_hub, mock_factory):
         """Test _extract_schema_via_discovery method."""
-        with patch("plating.schema.ComponentDiscovery") as MockDiscovery:
-            with patch("plating.schema.hub") as mock_hub:
-                # Setup mocks with AsyncMock to properly handle async methods
-                mock_discovery = AsyncMock()
-                MockDiscovery.return_value = mock_discovery
+        # Create mock components without get_schema method (will use default)
+        mock_provider = mock_factory("provider", spec=[])
+        mock_resource = mock_factory("resource", spec=[])
+        mock_data = mock_factory("data_source", spec=[])
+        mock_func = mock_factory("function", spec=[])
+        
+        # Mock the hub's discovery and component retrieval
+        mock_foundation_hub.discover_components.return_value = None
+        mock_foundation_hub.list_components.side_effect = [
+            ["test_provider"],  # provider dimension
+            ["test_resource"],  # resource dimension
+            ["test_data"],      # data_source dimension
+            ["test_func"],      # function dimension
+        ]
+        mock_foundation_hub.get_component.side_effect = [
+            mock_provider,
+            mock_resource, 
+            mock_data,
+            mock_func,
+        ]
+        
+        # Replace the processor's hub with our mock
+        schema_processor.hub = mock_foundation_hub
 
-                # Create mock components without get_schema method (will use default)
-                mock_provider = Mock(spec=[])  # No get_schema method
-                mock_resource = Mock(spec=[])  # No get_schema method
-                mock_data = Mock(spec=[])  # No get_schema method
-                mock_func = Mock(spec=[])  # No get_schema method
+        result = schema_processor._extract_schema_via_discovery()
 
-                mock_hub.list_components.return_value = {
-                    "provider": {"test_provider": mock_provider},
-                    "resource": {"test_resource": mock_resource},
-                    "data_source": {"test_data": mock_data},
-                    "function": {"test_func": mock_func},
-                }
-
-                result = await schema_processor._extract_schema_via_discovery()
-
-                assert "provider_schemas" in result
-                assert (
-                    f"registry.terraform.io/local/providers/{schema_processor.generator.provider_name}"
-                    in result["provider_schemas"]
-                )
-                mock_discovery.discover_all.assert_called_once()
+        assert "provider_schemas" in result
+        assert (
+            f"registry.terraform.io/local/providers/{schema_processor.generator.provider_name}"
+            in result["provider_schemas"]
+        )
+        mock_foundation_hub.discover_components.assert_called_once_with("pyvider.components")
 
     def test_get_provider_schema_empty(self, schema_processor):
         """Test _get_provider_schema with empty providers."""
@@ -402,9 +402,9 @@ class TestSchemaProcessorWithCTY:
     """Test SchemaProcessor with CTY types."""
 
     @pytest.fixture
-    def schema_processor(self):
+    def schema_processor(self, mock_factory):
         """Create a SchemaProcessor instance."""
-        mock_generator = Mock()
+        mock_generator = mock_factory("DocsGenerator")
         mock_generator.provider_name = "test"
         return SchemaProcessor(mock_generator)
 
