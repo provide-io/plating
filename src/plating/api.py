@@ -220,7 +220,7 @@ class Plating:
         template_dir.mkdir(parents=True, exist_ok=True)
         
         generator = TemplateGenerator()
-        template_content = generator.generate_template(component.name, component_type.value)
+        template_content = await generator.generate_template(component.name, component_type.value, None)
         
         template_file = template_dir / "main.md.j2"
         template_file.write_text(template_content)
