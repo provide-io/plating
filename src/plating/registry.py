@@ -11,6 +11,7 @@ from provide.foundation.resilience import RetryPolicy, BackoffStrategy, RetryExe
 
 from .plating import PlatingBundle, PlatingDiscovery
 from .types import ComponentType
+from .component_sets import ComponentSet, ComponentReference
 
 
 class PlatingRegistryEntry(RegistryEntry):
@@ -36,8 +37,32 @@ class PlatingRegistryEntry(RegistryEntry):
         return self.value
 
 
+class ComponentSetRegistryEntry(RegistryEntry):
+    """Registry entry for ComponentSets."""
+    
+    def __init__(self, component_set: ComponentSet):
+        """Initialize entry from ComponentSet."""
+        super().__init__(
+            name=component_set.name,
+            dimension="component_sets",  # Special dimension for sets
+            value=component_set,
+            metadata={
+                "total_components": component_set.total_component_count(),
+                "domains": list(component_set.get_domains()),
+                "tags": list(component_set.tags),
+                "version": component_set.version,
+                "is_empty": component_set.is_empty(),
+            }
+        )
+    
+    @property
+    def component_set(self) -> ComponentSet:
+        """Get the ComponentSet from this entry."""
+        return self.value
+
+
 class PlatingRegistry(Registry):
-    """Component registry using foundation Registry pattern."""
+    """Component registry using foundation Registry pattern with ComponentSet support."""
     
     def __init__(self, package_name: str = "pyvider.components"):
         """Initialize registry with package discovery.
@@ -209,6 +234,174 @@ class PlatingRegistry(Registry):
             stats[f"{comp_type}_with_examples"] = bundles_with_examples
             
         return stats
+    
+    def register_set(self, component_set: ComponentSet) -> None:
+        """Register a ComponentSet in the registry.
+        
+        Args:
+            component_set: The ComponentSet to register
+        """
+        entry = ComponentSetRegistryEntry(component_set)
+        self.register(
+            name=component_set.name,
+            dimension="component_sets",
+            value=entry
+        )
+        logger.info(f"Registered ComponentSet '{component_set.name}' with {component_set.total_component_count()} components")
+    
+    def get_set(self, name: str) -> ComponentSet | None:
+        """Get a ComponentSet by name.
+        
+        Args:
+            name: Name of the ComponentSet
+            
+        Returns:
+            ComponentSet if found, None otherwise
+        """
+        entry = self.get_entry(name=name, dimension="component_sets")
+        return entry.value.component_set if entry else None
+    
+    def list_sets(self, tag: str | None = None) -> list[ComponentSet]:
+        """List all registered ComponentSets, optionally filtered by tag.
+        
+        Args:
+            tag: Optional tag to filter by
+            
+        Returns:
+            List of ComponentSet objects
+        """
+        set_names = self.list_dimension("component_sets")
+        component_sets = []
+        
+        for name in set_names:
+            entry = self.get_entry(name=name, dimension="component_sets")
+            if entry:
+                comp_set = entry.value.component_set
+                if tag is None or comp_set.has_tag(tag):
+                    component_sets.append(comp_set)
+        
+        return component_sets
+    
+    def find_sets_containing(
+        self,
+        component_name: str,
+        component_type: str,
+        domain: str | None = None
+    ) -> list[ComponentSet]:
+        """Find ComponentSets that contain a specific component.
+        
+        Args:
+            component_name: Name of the component to search for
+            component_type: Type of the component
+            domain: Optional domain to filter by
+            
+        Returns:
+            List of ComponentSet objects containing the component
+        """
+        target_component = ComponentReference(component_name, component_type)
+        matching_sets = []
+        
+        for comp_set in self.list_sets():
+            if domain:
+                # Check specific domain only
+                if comp_set.has_component(target_component, domain):
+                    matching_sets.append(comp_set)
+            else:
+                # Check all domains
+                if comp_set.has_component(target_component):
+                    matching_sets.append(comp_set)
+        
+        return matching_sets
+    
+    def remove_set(self, name: str) -> bool:
+        """Remove a ComponentSet from the registry.
+        
+        Args:
+            name: Name of the ComponentSet to remove
+            
+        Returns:
+            True if removed, False if not found
+        """
+        try:
+            self.unregister(name=name, dimension="component_sets")
+            logger.info(f"Removed ComponentSet '{name}' from registry")
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to remove ComponentSet '{name}': {e}")
+            return False
+    
+    def get_set_stats(self) -> dict[str, Any]:
+        """Get statistics about ComponentSets in the registry.
+        
+        Returns:
+            Dictionary with ComponentSet statistics
+        """
+        component_sets = self.list_sets()
+        stats = {
+            "total_sets": len(component_sets),
+            "total_components_in_sets": 0,
+            "domains": set(),
+            "tags": set(),
+            "versions": set(),
+        }
+        
+        for comp_set in component_sets:
+            stats["total_components_in_sets"] += comp_set.total_component_count()
+            stats["domains"].update(comp_set.get_domains())
+            stats["tags"].update(comp_set.tags)
+            stats["versions"].add(comp_set.version)
+        
+        # Convert sets to lists for JSON serialization
+        stats["domains"] = sorted(list(stats["domains"]))
+        stats["tags"] = sorted(list(stats["tags"]))
+        stats["versions"] = sorted(list(stats["versions"]))
+        
+        return stats
+    
+    def create_set_from_components(
+        self,
+        name: str,
+        description: str,
+        component_filters: dict[str, list[str]],
+        tags: set[str] | None = None
+    ) -> ComponentSet:
+        """Create a ComponentSet from existing registered components.
+        
+        Args:
+            name: Name for the new ComponentSet
+            description: Description of the ComponentSet
+            component_filters: Dict of domain -> list of component names
+            tags: Optional tags for the set
+            
+        Returns:
+            Created ComponentSet
+        """
+        component_set = ComponentSet(
+            name=name,
+            description=description,
+            tags=tags or set()
+        )
+        
+        for domain, component_names in component_filters.items():
+            for comp_name in component_names:
+                # Try to find the component in registry
+                found_component = None
+                for comp_type in ComponentType:
+                    bundle = self.get_component(comp_type, comp_name)
+                    if bundle:
+                        found_component = ComponentReference(comp_name, comp_type.value)
+                        break
+                
+                if found_component:
+                    component_set.add_component(domain, found_component)
+                else:
+                    logger.warning(f"Component '{comp_name}' not found in registry")
+        
+        # Register the created set
+        self.register_set(component_set)
+        
+        logger.info(f"Created ComponentSet '{name}' with {component_set.total_component_count()} components")
+        return component_set
 
 
 # Global registry instance for convenience
