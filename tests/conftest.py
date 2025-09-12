@@ -175,9 +175,9 @@ def mock_plating_bundle(mock_factory):
 
 
 @pytest.fixture
-def mock_foundation_hub(mock_factory):
+def mock_foundation_hub():
     """Create a mock foundation Hub for testing."""
-    hub = mock_factory("Hub")
+    hub = Mock(name="Hub")
     hub.discover_components = Mock(return_value=None)
     hub.list_components = Mock(return_value=[])
     hub.get_component = Mock(return_value=None)
@@ -185,9 +185,9 @@ def mock_foundation_hub(mock_factory):
 
 
 @pytest.fixture 
-def mock_component_class(mock_factory):
+def mock_component_class():
     """Create a mock component class with documentation."""
-    component = mock_factory("ComponentClass")
+    component = Mock(name="ComponentClass")
     component.__doc__ = "Test component documentation\nMore details here"
     component.__module__ = "test.module"
     component.__name__ = "TestComponent"

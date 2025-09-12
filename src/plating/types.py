@@ -298,7 +298,7 @@ class PlatingCLIContext(CLIContext):
         self._domains = domains
         self._set_metadata = set_metadata or {}
     
-    def from_dict(self, data: dict[str, Any]) -> "PlatingContext":
+    def from_dict(self, data: dict[str, Any]) -> "PlatingCLIContext":
         """Update from dictionary."""
         # Call parent's from_dict first
         super().from_dict(data)
@@ -331,7 +331,7 @@ class PlatingCLIContext(CLIContext):
         self.save_config(path)
     
     @classmethod
-    def load_context(cls, path: Path) -> "PlatingContext":
+    def load_context(cls, path: Path) -> "PlatingCLIContext":
         """Load context from file using foundation's config management."""
         import json
         
@@ -439,5 +439,8 @@ class SetOperationResult:
         
         return all_errors
 
+
+# Alias for backward compatibility and shorter imports
+PlatingContext = PlatingCLIContext
 
 # 🍲🏷️✨⚡
