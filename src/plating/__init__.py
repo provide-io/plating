@@ -1,40 +1,77 @@
 #
 # plating/__init__.py
 #
-"""Modern async documentation generation for Terraform/OpenTofu providers.
+"""Modern async documentation generation with full foundation integration.
 
-A clean, type-safe API with full foundation integration for generating
-high-quality Terraform Registry-compliant documentation.
+A clean, type-safe API for generating high-quality documentation with 
+multi-domain support via foundation patterns.
 
 Key Features:
 - Type-safe async-first API
 - Full foundation integration (retry, metrics, circuit breakers)
-- Registry-based component discovery
-- Integrated markdown validation
-- Context-aware template rendering
+- Registry-based component discovery with multi-domain support
+- Integrated markdown validation with configurable rules
+- Context-aware template rendering with Jinja2
+- Extensible beyond Terraform to any domain (Kubernetes, CloudFormation, API docs, etc.)
 
 Example Usage:
     ```python
+    import asyncio
+    from pathlib import Path
     from plating import Plating, ComponentType, PlatingContext
     
-    # Initialize with context
-    context = PlatingContext(provider_name="my_provider")
-    plating = Plating(context)
+    async def main():
+        # Initialize with foundation context
+        context = PlatingContext(
+            provider_name="my_provider",
+            log_level="INFO",
+            no_color=False
+        )
+        
+        api = Plating(context)
+        
+        # Create missing templates
+        adorn_result = await api.adorn([ComponentType.RESOURCE])
+        print(f"Created {adorn_result.templates_generated} templates")
+        
+        # Generate docs with validation
+        plate_result = await api.plate(
+            Path("docs"),
+            component_types=[ComponentType.RESOURCE],
+            validate_markdown=True,
+            force=True
+        )
+        
+        if plate_result.success:
+            print(f"Generated {len(plate_result.output_files)} files")
+        
+        # Validate existing documentation
+        validation_result = await api.validate()
+        print(f"Validation: {validation_result.passed}/{validation_result.total} passed")
     
+    # Run the async main
+    asyncio.run(main())
+    ```
+    
+CLI Usage:
+    ```bash
     # Create missing templates
-    result = await plating.adorn([ComponentType.RESOURCE])
+    plating adorn --component-type resource --provider-name my_provider
     
-    # Generate documentation with validation
-    result = await plating.plate(Path("docs"), validate_markdown=True)
+    # Generate documentation
+    plating plate --output-dir docs --validate
     
-    # Validate existing documentation
-    result = await plating.validate(Path("docs"))
+    # Validate existing docs
+    plating validate --output-dir docs
+    
+    # Show registry info
+    plating info --provider-name my_provider
     ```
 """
 
 from plating._version import __version__
 
-# Modern async API
+# Core async API
 from plating.api import Plating, plating
 
 # Type-safe data structures
@@ -61,24 +98,24 @@ from plating.decorators import (
 )
 
 # Registry and validation
-from plating.registry import PlatingRegistry, get_plating_registry
-from plating.markdown_validator import MarkdownValidator, get_markdown_validator
+from plating.registry import PlatingRegistry, get_plating_registry, reset_plating_registry
+from plating.markdown_validator import MarkdownValidator, get_markdown_validator, reset_markdown_validator
 
-# Core bundle system (for advanced users)
+# Core bundle system
 from plating.plating import PlatingBundle, PlatingDiscovery
 
 __all__ = [
     # Version
     "__version__",
     
-    # Modern API
+    # Core API
     "Plating",
     "plating",
     
     # Type-safe structures
     "ComponentType",
-    "PlatingContext",
-    "SchemaInfo", 
+    "PlatingContext", 
+    "SchemaInfo",
     "ArgumentInfo",
     "AdornResult",
     "PlateResult",
@@ -90,68 +127,23 @@ __all__ = [
     
     # Foundation decorators
     "with_retry",
-    "with_circuit_breaker", 
-    "with_metrics",
+    "with_circuit_breaker",
+    "with_metrics", 
     "with_timing",
     "plating_metrics",
     
     # Registry and validation
     "PlatingRegistry",
     "get_plating_registry",
-    "MarkdownValidator", 
-    "get_markdown_validator",
+    "reset_plating_registry",
+    "MarkdownValidator",
+    "get_markdown_validator", 
+    "reset_markdown_validator",
     
-    # Core system (advanced)
+    # Core system
     "PlatingBundle",
     "PlatingDiscovery",
 ]
 
 
-def example_usage():
-    """Example of modern API usage."""
-    import asyncio
-    from pathlib import Path
-    
-    async def main():
-        # Initialize with foundation context
-        context = PlatingContext(
-            provider_name="my_provider",
-            log_level="INFO",  # Foundation context feature
-            no_color=False    # Foundation context feature
-        )
-        
-        api = Plating(context)
-        
-        # Create missing templates with type safety
-        adorn_result = await api.adorn([ComponentType.RESOURCE, ComponentType.DATA_SOURCE])
-        print(f"Created {adorn_result.templates_generated} templates")
-        
-        # Generate docs with integrated validation
-        plate_result = await api.plate(
-            Path("docs"),
-            component_types=[ComponentType.RESOURCE],
-            validate_markdown=True,  # Built-in markdown linting
-            force=True
-        )
-        
-        if plate_result.success:
-            print(f"Generated {len(plate_result.output_files)} files "
-                  f"in {plate_result.duration_seconds:.2f}s")
-        else:
-            print(f"Errors: {plate_result.errors}")
-        
-        # Validate existing documentation
-        validation_result = await api.validate()
-        print(f"Validation: {validation_result.passed}/{validation_result.total} passed")
-        if validation_result.lint_errors:
-            print(f"Linting issues: {len(validation_result.lint_errors)}")
-        
-        # Get registry statistics
-        stats = api.get_registry_stats()
-        print(f"Registry contains {stats['total_components']} components")
-    
-    # Example would be: asyncio.run(main())
-    return main
-
-
-# 🍲🚀✨🎯
+# 🚀✨🎯🍽️
