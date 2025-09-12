@@ -4,6 +4,7 @@
 """Centralized test configuration and fixtures using provide-testkit."""
 
 import pytest
+from pathlib import Path
 from unittest.mock import ANY, AsyncMock, MagicMock, Mock, PropertyMock, call, patch
 
 # Import testkit utilities from specific modules
@@ -199,7 +200,12 @@ def mock_generator():
     """Create a mock DocsGenerator for schema testing."""
     generator = Mock(name="DocsGenerator")
     generator.provider_name = "test_provider"
-    generator.provider_dir = "/test/provider"
+    generator.provider_dir = Path("/test/provider")  # Use Path object, not string
+    # Add dictionary-like attributes that SchemaProcessor expects to assign to
+    generator.resources = {}
+    generator.data_sources = {}
+    generator.functions = {}
+    generator.provider_info = None
     return generator
 
 
