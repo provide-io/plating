@@ -26,6 +26,7 @@ from plating import (
     PlateResult,
     ValidationResult
 )
+from plating.registry import reset_plating_registry
 
 
 class TestModernAPI:
@@ -34,6 +35,7 @@ class TestModernAPI:
     def setup_method(self):
         """Setup for each test using foundation patterns."""
         reset_foundation_setup_for_testing()
+        reset_plating_registry()
         pout("Setting up modern API test", color="blue")
     
     def test_component_type_enum(self):
