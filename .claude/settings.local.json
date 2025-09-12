@@ -4,7 +4,8 @@
       "Bash(cloc:*)",
       "Bash(xargs ls:*)",
       "WebSearch",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Read(//Users/tim/code/gh/provide-io/**)"
     ],
     "deny": [],
     "ask": [],
