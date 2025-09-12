@@ -1,7 +1,39 @@
-from pathlib import Path
-import sys
+#
+# tests/conftest.py
+#
+"""Centralized test configuration and fixtures using provide-testkit."""
 
 import pytest
+from provide.testkit import (
+    # Foundation test utilities
+    reset_foundation_setup_for_testing,
+    mock_logger,
+    # File and directory fixtures
+    temp_directory,
+    test_files_structure,
+    nested_directory_structure,
+    empty_directory,
+    temp_file,
+    temp_file_with_content,
+    temp_binary_file,
+    temp_named_file,
+    # Mocking utilities
+    mock_factory,
+    magic_mock_factory,
+    async_mock_factory,
+    property_mock_factory,
+    patch_fixture,
+    auto_patch,
+    mock_open_fixture,
+    # Common utilities
+    ANY,
+    AsyncMock,
+    MagicMock,
+    Mock,
+    PropertyMock,
+    call,
+    patch,
+)
 
 
 def pytest_configure(config):
@@ -12,54 +44,140 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "skip_in_ci: marks tests to skip in CI environments")
 
 
-@pytest.fixture(scope="session", autouse=True)
-def add_sibling_source_to_path(request):
-    """
-    A session-scoped autouse fixture to dynamically add sibling 'pyvider'
-    source directories to the Python path. This is crucial for ensuring
-    that tests can import from pyvider.cty, pyvider.hcl, etc., when
-    running in environments where they are not installed as editable packages.
-    """
-    project_root = request.config.rootpath
-    # Assuming a standard monorepo layout where pyvider-cty, pyvider-hcl, etc.,
-    # are siblings to the tofusoup directory.
-    monorepo_root = project_root.parent
-
-    sibling_projects = [
-        "pyvider-cty",
-        "pyvider-hcl",
-        "pyvider",
-    ]
-
-    for project in sibling_projects:
-        src_path = monorepo_root / project / "src"
-        if src_path.is_dir() and str(src_path) not in sys.path:
-            sys.path.insert(0, str(src_path))
-
-
 @pytest.fixture(autouse=True)
-def disable_textual_ui_in_tests(monkeypatch):
+def foundation_test_setup():
     """
-    Disable Textual UI features during testing to avoid NoActiveAppError.
-    This fixture runs automatically for all tests.
+    Reset foundation state before and after each test.
+    
+    This ensures proper test isolation for foundation components
+    like logging, registries, and other global state.
     """
-    # Set environment variable to disable any Textual UI features during testing
-    monkeypatch.setenv("TOFUSOUP_DISABLE_UI", "1")
-    monkeypatch.setenv("TEXTUAL_LOG", "none")
+    reset_foundation_setup_for_testing()
+    yield
+    reset_foundation_setup_for_testing()
 
 
-@pytest.fixture(scope="session")
-def go_soup_harness_path() -> Path:
+@pytest.fixture
+def plating_bundle_structure(temp_directory):
     """
-    Provides the path to the 'soup-go' harness executable.
+    Create standard .plating bundle structure for testing.
+    
+    Creates:
+        test.plating/
+        ├── docs/
+        │   ├── main.md.j2
+        │   └── partial.md.j2  
+        └── examples/
+            ├── basic.tf
+            └── fixtures/
+                └── variables.tf
+    
+    Returns:
+        Path to the plating bundle directory
     """
-    harness_executable = Path("src/tofusoup/harness/go/bin/soup-go")
-    if not harness_executable.exists():
-        pytest.skip(
-            f"Go (soup-go) harness executable not found at {harness_executable}, skipping cross-language tests. "
-            f"Ensure it has been built (e.g., via 'soup harness build soup-go')."
-        )
-    return harness_executable
+    plating_dir = temp_directory / "test.plating"
+    
+    # Create directory structure
+    docs_dir = plating_dir / "docs"
+    examples_dir = plating_dir / "examples"
+    fixtures_dir = examples_dir / "fixtures"
+    
+    docs_dir.mkdir(parents=True)
+    examples_dir.mkdir(parents=True) 
+    fixtures_dir.mkdir(parents=True)
+    
+    # Create template files
+    (docs_dir / "main.md.j2").write_text("# {{ name }}\n\n{{ description }}")
+    (docs_dir / "partial.md.j2").write_text("## {{ title }}\n{{ content }}")
+    
+    # Create example files
+    (examples_dir / "basic.tf").write_text('resource "test" "example" {\n  name = "test"\n}')
+    (fixtures_dir / "variables.tf").write_text('variable "name" {\n  type = string\n}')
+    
+    return plating_dir
 
 
-# 🍲🥄🧪🪄
+@pytest.fixture
+def mock_plating_bundle(mock_factory):
+    """Create a mock PlatingBundle for testing."""
+    bundle = mock_factory("PlatingBundle")
+    bundle.name = "test_resource"
+    bundle.component_type = "resource"
+    bundle.plating_dir = "/tmp/test.plating"
+    bundle.docs_dir = "/tmp/test.plating/docs"
+    bundle.examples_dir = "/tmp/test.plating/examples"
+    bundle.has_main_template.return_value = True
+    bundle.has_examples.return_value = True
+    bundle.load_examples.return_value = ["example content"]
+    return bundle
+
+
+@pytest.fixture
+def mock_foundation_hub(mock_factory):
+    """Create a mock foundation Hub for testing."""
+    hub = mock_factory("Hub")
+    hub.discover_components = Mock(return_value=None)
+    hub.list_components = Mock(return_value=[])
+    hub.get_component = Mock(return_value=None)
+    return hub
+
+
+@pytest.fixture 
+def mock_component_class(mock_factory):
+    """Create a mock component class with documentation."""
+    component = mock_factory("ComponentClass")
+    component.__doc__ = "Test component documentation\nMore details here"
+    component.__module__ = "test.module"
+    component.__name__ = "TestComponent"
+    return component
+
+
+@pytest.fixture
+def mock_generator(mock_factory):
+    """Create a mock DocsGenerator for schema testing."""
+    generator = mock_factory("DocsGenerator")
+    generator.provider_name = "test_provider"
+    generator.provider_dir = "/test/provider"
+    return generator
+
+
+# Re-export all testkit utilities for easy access in tests
+__all__ = [
+    # Foundation utilities
+    "foundation_test_setup",
+    "mock_logger",
+    # File fixtures
+    "temp_directory", 
+    "test_files_structure",
+    "nested_directory_structure",
+    "empty_directory",
+    "temp_file",
+    "temp_file_with_content",
+    "temp_binary_file",
+    "temp_named_file",
+    # Plating-specific fixtures
+    "plating_bundle_structure",
+    "mock_plating_bundle",
+    "mock_foundation_hub",
+    "mock_component_class",
+    "mock_generator",
+    # Mocking utilities
+    "mock_factory",
+    "magic_mock_factory", 
+    "async_mock_factory",
+    "property_mock_factory",
+    "patch_fixture",
+    "auto_patch",
+    "mock_open_fixture",
+    # Mock objects
+    "ANY",
+    "AsyncMock",
+    "MagicMock",
+    "Mock",
+    "PropertyMock",
+    "call",
+    "patch",
+]
+
+
+# 🧪🏗️✨🎯
