@@ -20,7 +20,7 @@ class ProviderInfo:
     has_example: bool = False
     example_file: str = ""
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         if not self.short_name:
             self.short_name = self.name
         if not self.rendered_name:

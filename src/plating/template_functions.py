@@ -27,13 +27,9 @@ class SchemaRenderer:
             for block_name, block_schema in schema.blocks.items():
                 markdown_parts.append(f"\n### {block_name}\n")
                 if hasattr(block_schema, "attributes") and block_schema.attributes:
-                    markdown_parts.append(
-                        self._render_attributes_table(block_schema.attributes)
-                    )
+                    markdown_parts.append(self._render_attributes_table(block_schema.attributes))
 
-        return (
-            "\n".join(markdown_parts) if markdown_parts else "No arguments available."
-        )
+        return "\n".join(markdown_parts) if markdown_parts else "No arguments available."
 
     def _render_attributes_table(self, attributes: dict[str, Any]) -> str:
         """Render attributes dictionary to markdown table."""
@@ -51,9 +47,7 @@ class SchemaRenderer:
             required = self._format_required(attr_def)
             description = getattr(attr_def, "description", "No description available")
 
-            lines.append(
-                f"| `{attr_name}` | {attr_type} | {required} | {description} |"
-            )
+            lines.append(f"| `{attr_name}` | {attr_type} | {required} | {description} |")
 
         return "\n".join(lines)
 

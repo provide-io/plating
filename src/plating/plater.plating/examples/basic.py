@@ -1,12 +1,10 @@
 from pathlib import Path
 
-from plating.plating import PlatingBundle
 from plating.plater import PlatingPlater
+from plating.plating import PlatingBundle
 
 # Create a bundle
-bundle = PlatingBundle(
-    name="vpc", plating_dir=Path("./resources/vpc.plating"), component_type="resource"
-)
+bundle = PlatingBundle(name="vpc", plating_dir=Path("./resources/vpc.plating"), component_type="resource")
 
 # Create plater and render
 plater = PlatingPlater(bundles=[bundle])
