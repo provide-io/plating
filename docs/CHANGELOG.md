@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 - Core modules for `cty`, `hcl`, `wire`, `rpc`, `harness`, and `testing`.
 - Go harnesses for CTY, HCL, Wire, and RPC (K/V store).
 - Pytest-based conformance testing framework.
-- `.garnish` documentation system with `scaffold` and `render` commands.
+- `.plating` documentation system with `scaffold` and `render` commands.
 - `workenv` tool management system for managing TF, Tofu, Go, etc.
 - `stir` command for parallel Terraform integration testing.
 
