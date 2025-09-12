@@ -19,24 +19,83 @@ class ComponentType(Enum):
     FUNCTION = "function"
     PROVIDER = "provider"
     
+    # Multi-domain support
+    K8S_RESOURCE = "k8s_resource"
+    K8S_OPERATOR = "k8s_operator"
+    K8S_CRD = "k8s_crd"
+    
+    CF_RESOURCE = "cf_resource"
+    CF_STACK = "cf_stack"
+    CF_MACRO = "cf_macro"
+    
+    API_ENDPOINT = "api_endpoint"
+    API_SCHEMA = "api_schema"
+    API_CLIENT = "api_client"
+    
+    GUIDE = "guide"
+    TUTORIAL = "tutorial"
+    REFERENCE = "reference"
+    
     @property
     def display_name(self) -> str:
         """Get the formatted display name."""
         return {
+            # Terraform
             self.RESOURCE: "Resource",
             self.DATA_SOURCE: "Data Source", 
             self.FUNCTION: "Function",
-            self.PROVIDER: "Provider"
+            self.PROVIDER: "Provider",
+            
+            # Kubernetes
+            self.K8S_RESOURCE: "Kubernetes Resource",
+            self.K8S_OPERATOR: "Kubernetes Operator",
+            self.K8S_CRD: "Custom Resource Definition",
+            
+            # CloudFormation
+            self.CF_RESOURCE: "CloudFormation Resource",
+            self.CF_STACK: "CloudFormation Stack",
+            self.CF_MACRO: "CloudFormation Macro",
+            
+            # API
+            self.API_ENDPOINT: "API Endpoint",
+            self.API_SCHEMA: "API Schema",
+            self.API_CLIENT: "API Client",
+            
+            # Documentation
+            self.GUIDE: "Guide",
+            self.TUTORIAL: "Tutorial",
+            self.REFERENCE: "Reference"
         }[self]
         
     @property
     def output_subdir(self) -> str:
         """Get the output subdirectory name."""
         return {
+            # Terraform
             self.RESOURCE: "resources",
             self.DATA_SOURCE: "data_sources",
             self.FUNCTION: "functions", 
-            self.PROVIDER: "providers"
+            self.PROVIDER: "providers",
+            
+            # Kubernetes
+            self.K8S_RESOURCE: "k8s_resources",
+            self.K8S_OPERATOR: "k8s_operators",
+            self.K8S_CRD: "k8s_crds",
+            
+            # CloudFormation
+            self.CF_RESOURCE: "cf_resources",
+            self.CF_STACK: "cf_stacks",
+            self.CF_MACRO: "cf_macros",
+            
+            # API
+            self.API_ENDPOINT: "api_endpoints",
+            self.API_SCHEMA: "api_schemas",
+            self.API_CLIENT: "api_clients",
+            
+            # Documentation
+            self.GUIDE: "guides",
+            self.TUTORIAL: "tutorials",
+            self.REFERENCE: "reference"
         }[self]
 
 
@@ -217,6 +276,28 @@ class PlatingContext(Context):
         
         return {**base_dict, **plating_dict}
     
+    @property
+    def component_set_context(self) -> dict[str, Any]:
+        """Get context specific to ComponentSet operations."""
+        return {
+            "is_set_operation": hasattr(self, '_is_set_operation') and self._is_set_operation,
+            "set_name": getattr(self, '_set_name', ""),
+            "domains": getattr(self, '_domains', []),
+            "set_metadata": getattr(self, '_set_metadata', {})
+        }
+    
+    def set_component_set_context(
+        self,
+        set_name: str,
+        domains: list[str],
+        set_metadata: dict[str, Any] | None = None
+    ) -> None:
+        """Set context for ComponentSet operations."""
+        self._is_set_operation = True
+        self._set_name = set_name
+        self._domains = domains
+        self._set_metadata = set_metadata or {}
+    
     def from_dict(self, data: dict[str, Any]) -> "PlatingContext":
         """Update from dictionary."""
         # Call parent's from_dict first
@@ -310,6 +391,53 @@ class ValidationResult:
     def success(self) -> bool:
         """Whether all validations passed."""
         return self.failed == 0 and len(self.lint_errors) == 0 and len(self.errors) == 0
+
+
+@define
+class SetOperationResult:
+    """Result from ComponentSet operations."""
+    set_name: str = ""
+    operation: str = ""  # "adorn", "plate", "validate", "generate_all_domains"
+    domains_processed: int = 0
+    components_processed: int = 0
+    files_generated: int = 0
+    duration_seconds: float = 0.0
+    errors: list[str] = field(factory=list)
+    domain_results: dict[str, Any] = field(factory=dict)  # Domain-specific results
+    
+    @property
+    def success(self) -> bool:
+        """Whether the operation succeeded."""
+        return len(self.errors) == 0
+    
+    def add_domain_result(self, domain: str, result: Any) -> None:
+        """Add a domain-specific result."""
+        self.domain_results[domain] = result
+    
+    def get_domain_result(self, domain: str) -> Any | None:
+        """Get result for a specific domain."""
+        return self.domain_results.get(domain)
+    
+    def get_total_files_generated(self) -> int:
+        """Get total files generated across all domains."""
+        total = self.files_generated
+        
+        for result in self.domain_results.values():
+            if hasattr(result, 'files_generated'):
+                total += result.files_generated
+        
+        return total
+    
+    def get_all_errors(self) -> list[str]:
+        """Get all errors including domain-specific ones."""
+        all_errors = self.errors.copy()
+        
+        for domain, result in self.domain_results.items():
+            if hasattr(result, 'errors'):
+                for error in result.errors:
+                    all_errors.append(f"{domain}: {error}")
+        
+        return all_errors
 
 
 # 🍲🏷️✨⚡
