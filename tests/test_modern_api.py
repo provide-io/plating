@@ -8,6 +8,14 @@ from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
+from provide.foundation import pout, perr, pin  # Foundation I/O helpers
+from provide.foundation.testing import (
+    MockContext,
+    reset_foundation_setup_for_testing,
+    temp_config_file,
+    temporary_cert_file  # Can use for temp files
+)
+
 from plating import (
     Plating, 
     ComponentType,
@@ -22,6 +30,11 @@ from plating import (
 
 class TestModernAPI:
     """Test the modern async Plating API."""
+    
+    def setup_method(self):
+        """Setup for each test using foundation patterns."""
+        reset_foundation_setup_for_testing()
+        pout("Setting up modern API test", color="blue")
     
     def test_component_type_enum(self):
         """Test ComponentType enum functionality."""
@@ -136,14 +149,28 @@ class TestModernAPI:
     
     @pytest.mark.asyncio
     async def test_plating_api_initialization(self):
-        """Test Plating API initialization."""
-        context = PlatingContext(provider_name="test_provider")
+        """Test Plating API initialization using foundation patterns."""
+        # Use foundation MockContext as base
+        mock_base_context = MockContext()
+        
+        # Create PlatingContext with foundation context features
+        context = PlatingContext(
+            provider_name="test_provider",
+            log_level="DEBUG",  # Foundation context feature
+            no_color=True       # Foundation context feature
+        )
+        
+        pout(f"Initializing API with provider: {context.provider_name}", color="cyan")
+        
         api = Plating(context=context, package_name="test.components")
         
         assert api.package_name == "test.components"
         assert api.context.provider_name == "test_provider"
+        assert api.context.log_level == "DEBUG"  # Foundation feature
         assert api.registry is not None
         assert api._schema_processor is not None
+        
+        pout("API initialization test completed", color="green")
     
     @pytest.mark.asyncio 
     @patch('plating.registry.PlatingDiscovery')
@@ -250,38 +277,48 @@ class TestModernAPI:
     
     @pytest.mark.asyncio
     @patch('plating.registry.PlatingDiscovery')
-    async def test_validate_operation(self, mock_discovery):
-        """Test validation operation."""
+    async def test_validate_operation(self, mock_discovery, tmp_path):
+        """Test validation operation using foundation patterns."""
         # Mock discovery  
         mock_discovery_instance = Mock()
         mock_discovery_instance.discover_bundles.return_value = []
         mock_discovery.return_value = mock_discovery_instance
         
-        with tempfile.TemporaryDirectory() as tmpdir:
-            docs_dir = Path(tmpdir)
-            
-            # Create test markdown file
-            test_file = docs_dir / "test.md"
-            test_file.write_text("# Test Header\n\nSome content.\n")
-            
-            api = Plating()
-            result = await api.validate(docs_dir)
-            
-            # Should validate successfully
-            assert result.total == 1
-            assert result.success is True  # With our lenient MD047 config
+        # Use pytest's tmp_path (which works well with foundation patterns)
+        docs_dir = tmp_path
+        
+        # Create test markdown file
+        test_file = docs_dir / "test.md"
+        test_file.write_text("# Test Header\n\nSome content.\n")
+        
+        pout(f"Testing validation in {docs_dir}", color="cyan")  # Foundation I/O
+        
+        api = Plating()
+        result = await api.validate(docs_dir)
+        
+        # Should validate successfully
+        assert result.total == 1
+        assert result.success is True  # With our lenient MD047 config
+        
+        pout("Validation test completed successfully", color="green")
     
     @pytest.mark.asyncio  
     @patch('plating.registry.PlatingDiscovery')
     async def test_error_handling(self, mock_discovery):
-        """Test error handling in API operations.""" 
+        """Test error handling in API operations using foundation patterns.""" 
         # Mock discovery to raise exception
         mock_discovery.side_effect = Exception("Discovery failed")
         
-        # Should handle registry creation errors gracefully
-        api = Plating()
-        # API should still be created but registry might have issues
-        assert api is not None
+        try:
+            # Should handle registry creation errors gracefully
+            api = Plating()
+            # API should still be created but registry might have issues
+            assert api is not None
+            pout("Error handling test passed", color="green")
+        except Exception as e:
+            perr(f"Unexpected error: {e}", color="red")
+            # Re-raise to fail test if error isn't handled properly
+            raise
     
     def test_modern_api_imports(self):
         """Test that modern API imports work correctly."""
