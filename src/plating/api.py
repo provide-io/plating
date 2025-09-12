@@ -11,7 +11,6 @@ from provide.foundation import logger, metrics
 from provide.foundation.resilience import RetryPolicy, BackoffStrategy, CircuitBreaker
 
 from .async_template_engine import template_engine
-from .component_sets import ComponentSet
 from .decorators import with_metrics, with_retry, with_timing, plating_metrics
 from .markdown_validator import get_markdown_validator
 from .registry import get_plating_registry
