@@ -50,10 +50,10 @@ class MarkdownValidator:
         self._api.enable_strict_configuration = strict_mode
         
         # Common configuration for documentation
-        self._api.set_boolean_property("MD013.line_length", False)  # Allow long lines
+        self._api.disable_rule_by_identifier("MD013")  # Allow long lines
+        self._api.disable_rule_by_identifier("MD041")  # Don't require H1 first  
+        self._api.disable_rule_by_identifier("MD047")  # Don't require newline at EOF
         self._api.set_boolean_property("MD033.allow_raw_html", True)  # Allow HTML
-        self._api.set_boolean_property("MD041.first_line_h1", False)  # Don't require H1 first
-        self._api.set_boolean_property("MD047", False)  # Don't require newline at EOF
     
     @with_timing
     @with_metrics("markdown_validation")

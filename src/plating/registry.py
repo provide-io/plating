@@ -170,22 +170,29 @@ class PlatingRegistry(Registry):
             Dictionary with registry statistics
         """
         stats = {}
-        all_entries = self.list_all()
+        all_names = self.list_all()
         
-        stats["total_components"] = sum(len(entries) for entries in all_entries.values())
-        stats["component_types"] = list(all_entries.keys())
+        stats["total_components"] = sum(len(names) for names in all_names.values())
+        stats["component_types"] = list(all_names.keys())
         
-        for comp_type, entries in all_entries.items():
-            stats[f"{comp_type}_count"] = len(entries)
+        for comp_type, names in all_names.items():
+            stats[f"{comp_type}_count"] = len(names)
+            
+            # Get actual entries to access metadata
+            entries = []
+            for name in names:
+                entry = self.get_entry(name=name, dimension=comp_type)
+                if entry:
+                    entries.append(entry)
             
             # Count bundles with templates/examples
             bundles_with_templates = sum(
                 1 for entry in entries 
-                if entry.metadata.get("has_template", False)
+                if entry.value.metadata.get("has_template", False)
             )
             bundles_with_examples = sum(
                 1 for entry in entries
-                if entry.metadata.get("has_examples", False)
+                if entry.value.metadata.get("has_examples", False)
             )
             
             stats[f"{comp_type}_with_templates"] = bundles_with_templates
