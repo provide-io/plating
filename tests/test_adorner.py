@@ -3,6 +3,7 @@ Comprehensive tests for the adorner module.
 """
 
 import pytest
+from unittest.mock import AsyncMock, Mock, patch
 
 from plating.adorner import PlatingAdorner, adorn_components, adorn_missing_components
 from plating.adorner.finder import ComponentFinder
@@ -67,52 +68,57 @@ class TestPlatingAdorner:
         assert result == {"resource": 0, "data_source": 0, "function": 0}
 
     @pytest.mark.asyncio
-    async def test_adorn_missing_with_new_components(self, adorner, mock_component_class):
+    async def test_adorn_missing_with_new_components(self, adorner, mock_component_class, mock_foundation_hub, patch_fixture):
         """Test adorn_missing dresses new components."""
-        with patch("plating.adorner.adorner.ComponentDiscovery") as MockDiscovery:
-            with patch("plating.adorner.adorner.hub") as mock_hub:
-                mock_discovery = MockDiscovery.return_value
-                mock_discovery.discover_all = AsyncMock()
+        # Mock components returned by hub
+        mock_foundation_hub.discover_components.return_value = None
+        mock_foundation_hub.list_components.return_value = ["new_resource"]
+        mock_foundation_hub.get_component.return_value = mock_component_class
+        
+        # Replace adorner's hub
+        adorner.hub = mock_foundation_hub
 
-                # Mock components
-                mock_hub.list_components.return_value = {"resource": {"new_resource": mock_component_class}}
+        mock_discover = patch_fixture.object(adorner.plating_discovery, "discover_bundles")
+        mock_discover.return_value = []  # No existing bundles
 
-                with patch.object(adorner.plating_discovery, "discover_bundles") as mock_discover:
-                    mock_discover.return_value = []  # No existing bundles
+        mock_dress = patch_fixture.object(adorner, "_adorn_component")
+        mock_dress.return_value = True
 
-                    with patch.object(adorner, "_adorn_component") as mock_dress:
-                        mock_dress.return_value = True
+        result = await adorner.adorn_missing()
 
-                        result = await adorner.adorn_missing()
-
-                        mock_dress.assert_called_once_with("new_resource", "resource", mock_component_class)
-                        assert result == {"resource": 1, "data_source": 0, "function": 0}
+        mock_dress.assert_called_once_with("new_resource", "resource", mock_component_class)
+        assert result == {"resource": 1, "data_source": 0, "function": 0}
 
     @pytest.mark.asyncio
-    async def test_adorn_missing_with_component_type_filter(self, adorner, mock_component_class):
+    async def test_adorn_missing_with_component_type_filter(self, adorner, mock_component_class, mock_foundation_hub, patch_fixture):
         """Test adorn_missing filters by component type."""
-        with patch("plating.adorner.adorner.ComponentDiscovery") as MockDiscovery:
-            with patch("plating.adorner.adorner.hub") as mock_hub:
-                mock_discovery = MockDiscovery.return_value
-                mock_discovery.discover_all = AsyncMock()
+        # Mock foundation hub to return components for both resource and data_source dimensions
+        mock_foundation_hub.discover_components.return_value = None
+        
+        def mock_list_components(dimension=None):
+            if dimension == "resource":
+                return ["test_resource"]
+            elif dimension == "data_source":
+                return ["test_data"]
+            return []
+        
+        mock_foundation_hub.list_components.side_effect = mock_list_components
+        mock_foundation_hub.get_component.return_value = mock_component_class
+        
+        # Replace adorner's hub
+        adorner.hub = mock_foundation_hub
 
-                # Mock components of different types
-                mock_hub.list_components.return_value = {
-                    "resource": {"test_resource": mock_component_class},
-                    "data_source": {"test_data": mock_component_class},
-                }
+        mock_discover = patch_fixture.object(adorner.plating_discovery, "discover_bundles")
+        mock_discover.return_value = []
 
-                with patch.object(adorner.plating_discovery, "discover_bundles") as mock_discover:
-                    mock_discover.return_value = []
+        mock_dress = patch_fixture.object(adorner, "_adorn_component")
+        mock_dress.return_value = True
 
-                    with patch.object(adorner, "_adorn_component") as mock_dress:
-                        mock_dress.return_value = True
+        # Only dress resources
+        result = await adorner.adorn_missing(["resource"])
 
-                        # Only dress resources
-                        result = await adorner.adorn_missing(["resource"])
-
-                        assert mock_dress.call_count == 1
-                        assert result == {"resource": 1, "data_source": 0, "function": 0}
+        assert mock_dress.call_count == 1
+        assert result == {"resource": 1, "data_source": 0, "function": 0}
 
     @pytest.mark.asyncio
     async def test_adorn_component_success(self, adorner, mock_component_class, tmp_path):
