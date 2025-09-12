@@ -219,7 +219,10 @@ class PlatingContext(Context):
     
     def from_dict(self, data: dict[str, Any]) -> "PlatingContext":
         """Update from dictionary."""
+        # Call parent's from_dict first
         super().from_dict(data)
+        
+        # Set our custom fields
         self.name = data.get("name", "")
         if "component_type" in data:
             # Handle both string and enum values
@@ -244,15 +247,20 @@ class PlatingContext(Context):
     
     def save_context(self, path: Path) -> None:
         """Save context to file using foundation's config management."""
-        self.config_file = path
-        self.save_config()
+        self.save_config(path)
     
     @classmethod
     def load_context(cls, path: Path) -> "PlatingContext":
         """Load context from file using foundation's config management."""
+        import json
+        
         context = cls()
-        context.config_file = path
-        context.load_config()
+        
+        # Load the JSON data and apply it
+        if path.exists():
+            data = json.loads(path.read_text())
+            context.from_dict(data)
+        
         return context
 
 
@@ -294,13 +302,14 @@ class ValidationResult:
     skipped: int = 0
     duration_seconds: float = 0.0
     failures: dict[str, str] = field(factory=dict)
+    errors: list[str] = field(factory=list)  # General errors
     lint_errors: list[str] = field(factory=list)  # Markdown linting errors
     terraform_version: str = ""
     
     @property
     def success(self) -> bool:
         """Whether all validations passed."""
-        return self.failed == 0 and len(self.lint_errors) == 0
+        return self.failed == 0 and len(self.lint_errors) == 0 and len(self.errors) == 0
 
 
 # 🍲🏷️✨⚡
