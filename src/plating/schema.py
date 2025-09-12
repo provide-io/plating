@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 import attrs
 from provide.foundation import logger, pout, metrics
-from provide.foundation.hub import Hub, discover_components
+from provide.foundation.hub import Hub
 from provide.foundation.process import ProcessError, run_command
 from provide.foundation.resilience import RetryExecutor, RetryPolicy, BackoffStrategy
 from provide.foundation.utils import timed_block
@@ -59,7 +59,7 @@ class SchemaProcessor:
 
         try:
             # Use foundation's discovery with pyvider components entry point
-            discover_components("pyvider.components", hub=self.hub)
+            self.hub.discover_components("pyvider.components")
         except Exception as e:
             raise SchemaError(self.generator.provider_name, f"Component discovery failed: {e}")
 
