@@ -160,9 +160,9 @@ def plating_bundle_structure(temp_directory):
 
 
 @pytest.fixture
-def mock_plating_bundle(mock_factory):
+def mock_plating_bundle():
     """Create a mock PlatingBundle for testing."""
-    bundle = mock_factory("PlatingBundle")
+    bundle = Mock(name="PlatingBundle")
     bundle.name = "test_resource"
     bundle.component_type = "resource"
     bundle.plating_dir = "/tmp/test.plating"
