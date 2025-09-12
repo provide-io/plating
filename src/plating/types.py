@@ -1,11 +1,15 @@
 #
 # plating/types.py
 #
-"""Type definitions for the plating system."""
+"""Type definitions for the plating system with foundation integration."""
 
-from dataclasses import dataclass, field
+import json
 from enum import Enum
 from pathlib import Path
+from typing import Any
+
+from attrs import define, field
+from provide.foundation import Context
 
 
 class ComponentType(Enum):
@@ -36,21 +40,40 @@ class ComponentType(Enum):
         }[self]
 
 
-@dataclass
+@define
 class ArgumentInfo:
     """Information about a function argument."""
     name: str
     type: str
     description: str = ""
     required: bool = True
+    
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary for serialization."""
+        return {
+            "name": self.name,
+            "type": self.type,
+            "description": self.description,
+            "required": self.required
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ArgumentInfo":
+        """Create from dictionary."""
+        return cls(
+            name=data.get("name", ""),
+            type=data.get("type", ""),
+            description=data.get("description", ""),
+            required=data.get("required", True)
+        )
 
 
-@dataclass 
+@define
 class SchemaInfo:
     """Structured schema information."""
     description: str = ""
-    attributes: dict[str, dict] = field(default_factory=dict)
-    blocks: dict[str, dict] = field(default_factory=dict)
+    attributes: dict[str, dict] = field(factory=dict)
+    blocks: dict[str, dict] = field(factory=dict)
     
     @classmethod
     def from_dict(cls, schema_dict: dict) -> "SchemaInfo":
@@ -144,23 +167,35 @@ class SchemaInfo:
         return "Dynamic"
 
 
-@dataclass
-class PlatingContext:
-    """Type-safe context for template rendering."""
-    name: str
-    component_type: ComponentType
-    provider_name: str
-    description: str = ""
-    schema: SchemaInfo | None = None
-    examples: dict[str, str] = field(default_factory=dict)
+class PlatingContext(Context):
+    """Type-safe context for plating operations extending foundation.Context."""
     
-    # For functions specifically
-    signature: str | None = None
-    arguments: list[ArgumentInfo] | None = None
+    def __init__(
+        self,
+        name: str = "",
+        component_type: ComponentType = ComponentType.RESOURCE,
+        provider_name: str = "",
+        description: str = "",
+        schema: SchemaInfo | None = None,
+        examples: dict[str, str] | None = None,
+        signature: str | None = None,
+        arguments: list[ArgumentInfo] | None = None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.name = name
+        self.component_type = component_type
+        self.provider_name = provider_name
+        self.description = description
+        self.schema = schema
+        self.examples = examples or {}
+        self.signature = signature
+        self.arguments = arguments
     
-    def to_dict(self) -> dict[str, any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for template rendering."""
-        result = {
+        base_dict = super().to_dict()
+        plating_dict = {
             "name": self.name,
             "component_type": self.component_type.display_name,
             "provider_name": self.provider_name,
@@ -169,27 +204,65 @@ class PlatingContext:
         }
         
         if self.schema:
-            result["schema_markdown"] = self.schema.to_markdown()
+            plating_dict["schema_markdown"] = self.schema.to_markdown()
             
         if self.signature:
-            result["signature"] = self.signature
+            plating_dict["signature"] = self.signature
             
         if self.arguments:
-            result["arguments"] = "\n".join(
+            plating_dict["arguments"] = "\n".join(
                 f"- `{arg.name}` ({arg.type}) - {arg.description}" 
                 for arg in self.arguments
             )
-            
-        return result
+        
+        return {**base_dict, **plating_dict}
+    
+    def from_dict(self, data: dict[str, Any]) -> "PlatingContext":
+        """Update from dictionary."""
+        super().from_dict(data)
+        self.name = data.get("name", "")
+        if "component_type" in data:
+            # Handle both string and enum values
+            comp_type = data["component_type"]
+            if isinstance(comp_type, str):
+                # Try to find by display name or value
+                for ct in ComponentType:
+                    if ct.display_name == comp_type or ct.value == comp_type:
+                        self.component_type = ct
+                        break
+            else:
+                self.component_type = comp_type
+        self.provider_name = data.get("provider_name", "")
+        self.description = data.get("description", "")
+        self.examples = data.get("examples", {})
+        self.signature = data.get("signature")
+        if "arguments" in data:
+            args_data = data["arguments"]
+            if isinstance(args_data, list):
+                self.arguments = [ArgumentInfo.from_dict(arg) for arg in args_data]
+        return self
+    
+    def save_context(self, path: Path) -> None:
+        """Save context to file using foundation's config management."""
+        self.config_file = path
+        self.save_config()
+    
+    @classmethod
+    def load_context(cls, path: Path) -> "PlatingContext":
+        """Load context from file using foundation's config management."""
+        context = cls()
+        context.config_file = path
+        context.load_config()
+        return context
 
 
-@dataclass
+@define
 class AdornResult:
     """Result from adorn operations."""
-    components_processed: int
-    templates_generated: int
-    examples_created: int
-    errors: list[str] = field(default_factory=list)
+    components_processed: int = 0
+    templates_generated: int = 0
+    examples_created: int = 0
+    errors: list[str] = field(factory=list)
     
     @property
     def success(self) -> bool:
@@ -197,14 +270,14 @@ class AdornResult:
         return len(self.errors) == 0
 
 
-@dataclass 
+@define 
 class PlateResult:
     """Result from plate operations."""
-    bundles_processed: int
-    files_generated: int
-    duration_seconds: float
-    errors: list[str] = field(default_factory=list)
-    output_files: list[Path] = field(default_factory=list)
+    bundles_processed: int = 0
+    files_generated: int = 0
+    duration_seconds: float = 0.0
+    errors: list[str] = field(factory=list)
+    output_files: list[Path] = field(factory=list)
     
     @property
     def success(self) -> bool:
@@ -212,21 +285,22 @@ class PlateResult:
         return len(self.errors) == 0
 
 
-@dataclass
+@define
 class ValidationResult:
-    """Result from validation operations."""
-    total: int
-    passed: int
-    failed: int
+    """Result from validation operations with markdown linting support."""
+    total: int = 0
+    passed: int = 0
+    failed: int = 0
     skipped: int = 0
     duration_seconds: float = 0.0
-    failures: dict[str, str] = field(default_factory=dict)
+    failures: dict[str, str] = field(factory=dict)
+    lint_errors: list[str] = field(factory=list)  # Markdown linting errors
     terraform_version: str = ""
     
     @property
     def success(self) -> bool:
         """Whether all validations passed."""
-        return self.failed == 0
+        return self.failed == 0 and len(self.lint_errors) == 0
 
 
-# 🍲🏷️✨
+# 🍲🏷️✨⚡
