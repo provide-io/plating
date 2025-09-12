@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(cloc:*)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": [],
