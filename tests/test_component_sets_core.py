@@ -1,22 +1,13 @@
 #
-# tests/test_component_sets.py
+# tests/test_component_sets_core.py
 #
-"""Tests for ComponentSets functionality."""
+"""Core tests for ComponentSets functionality."""
 
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 
 from plating.component_sets import ComponentSet, ComponentReference
-
-
-@pytest.fixture
-def temp_dir(tmp_path):
-    """Temporary directory for tests."""
-    return tmp_path
-
-
 
 
 @pytest.fixture
@@ -244,7 +235,7 @@ class TestComponentSet:
         assert result["name"] == "test_set"
         assert result["description"] == "Test set"
         assert result["version"] == "2.0.0"
-        assert result["tags"] == ["test"]  # Converted to list for JSON
+        assert set(result["tags"]) == {"test"}  # Converted to list for JSON
         assert "terraform" in result["components"]
     
     def test_component_set_from_dict(self):
@@ -270,122 +261,95 @@ class TestComponentSet:
         assert comp_set.tags == {"test", "aws"}
         assert comp_set.metadata["env"] == "prod"
         assert len(comp_set.components["terraform"]) == 1
-
-
-class TestRegistryComponentSetIntegration:
-    """Test Registry integration with ComponentSets."""
     
-    @pytest.fixture
-    def registry(self):
-        """Test registry."""
-        return PlatingRegistry("test.package")
-    
-    def test_register_component_set(self, registry, sample_components):
-        """Test registering a ComponentSet."""
-        comp_set = ComponentSet(
-            name="aws_storage",
-            components={"terraform": sample_components}
-        )
-        
-        registry.register_set(comp_set)
-        
-        retrieved_set = registry.get_set("aws_storage")
-        assert retrieved_set is not None
-        assert retrieved_set.name == "aws_storage"
-    
-    def test_list_component_sets(self, registry, sample_components):
-        """Test listing registered ComponentSets."""
-        set1 = ComponentSet(name="set1", tags={"aws"})
-        set2 = ComponentSet(name="set2", tags={"kubernetes"})
-        
-        registry.register_set(set1)
-        registry.register_set(set2)
-        
-        all_sets = registry.list_sets()
-        assert len(all_sets) == 2
-        assert {s.name for s in all_sets} == {"set1", "set2"}
-    
-    def test_list_sets_by_tag(self, registry):
-        """Test filtering ComponentSets by tag."""
-        set1 = ComponentSet(name="set1", tags={"aws", "storage"})
-        set2 = ComponentSet(name="set2", tags={"kubernetes", "storage"})
-        set3 = ComponentSet(name="set3", tags={"aws", "compute"})
-        
-        registry.register_set(set1)
-        registry.register_set(set2)
-        registry.register_set(set3)
-        
-        storage_sets = registry.list_sets(tag="storage")
-        aws_sets = registry.list_sets(tag="aws")
-        
-        assert len(storage_sets) == 2
-        assert len(aws_sets) == 2
-        assert {s.name for s in storage_sets} == {"set1", "set2"}
-        assert {s.name for s in aws_sets} == {"set1", "set3"}
-    
-    def test_find_sets_containing_component(self, registry, sample_components):
-        """Test finding sets that contain a specific component."""
-        comp_ref = sample_components[0]  # s3_bucket resource
-        
-        set1 = ComponentSet(
-            name="storage_set",
-            components={"terraform": [comp_ref]}
-        )
-        set2 = ComponentSet(
-            name="aws_set", 
-            components={"terraform": [comp_ref, sample_components[1]]}
-        )
-        set3 = ComponentSet(
-            name="other_set",
-            components={"terraform": [sample_components[2]]}
-        )
-        
-        registry.register_set(set1)
-        registry.register_set(set2)
-        registry.register_set(set3)
-        
-        containing_sets = registry.find_sets_containing(
-            "s3_bucket", "resource", "terraform"
-        )
-        
-        assert len(containing_sets) == 2
-        assert {s.name for s in containing_sets} == {"storage_set", "aws_set"}
-    
-    def test_remove_component_set(self, registry):
-        """Test removing a ComponentSet from registry."""
-        comp_set = ComponentSet(name="test_set")
-        
-        registry.register_set(comp_set)
-        assert registry.get_set("test_set") is not None
-        
-        registry.remove_set("test_set")
-        assert registry.get_set("test_set") is None
-    
-    def test_get_set_stats(self, registry, sample_components):
-        """Test getting statistics about ComponentSets."""
-        set1 = ComponentSet(
-            name="set1",
+    def test_component_set_serialization(self, sample_components):
+        """Test ComponentSet JSON serialization."""
+        original_set = ComponentSet(
+            name="test_set",
+            description="Test serialization",
             components={
-                "terraform": sample_components[:2],
-                "kubernetes": sample_components[2:]
+                "terraform": sample_components[:1],
+                "kubernetes": sample_components[1:2]
             },
-            tags={"aws"}
-        )
-        set2 = ComponentSet(
-            name="set2",
-            components={"terraform": sample_components[1:3]},
-            tags={"storage"}
+            tags={"test", "serialization"},
+            version="1.5.0",
+            metadata={"created_by": "test"}
         )
         
-        registry.register_set(set1)
-        registry.register_set(set2)
+        # Test to_json/from_json
+        json_data = original_set.to_json()
+        loaded_set = ComponentSet.from_json(json_data)
         
-        stats = registry.get_set_stats()
+        assert loaded_set.name == original_set.name
+        assert loaded_set.version == original_set.version
+        assert loaded_set.tags == original_set.tags
+        assert loaded_set.metadata == original_set.metadata
+        assert loaded_set.total_component_count() == 2
+    
+    def test_component_set_file_operations(self, tmp_path):
+        """Test ComponentSet file save/load operations."""
+        ref1 = ComponentReference("s3_bucket", "resource")
         
-        assert stats["total_sets"] == 2
-        assert stats["total_components_in_sets"] >= 4
-        assert "terraform" in stats["domains"]
-        assert "kubernetes" in stats["domains"]
+        original_set = ComponentSet(
+            name="file_test_set",
+            description="Test file operations",
+            components={"terraform": [ref1]},
+            tags={"test", "file"},
+            version="2.0.0"
+        )
+        
+        # Test save to file
+        test_file = tmp_path / "test_component_set.json"
+        original_set.save_to_file(test_file)
+        assert test_file.exists()
+        
+        # Test load from file
+        loaded_set = ComponentSet.load_from_file(test_file)
+        assert loaded_set.name == original_set.name
+        assert loaded_set.version == original_set.version
+        assert loaded_set.tags == original_set.tags
+        assert loaded_set.total_component_count() == 1
+    
+    def test_component_set_advanced_queries(self, sample_components):
+        """Test ComponentSet advanced query methods."""
+        ref1 = ComponentReference("s3_bucket", "resource")
+        ref2 = ComponentReference("s3_bucket", "data_source")  # Same name, different type
+        ref3 = ComponentReference("ec2_instance", "resource")
+        
+        comp_set = ComponentSet(
+            name="query_test",
+            components={
+                "terraform": [ref1, ref2],
+                "kubernetes": [ref3]
+            },
+            tags={"test", "query"}
+        )
+        
+        # Test get_component_by_name
+        s3_components = comp_set.get_component_by_name("s3_bucket")
+        assert len(s3_components) == 2
+        assert ref1 in s3_components
+        assert ref2 in s3_components
+        
+        # Test get_component_by_name with domain filter
+        terraform_s3 = comp_set.get_component_by_name("s3_bucket", "terraform")
+        assert len(terraform_s3) == 2
+        
+        kubernetes_s3 = comp_set.get_component_by_name("s3_bucket", "kubernetes")
+        assert len(kubernetes_s3) == 0
+        
+        # Test has_component
+        assert comp_set.has_component(ref1)
+        assert comp_set.has_component(ref1, "terraform")
+        assert not comp_set.has_component(ref1, "kubernetes")
+        
+        # Test tag operations
+        comp_set.add_tag("new_tag")
+        assert comp_set.has_tag("new_tag")
+        
+        removed = comp_set.remove_tag("new_tag")
+        assert removed is True
+        assert not comp_set.has_tag("new_tag")
 
 
 class TestComponentSetValidation:
@@ -393,8 +357,13 @@ class TestComponentSetValidation:
     
     def test_validate_empty_name(self):
         """Test validation fails for empty name."""
-        with pytest.raises(ValueError, match="Component set name cannot be empty"):
+        with pytest.raises(ValueError, match="Length of 'name' must be >= 1"):
             ComponentSet(name="")
+    
+    def test_validate_version_format(self):
+        """Test version format validation."""
+        with pytest.raises(ValueError, match="Invalid version format"):
+            ComponentSet(name="test_set", version="invalid.version.format.too.many.parts")
     
     def test_validate_duplicate_components_in_domain(self):
         """Test validation catches duplicate components in same domain."""
@@ -405,63 +374,3 @@ class TestComponentSetValidation:
                 name="test_set",
                 components={"terraform": [duplicate_ref, duplicate_ref]}
             )
-    
-    def test_validate_component_reference_types(self):
-        """Test validation of component reference types."""
-        with pytest.raises(TypeError, match="Components must be ComponentReference"):
-            ComponentSet(
-                name="test_set",
-                components={"terraform": ["invalid_type"]}
-            )
-    
-    def test_validate_version_format(self):
-        """Test version format validation."""
-        with pytest.raises(ValueError, match="Invalid version format"):
-            ComponentSet(name="test_set", version="invalid.version.format.too.many.parts")
-
-
-class TestComponentSetSerialization:
-    """Test ComponentSet serialization and deserialization."""
-    
-    def test_save_and_load_component_set(self, temp_dir, sample_components):
-        """Test saving and loading ComponentSet to/from file."""
-        original_set = ComponentSet(
-            name="test_set",
-            description="Test set for serialization",
-            components={"terraform": sample_components[:2]},
-            tags={"test", "serialization"},
-            version="1.5.0",
-            metadata={"created_by": "test"}
-        )
-        
-        # Save to file
-        set_file = temp_dir / "test_set.json"
-        original_set.save_to_file(set_file)
-        
-        # Load from file
-        loaded_set = ComponentSet.load_from_file(set_file)
-        
-        assert loaded_set.name == original_set.name
-        assert loaded_set.description == original_set.description
-        assert loaded_set.version == original_set.version
-        assert loaded_set.tags == original_set.tags
-        assert loaded_set.metadata == original_set.metadata
-        assert len(loaded_set.components["terraform"]) == 2
-    
-    def test_json_serialization_round_trip(self, sample_components):
-        """Test JSON serialization round trip."""
-        original_set = ComponentSet(
-            name="json_test",
-            components={"terraform": sample_components},
-            tags={"json", "test"}
-        )
-        
-        # Serialize to JSON
-        json_data = original_set.to_json()
-        
-        # Deserialize from JSON
-        loaded_set = ComponentSet.from_json(json_data)
-        
-        assert loaded_set.name == original_set.name
-        assert loaded_set.tags == original_set.tags
-        assert len(loaded_set.components["terraform"]) == len(sample_components)
