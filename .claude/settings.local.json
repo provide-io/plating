@@ -3,7 +3,8 @@
     "allow": [
       "Bash(cloc:*)",
       "Bash(xargs ls:*)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": [],
