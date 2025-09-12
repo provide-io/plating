@@ -35,7 +35,7 @@ PlatingBundle = plating_mod.PlatingBundle
 PlatingDiscovery = plating_mod.PlatingDiscovery
 
 def test_pyvider_components_discovery():
-    """Test discovering real pyvider-components."""
+    """Test discovering real pyvider-components with .plating directories."""
     print("🔍 Testing pyvider-components discovery...")
     
     # Point to the real pyvider-components package
@@ -285,7 +285,7 @@ def test_comprehensive_pyvider_integration():
     print("\n🎉 Comprehensive pyvider-components integration test completed successfully!")
     print("✅ ComponentSets work with real pyvider-components!")
     print("✅ Multi-domain architecture is functional!")
-    print("✅ Terraform Registry-compatible .garnish/.plating structure confirmed!")
+    print("✅ Terraform Registry-compatible .plating structure confirmed!")
     
     return True
 
