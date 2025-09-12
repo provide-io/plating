@@ -11,7 +11,6 @@ from provide.foundation.resilience import RetryPolicy, BackoffStrategy, RetryExe
 
 from .plating import PlatingBundle, PlatingDiscovery
 from .types import ComponentType
-from .component_sets import ComponentSet, ComponentReference
 
 
 class PlatingRegistryEntry(RegistryEntry):
@@ -36,29 +35,6 @@ class PlatingRegistryEntry(RegistryEntry):
         """Get the PlatingBundle from this entry."""
         return self.value
 
-
-class ComponentSetRegistryEntry(RegistryEntry):
-    """Registry entry for ComponentSets."""
-    
-    def __init__(self, component_set: ComponentSet):
-        """Initialize entry from ComponentSet."""
-        super().__init__(
-            name=component_set.name,
-            dimension="component_sets",  # Special dimension for sets
-            value=component_set,
-            metadata={
-                "total_components": component_set.total_component_count(),
-                "domains": list(component_set.get_domains()),
-                "tags": list(component_set.tags),
-                "version": component_set.version,
-                "is_empty": component_set.is_empty(),
-            }
-        )
-    
-    @property
-    def component_set(self) -> ComponentSet:
-        """Get the ComponentSet from this entry."""
-        return self.value
 
 
 class PlatingRegistry(Registry):
