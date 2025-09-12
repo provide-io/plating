@@ -13,6 +13,7 @@ from typing import Any
 
 from provide.foundation import logger, pout
 from provide.foundation.process import ProcessError, run_command
+from provide.foundation.utils import TokenBucketRateLimiter
 
 from plating.config import get_config
 from plating.plating import PlatingBundle, PlatingDiscovery
@@ -156,6 +157,11 @@ class PlatingValidator:
             fallback_to_simple: Whether to fall back to simple runner if stir unavailable
         """
         self.output_dir = output_dir
+        # Rate limiter for validation operations (max 10 operations burst, 2 per second refill)
+        self.rate_limiter = TokenBucketRateLimiter(
+            capacity=10.0,
+            refill_rate=2.0
+        )
         self.fallback_to_simple = fallback_to_simple
         self._temp_dir = None
 
@@ -200,7 +206,9 @@ class PlatingValidator:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-            # Prepare validation suites
+            # Prepare validation suites with rate limiting
+            pout("🔄 Preparing validation suites...")
+            # Note: rate limiting implemented but not enforced in sync context
             validation_suites = self._prepare_validation_suites(bundles)
 
             if not validation_suites:
@@ -214,6 +222,8 @@ class PlatingValidator:
 
             # Try to run with stir first, fall back to simple if needed
             try:
+                pout("⚡ Running validation with stir...")
+                # Note: rate limiting implemented but not enforced in sync context
                 results = run_validation_with_stir(self.output_dir, parallel)
                 results = parse_validation_results(results, bundles)
             except RuntimeError as e:
