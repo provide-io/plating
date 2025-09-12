@@ -74,8 +74,8 @@ class PlatingRegistry(Registry):
             for bundle in bundles:
                 entry = PlatingRegistryEntry(bundle, dimension=bundle.component_type)
                 self.register(
+                    name=bundle.name,
                     dimension=bundle.component_type,  # "resource", "data_source", etc.
-                    key=bundle.name,
                     value=entry
                 )
                 logger.debug(f"Registered {bundle.component_type}/{bundle.name}")
@@ -106,7 +106,7 @@ class PlatingRegistry(Registry):
         Returns:
             PlatingBundle if found, None otherwise
         """
-        entry = self.get(dimension=component_type.value, key=name)
+        entry = self.get(name=name, dimension=component_type.value)
         return entry.bundle if entry else None
     
     def get_components_with_templates(self, component_type: ComponentType) -> list[PlatingBundle]:
