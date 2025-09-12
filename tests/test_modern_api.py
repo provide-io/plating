@@ -137,61 +137,64 @@ class TestModernAPI:
     @pytest.mark.asyncio
     async def test_plating_api_initialization(self):
         """Test Plating API initialization."""
-        api = Plating(
-            package_name="test.components",
-            provider_name="test_provider"
-        )
+        context = PlatingContext(provider_name="test_provider")
+        api = Plating(context=context, package_name="test.components")
         
         assert api.package_name == "test.components"
-        assert api.provider_name == "test_provider"
-        assert api._discovery is not None
+        assert api.context.provider_name == "test_provider"
+        assert api.registry is not None
         assert api._schema_processor is not None
     
     @pytest.mark.asyncio 
-    @patch('plating.adorner.adorn_missing_components')
-    async def test_adorn_operation(self, mock_adorn):
+    @patch('plating.registry.PlatingDiscovery')
+    async def test_adorn_operation(self, mock_discovery):
         """Test adorn operation with type-safe API."""
-        # Mock the adorn function
-        mock_adorn.return_value = {
-            "total": 5,
-            "resources": 3,
-            "data_sources": 2,
-            "functions": 0,
-            "errors": []
-        }
+        # Mock the discovery and registry
+        mock_bundle = Mock()
+        mock_bundle.name = "test_resource"
+        mock_bundle.component_type = "resource"
+        mock_bundle.has_main_template.return_value = False  # Needs template
+        mock_bundle.plating_dir = Path("/mock/path")
         
-        api = Plating()
-        result = await api.adorn([ComponentType.RESOURCE, ComponentType.DATA_SOURCE])
+        mock_discovery_instance = Mock()
+        mock_discovery_instance.discover_bundles.return_value = [mock_bundle]
+        mock_discovery.return_value = mock_discovery_instance
         
-        # Verify function was called with correct string values
-        mock_adorn.assert_called_once_with(["resource", "data_source"])
-        
-        # Verify result
-        assert isinstance(result, AdornResult)
-        assert result.components_processed == 5
-        assert result.templates_generated == 5  # 3 + 2 + 0
-        assert result.success is True
+        # Mock the template generator
+        with patch('plating.adorner.TemplateGenerator') as mock_template_gen:
+            mock_template_gen.return_value.generate_template.return_value = "# Mock Template"
+            
+            api = Plating()
+            result = await api.adorn([ComponentType.RESOURCE])
+            
+            # Verify result
+            assert isinstance(result, AdornResult)
+            assert result.templates_generated == 1
+            assert result.success is True
     
     @pytest.mark.asyncio
-    @patch('plating.api.asyncio.get_event_loop')
-    async def test_discover_bundles(self, mock_loop):
-        """Test bundle discovery."""
-        # Mock executor and discovery
-        mock_executor = AsyncMock()
-        mock_loop.return_value.run_in_executor = mock_executor
+    @patch('plating.registry.PlatingDiscovery')
+    async def test_registry_integration(self, mock_discovery):
+        """Test that API integrates with registry properly."""
+        # Mock the discovery
+        mock_bundle = Mock()
+        mock_bundle.name = "test_resource"
+        mock_bundle.component_type = "resource"
+        mock_bundle.has_main_template.return_value = True
         
-        from plating.plating import PlatingBundle
-        mock_bundles = [
-            PlatingBundle("test1", Path("/test1.plating"), "resource"),
-            PlatingBundle("test2", Path("/test2.plating"), "data_source")
-        ]
-        mock_executor.return_value = mock_bundles
+        mock_discovery_instance = Mock()
+        mock_discovery_instance.discover_bundles.return_value = [mock_bundle]
+        mock_discovery.return_value = mock_discovery_instance
         
         api = Plating()
-        bundles = await api._discover_bundles([ComponentType.RESOURCE])
         
-        # Verify executor was called
-        mock_executor.assert_called_once()
+        # Should have registry configured
+        assert api.registry is not None
+        
+        # Should have components available
+        components = api.registry.get_components(ComponentType.RESOURCE)
+        assert len(components) == 1
+        assert components[0].name == "test_resource"
     
     def test_modern_api_imports(self):
         """Test that modern API imports work correctly."""

@@ -99,7 +99,7 @@ class TestPlatingContext:
         
         assert context.component_type == ComponentType.FUNCTION
     
-    def test_plating_context_save_and_load_config(self, temp_config_file):
+    def test_plating_context_save_and_load_config(self, tmp_path):
         """Test config persistence using foundation patterns."""
         context = PlatingContext(
             name="test_resource",
@@ -107,11 +107,13 @@ class TestPlatingContext:
             provider_name="test_provider"
         )
         
+        config_file = tmp_path / "config.json"
+        
         # Save context
-        context.save_context(temp_config_file)
+        context.save_context(config_file)
         
         # Load context
-        loaded_context = PlatingContext.load_context(temp_config_file)
+        loaded_context = PlatingContext.load_context(config_file)
         
         assert loaded_context.name == "test_resource"
         assert loaded_context.component_type == ComponentType.RESOURCE
