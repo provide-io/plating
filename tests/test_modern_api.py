@@ -9,12 +9,8 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from provide.foundation import pout, perr, pin  # Foundation I/O helpers
-from provide.foundation.testing import (
-    MockContext,
-    reset_foundation_setup_for_testing,
-    temp_config_file,
-    temporary_cert_file  # Can use for temp files
-)
+
+# Use the testkit utilities available via conftest.py fixtures
 
 from plating import (
     Plating, 
@@ -34,7 +30,7 @@ class TestModernAPI:
     
     def setup_method(self):
         """Setup for each test using foundation patterns."""
-        reset_foundation_setup_for_testing()
+        # Foundation setup is handled by foundation_test_setup fixture
         reset_plating_registry()
         pout("Setting up modern API test", color="blue")
     
@@ -152,8 +148,8 @@ class TestModernAPI:
     @pytest.mark.asyncio
     async def test_plating_api_initialization(self):
         """Test Plating API initialization using foundation patterns."""
-        # Use foundation MockContext as base
-        mock_base_context = MockContext()
+        # Use mock context as base
+        mock_base_context = Mock(name="MockContext")
         
         # Create PlatingContext with foundation context features
         context = PlatingContext(

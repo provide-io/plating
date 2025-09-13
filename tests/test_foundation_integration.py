@@ -9,11 +9,8 @@ from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from provide.foundation.testing import (
-    MockContext,
-    reset_foundation_setup_for_testing,
-    temp_config_file
-)
+
+# Use the testkit utilities available via conftest.py fixtures
 
 from plating.types import (
     PlatingContext, 
@@ -33,7 +30,7 @@ class TestPlatingContext:
     
     def setup_method(self):
         """Setup for each test."""
-        reset_foundation_setup_for_testing()
+        # Foundation setup is handled by foundation_test_setup fixture
     
     def test_plating_context_inherits_foundation_context(self):
         """Test that PlatingContext properly extends foundation.Context."""
@@ -125,7 +122,7 @@ class TestPlatingRegistry:
     
     def setup_method(self):
         """Setup for each test."""
-        reset_foundation_setup_for_testing()
+        # Foundation setup is handled by foundation_test_setup fixture
         reset_plating_registry()
     
     @patch("plating.registry.PlatingDiscovery")
@@ -201,7 +198,7 @@ class TestMarkdownValidator:
     
     def setup_method(self):
         """Setup for each test."""
-        reset_foundation_setup_for_testing()
+        # Foundation setup is handled by foundation_test_setup fixture
         reset_markdown_validator()
     
     def test_validator_uses_foundation_retry_patterns(self):
@@ -348,7 +345,7 @@ class TestGlobalInstances:
     
     def setup_method(self):
         """Setup for each test."""
-        reset_foundation_setup_for_testing()
+        # Foundation setup is handled by foundation_test_setup fixture
         reset_plating_registry()
         reset_markdown_validator()
     
