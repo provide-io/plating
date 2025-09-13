@@ -98,6 +98,17 @@ class PlatingBundle:
 
         return fixtures
 
+    def has_main_template(self) -> bool:
+        """Check if the bundle has a main template file."""
+        template_file = self.docs_dir / f"{self.name}.tmpl.md"
+        return template_file.exists()
+
+    def has_examples(self) -> bool:
+        """Check if the bundle has any example files."""
+        if not self.examples_dir.exists():
+            return False
+        return any(self.examples_dir.glob("*.tf"))
+
 
 class PlatingDiscovery:
     """Discovers .plating bundles from installed packages."""
@@ -120,36 +131,42 @@ class PlatingDiscovery:
 
         package_path = Path(spec.origin).parent
 
-        # Search for .plating directories
-        for plating_dir in package_path.rglob("*.plating"):
-            if not plating_dir.is_dir():
-                continue
+        # Search for .plating and .garnish directories (legacy compatibility)
+        patterns = ["*.plating", "*.garnish"]
+        for pattern in patterns:
+            for plating_dir in package_path.rglob(pattern):
+                if not plating_dir.is_dir():
+                    continue
 
-            # Skip hidden directories
-            if plating_dir.name.startswith("."):
-                continue
+                # Skip hidden directories
+                if plating_dir.name.startswith("."):
+                    continue
 
-            # Determine component type from path
-            bundle_component_type = self._determine_component_type(plating_dir)
-            if component_type and bundle_component_type != component_type:
-                continue
+                # Determine component type from path
+                bundle_component_type = self._determine_component_type(plating_dir)
+                if component_type and bundle_component_type != component_type:
+                    continue
 
-            # Check if this is a multi-component bundle
-            sub_component_bundles = self._discover_sub_components(plating_dir, bundle_component_type)
-            if sub_component_bundles:
-                # Multi-component bundle - use individual components
-                bundles.extend(sub_component_bundles)
-            else:
-                # Single component bundle
-                component_name = plating_dir.name.replace(".plating", "")
+                # Check if this is a multi-component bundle
+                sub_component_bundles = self._discover_sub_components(plating_dir, bundle_component_type)
+                if sub_component_bundles:
+                    # Multi-component bundle - use individual components
+                    bundles.extend(sub_component_bundles)
+                else:
+                    # Single component bundle - handle both .plating and .garnish extensions
+                    component_name = plating_dir.name
+                    if component_name.endswith(".plating"):
+                        component_name = component_name.replace(".plating", "")
+                    elif component_name.endswith(".garnish"):
+                        component_name = component_name.replace(".garnish", "")
 
-                bundle = PlatingBundle(
-                    name=component_name,
-                    plating_dir=plating_dir,
-                    component_type=bundle_component_type,
-                )
+                    bundle = PlatingBundle(
+                        name=component_name,
+                        plating_dir=plating_dir,
+                        component_type=bundle_component_type,
+                    )
 
-                bundles.append(bundle)
+                    bundles.append(bundle)
 
         return bundles
 
