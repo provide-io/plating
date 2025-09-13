@@ -120,16 +120,18 @@ class AsyncTemplateEngine:
     
     async def _load_partials(self, bundle: PlatingBundle) -> dict[str, str]:
         """Load partial templates from bundle."""
+        import json
+        
         cache_key = f"{bundle.plating_dir}:partials"
         if cache_key in self._template_cache:
-            return eval(self._template_cache[cache_key])  # Stored as string repr
+            return json.loads(self._template_cache[cache_key])
         
         # Run in thread pool since file I/O is blocking
         partials = await asyncio.get_event_loop().run_in_executor(
             None, bundle.load_partials
         )
         
-        self._template_cache[cache_key] = repr(partials)
+        self._template_cache[cache_key] = json.dumps(partials)
         return partials
     
     def _format_example(self, example_code: str) -> str:

@@ -1,41 +1,77 @@
 #
 # plating/__init__.py
 #
-"""Plating - Modern documentation generation for Terraform/OpenTofu providers.
+"""Modern async documentation generation with full foundation integration.
 
-This package implements a comprehensive documentation generation system with:
-- Type-safe async-first API
-- Foundation integration for reliability and observability  
-- Clean developer experience without backward compatibility baggage
+A clean, type-safe API for generating high-quality documentation with 
+multi-domain support via foundation patterns.
 
 Key Features:
-- Unified Plating API for all operations
-- Type-safe contexts and enums
-- Async template rendering with rate limiting
-- Foundation integration (retry, metrics, circuit breakers)
-- Clean modern Python patterns
+- Type-safe async-first API
+- Full foundation integration (retry, metrics, circuit breakers)
+- Registry-based component discovery with multi-domain support
+- Integrated markdown validation with configurable rules
+- Context-aware template rendering with Jinja2
+- Extensible beyond Terraform to any domain (Kubernetes, CloudFormation, API docs, etc.)
 
 Example Usage:
     ```python
-    from plating import Plating, ComponentType
+    import asyncio
+    from pathlib import Path
+    from plating import Plating, ComponentType, PlatingContext
     
-    # Initialize API
-    plating = Plating(provider_name="my_provider")
+    async def main():
+        # Initialize with foundation context
+        context = PlatingContext(
+            provider_name="my_provider",
+            log_level="INFO",
+            no_color=False
+        )
+        
+        api = Plating(context)
+        
+        # Create missing templates
+        adorn_result = await api.adorn([ComponentType.RESOURCE])
+        print(f"Created {adorn_result.templates_generated} templates")
+        
+        # Generate docs with validation
+        plate_result = await api.plate(
+            Path("docs"),
+            component_types=[ComponentType.RESOURCE],
+            validate_markdown=True,
+            force=True
+        )
+        
+        if plate_result.success:
+            print(f"Generated {len(plate_result.output_files)} files")
+        
+        # Validate existing documentation
+        validation_result = await api.validate()
+        print(f"Validation: {validation_result.passed}/{validation_result.total} passed")
     
-    # Adorn components
-    result = await plating.adorn([ComponentType.RESOURCE])
+    # Run the async main
+    asyncio.run(main())
+    ```
+    
+CLI Usage:
+    ```bash
+    # Create missing templates
+    plating adorn --component-type resource --provider-name my_provider
     
     # Generate documentation
-    result = await plating.plate(Path("docs"), force=True)
+    plating plate --output-dir docs --validate
     
-    # Validate examples
-    result = await plating.validate()
+    # Validate existing docs
+    plating validate --output-dir docs
+    
+    # Show registry info
+    plating info --provider-name my_provider
     ```
 """
 
 from plating._version import __version__
 
-# Modern async API
+# Core async API
 from plating.api import Plating, plating
 
 # Type-safe data structures
@@ -52,7 +88,7 @@ from plating.types import (
 # Template engine
 from plating.async_template_engine import AsyncTemplateEngine, template_engine
 
-# Foundation decorators
+# Foundation decorators and utilities
 from plating.decorators import (
     with_retry,
     with_circuit_breaker,
@@ -61,24 +97,25 @@ from plating.decorators import (
     plating_metrics,
 )
 
+# Registry and validation
+from plating.registry import PlatingRegistry, get_plating_registry, reset_plating_registry
+from plating.markdown_validator import MarkdownValidator, get_markdown_validator, reset_markdown_validator
+
 # Core bundle system
 from plating.plating import PlatingBundle, PlatingDiscovery
-
-# Legacy CLI (still functional but uses old patterns)
-from plating.cli import main
 
 __all__ = [
     # Version
     "__version__",
     
-    # Modern API
+    # Core API
     "Plating",
     "plating",
     
     # Type-safe structures
     "ComponentType",
-    "PlatingContext",
-    "SchemaInfo", 
+    "PlatingContext", 
+    "SchemaInfo",
     "ArgumentInfo",
     "AdornResult",
     "PlateResult",
@@ -90,52 +127,23 @@ __all__ = [
     
     # Foundation decorators
     "with_retry",
-    "with_circuit_breaker", 
-    "with_metrics",
+    "with_circuit_breaker",
+    "with_metrics", 
     "with_timing",
     "plating_metrics",
     
-    # Core bundle system
+    # Registry and validation
+    "PlatingRegistry",
+    "get_plating_registry",
+    "reset_plating_registry",
+    "MarkdownValidator",
+    "get_markdown_validator", 
+    "reset_markdown_validator",
+    
+    # Core system
     "PlatingBundle",
     "PlatingDiscovery",
-    
-    # CLI
-    "main",
 ]
 
 
-# Modern usage examples
-def example_usage():
-    """Example of modern API usage."""
-    import asyncio
-    from pathlib import Path
-    
-    async def main():
-        # Initialize with type-safe API
-        api = Plating(provider_name="my_provider")
-        
-        # Adorn with enum types
-        adorn_result = await api.adorn([ComponentType.RESOURCE, ComponentType.DATA_SOURCE])
-        print(f"Adorned {adorn_result.components_processed} components")
-        
-        # Generate docs with structured results
-        plate_result = await api.plate(
-            Path("docs"),
-            component_types=[ComponentType.RESOURCE],
-            force=True
-        )
-        
-        if plate_result.success:
-            print(f"Generated {len(plate_result.output_files)} files in {plate_result.duration_seconds:.2f}s")
-        else:
-            print(f"Errors: {plate_result.errors}")
-        
-        # Validate with detailed results
-        validation_result = await api.validate()
-        print(f"Validation: {validation_result.passed}/{validation_result.total} passed")
-    
-    # Example would be: asyncio.run(main())
-    return main
-
-
-# 🍲🚀✨🎯
+# 🚀✨🎯🍽️
