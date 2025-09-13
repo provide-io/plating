@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from attrs import define, field
-from provide.foundation import Context
+from provide.foundation import CLIContext
 
 
 class ComponentType(Enum):
@@ -226,7 +226,7 @@ class SchemaInfo:
         return "Dynamic"
 
 
-class PlatingContext(Context):
+class PlatingCLIContext(CLIContext):
     """Type-safe context for plating operations extending foundation.Context."""
     
     def __init__(
@@ -298,7 +298,7 @@ class PlatingContext(Context):
         self._domains = domains
         self._set_metadata = set_metadata or {}
     
-    def from_dict(self, data: dict[str, Any]) -> "PlatingContext":
+    def from_dict(self, data: dict[str, Any]) -> "PlatingCLIContext":
         """Update from dictionary."""
         # Call parent's from_dict first
         super().from_dict(data)
@@ -331,7 +331,7 @@ class PlatingContext(Context):
         self.save_config(path)
     
     @classmethod
-    def load_context(cls, path: Path) -> "PlatingContext":
+    def load_context(cls, path: Path) -> "PlatingCLIContext":
         """Load context from file using foundation's config management."""
         import json
         
@@ -439,5 +439,8 @@ class SetOperationResult:
         
         return all_errors
 
+
+# Alias for backward compatibility and shorter imports
+PlatingContext = PlatingCLIContext
 
 # 🍲🏷️✨⚡
