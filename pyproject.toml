@@ -24,11 +24,12 @@ classifiers = [
 ]
 dependencies = [
     "jinja2>=3.1.6,<4.0.0",
-    "rich>=13.0.0,<14.0.0", 
+    "rich>=13.0.0,<14.0.0",
     "pyvider>=0.0.0.post0,<0.1.0",
     "pyvider-hcl>=0.0.113,<0.1.0",
     "pyvider-cty>=0.0.111,<0.1.0",
     "provide-foundation>=0.0.0.dev3,<0.1.0",
+    "pymarkdownlnt>=0.9.32",
 ]
 
 [project.optional-dependencies]
