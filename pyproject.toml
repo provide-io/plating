@@ -113,8 +113,5 @@ exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ =
 
 [dependency-groups]
 dev = [
-    "mypy>=1.17.1,<2.0.0",
-    "provide-testkit",
-    "pytest-cov>=6.3.0",
-    "pytest-xdist>=3.8.0,<4.0.0",
+    "provide-testkit[standard]",
 ]
