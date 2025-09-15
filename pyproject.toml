@@ -46,9 +46,9 @@ plating = "plating.cli:main"
 package = true
 
 [tool.uv.sources]
-provide-foundation = { path = "../provide-foundation", editable = true }
-provide-testkit = { path = "../provide-testkit", editable = true }
-pyvider-cty = { path = "../pyvider-cty", editable = true }
+provide-foundation = { workspace = true }
+provide-testkit = { workspace = true }
+pyvider-cty = { workspace = true }
 
 [tool.setuptools.packages.find]
 where = ["src"]
