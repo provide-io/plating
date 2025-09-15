@@ -30,13 +30,9 @@ dependencies = [
     "pymarkdownlnt>=0.9.32",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.26.0",
-    "pytest-cov>=6.0.0",
-    "mypy>=1.10.0",
-    "ruff>=0.2.0",
+    "provide-testkit[standard,build]",
 ]
 
 [project.scripts]
