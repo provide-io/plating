@@ -1,24 +1,24 @@
+from __future__ import annotations
+
 #
 # plating/registry.py
 #
 """Component registry using foundation patterns."""
 
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
 from provide.foundation import Registry, RegistryEntry, logger
 from provide.foundation.resilience import RetryPolicy, BackoffStrategy, RetryExecutor
 
-from .types import ComponentType
-
-if TYPE_CHECKING:
-    from .plating import PlatingBundle, PlatingDiscovery
+from plating.plating import PlatingBundle, PlatingDiscovery
+from plating.types import ComponentType
 
 
 class PlatingRegistryEntry(RegistryEntry):
     """Registry entry for plating bundles."""
     
-    def __init__(self, bundle: "PlatingBundle", dimension: str):
+    def __init__(self, bundle: PlatingBundle, dimension: str):
         """Initialize entry from bundle."""
         super().__init__(
             name=bundle.name,
