@@ -28,6 +28,7 @@ dependencies = [
     "pyvider-cty>=0.0.111,<0.1.0",
     "provide-foundation[all]>=0.0.0.dev3",
     "pymarkdownlnt>=0.9.32",
+    "mkdocs-material>=9.6.20",
 ]
 
 [dependency-groups]
