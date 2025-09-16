@@ -46,7 +46,9 @@ plating = "plating.cli:main"
 package = true
 
 [tool.uv.sources]
-provide-testkit = { path = "../provide-testkit" }
+provide-foundation = { path = "../provide-foundation", editable = true }
+provide-testkit = { path = "../provide-testkit", editable = true }
+pyvider-cty = { path = "../pyvider-cty", editable = true }
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -113,5 +115,5 @@ exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ =
 
 [dependency-groups]
 dev = [
-    "provide-testkit[standard]",
+    "provide-testkit[standard,advanced-testing,build]",
 ]
