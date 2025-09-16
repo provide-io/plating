@@ -31,7 +31,7 @@ generator.create_project("my-new-project", {
 
 ## API Reference
 
-For complete API documentation, see the [API Reference](api/).
+For complete API documentation, see the [API Reference](api/index.md).
 
 ## Template Types
 
