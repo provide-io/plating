@@ -3,41 +3,46 @@
 #
 """Centralized test configuration and fixtures using provide-testkit."""
 
-import pytest
 from pathlib import Path
 from unittest.mock import ANY, AsyncMock, MagicMock, Mock, PropertyMock, call, patch
 
+import pytest
+
 # Import testkit utilities from specific modules
 try:
-    from provide.testkit import reset_foundation_setup_for_testing, mock_logger
+    from provide.testkit import mock_logger, reset_foundation_setup_for_testing
+
     TESTKIT_AVAILABLE = True
 except ImportError:
     TESTKIT_AVAILABLE = False
+
     # Fallback implementations
     def reset_foundation_setup_for_testing():
         pass
+
     def mock_logger():
         return Mock()
+
 
 # Import file fixtures from testkit file module
 try:
     from provide.testkit.file import (
-        temp_directory,
-        test_files_structure, 
-        nested_directory_structure,
         empty_directory,
+        nested_directory_structure,
+        temp_directory,
         temp_file,
+        test_files_structure,
     )
 except ImportError:
     # Fallback to pytest's tmp_path
     @pytest.fixture
     def temp_directory(tmp_path):
         return tmp_path
-    
-    @pytest.fixture 
+
+    @pytest.fixture
     def test_files_structure(tmp_path):
         return tmp_path, tmp_path
-    
+
     nested_directory_structure = temp_directory
     empty_directory = temp_directory
     temp_file = temp_directory
@@ -45,13 +50,13 @@ except ImportError:
 # Import mocking fixtures
 try:
     from provide.testkit.mocking import (
-        mock_factory,
-        magic_mock_factory,
         async_mock_factory,
-        property_mock_factory,
-        patch_fixture,
         auto_patch,
+        magic_mock_factory,
+        mock_factory,
         mock_open_fixture,
+        patch_fixture,
+        property_mock_factory,
     )
 except ImportError:
     # Fallback implementations
@@ -59,43 +64,50 @@ except ImportError:
     def mock_factory():
         def _create_mock(name=None, **kwargs):
             return Mock(name=name, **kwargs)
+
         return _create_mock
-    
+
     @pytest.fixture
     def magic_mock_factory():
         def _create_magic_mock(name=None, **kwargs):
             return MagicMock(name=name, **kwargs)
+
         return _create_magic_mock
-    
+
     @pytest.fixture
     def async_mock_factory():
         def _create_async_mock(name=None, **kwargs):
             return AsyncMock(name=name, **kwargs)
+
         return _create_async_mock
-    
+
     @pytest.fixture
     def property_mock_factory():
         def _create_property_mock(**kwargs):
             return PropertyMock(**kwargs)
+
         return _create_property_mock
-    
+
     @pytest.fixture
     def patch_fixture():
         patches = []
+
         def _patch(target, **kwargs):
             patcher = patch(target, **kwargs)
             mock = patcher.start()
             patches.append(patcher)
             return mock
+
         yield _patch
         for patcher in patches:
             patcher.stop()
-    
+
     auto_patch = patch_fixture
-    
+
     @pytest.fixture
     def mock_open_fixture():
         from unittest.mock import mock_open
+
         return lambda read_data=None: mock_open(read_data=read_data)
 
 
@@ -111,7 +123,7 @@ def pytest_configure(config):
 def foundation_test_setup():
     """
     Reset foundation state before and after each test.
-    
+
     This ensures proper test isolation for foundation components
     like logging, registries, and other global state.
     """
@@ -124,39 +136,39 @@ def foundation_test_setup():
 def plating_bundle_structure(temp_directory):
     """
     Create standard .plating bundle structure for testing.
-    
+
     Creates:
         test.plating/
         ├── docs/
         │   ├── main.md.j2
-        │   └── partial.md.j2  
+        │   └── partial.md.j2
         └── examples/
             ├── basic.tf
             └── fixtures/
                 └── variables.tf
-    
+
     Returns:
         Path to the plating bundle directory
     """
     plating_dir = temp_directory / "test.plating"
-    
+
     # Create directory structure
     docs_dir = plating_dir / "docs"
     examples_dir = plating_dir / "examples"
     fixtures_dir = examples_dir / "fixtures"
-    
+
     docs_dir.mkdir(parents=True)
-    examples_dir.mkdir(parents=True) 
+    examples_dir.mkdir(parents=True)
     fixtures_dir.mkdir(parents=True)
-    
+
     # Create template files
     (docs_dir / "main.md.j2").write_text("# {{ name }}\n\n{{ description }}")
     (docs_dir / "partial.md.j2").write_text("## {{ title }}\n{{ content }}")
-    
+
     # Create example files
     (examples_dir / "basic.tf").write_text('resource "test" "example" {\n  name = "test"\n}')
     (fixtures_dir / "variables.tf").write_text('variable "name" {\n  type = string\n}')
-    
+
     return plating_dir
 
 
@@ -185,7 +197,7 @@ def mock_foundation_hub():
     return hub
 
 
-@pytest.fixture 
+@pytest.fixture
 def mock_component_class():
     """Create a mock component class with documentation."""
     component = Mock(name="ComponentClass")
@@ -215,7 +227,7 @@ __all__ = [
     "foundation_test_setup",
     "mock_logger",
     # File fixtures
-    "temp_directory", 
+    "temp_directory",
     "test_files_structure",
     "nested_directory_structure",
     "empty_directory",
@@ -228,7 +240,7 @@ __all__ = [
     "mock_generator",
     # Mocking utilities
     "mock_factory",
-    "magic_mock_factory", 
+    "magic_mock_factory",
     "async_mock_factory",
     "property_mock_factory",
     "patch_fixture",

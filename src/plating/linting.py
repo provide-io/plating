@@ -19,9 +19,7 @@ class MarkdownLinter:
         self.config_file = config_file
         # Circuit breaker for markdownlint operations
         self.circuit_breaker = CircuitBreaker(
-            failure_threshold=3,
-            recovery_timeout=30.0,
-            expected_exception=ProcessError
+            failure_threshold=3, recovery_timeout=30.0, expected_exception=ProcessError
         )
 
     def lint_templates(self, template_dir: Path) -> tuple[bool, list[dict[str, Any]]]:
@@ -81,7 +79,7 @@ class MarkdownLinter:
         if self.circuit_breaker.state == CircuitState.OPEN:
             logger.warning("Markdownlint circuit breaker is open, skipping lint check")
             return False, [{"message": "Markdownlint temporarily unavailable (circuit breaker open)"}]
-        
+
         cmd = ["markdownlint-cli2", pattern]
         if self.config_file:
             cmd.extend(["--config", str(self.config_file)])
@@ -111,7 +109,9 @@ class MarkdownLinter:
         except ProcessError as e:
             # Check if it's a command not found error
             if "not found" in str(e).lower() or "no such file" in str(e).lower():
-                raise RuntimeError("markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2") from e
+                raise RuntimeError(
+                    "markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2"
+                ) from e
             logger.error("Error running markdownlint", error=str(e))
             raise RuntimeError(f"Error running markdownlint: {e}") from e
 
@@ -128,7 +128,7 @@ class MarkdownLinter:
         if self.circuit_breaker.state == CircuitState.OPEN:
             logger.warning("Markdownlint circuit breaker is open, skipping fix operation")
             return False
-            
+
         cmd = ["markdownlint-cli2", "--fix", pattern]
         if self.config_file:
             cmd.extend(["--config", str(self.config_file)])
@@ -141,7 +141,9 @@ class MarkdownLinter:
         except ProcessError as e:
             # Check if it's a command not found error
             if "not found" in str(e).lower() or "no such file" in str(e).lower():
-                raise RuntimeError("markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2") from e
+                raise RuntimeError(
+                    "markdownlint-cli2 not found. Install with: npm install -g markdownlint-cli2"
+                ) from e
             logger.error("Error running markdownlint", error=str(e))
             raise RuntimeError(f"Error running markdownlint: {e}") from e
 

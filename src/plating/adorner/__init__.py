@@ -9,9 +9,9 @@ from plating.adorner.templates import TemplateGenerator
 
 __all__ = [
     "PlatingAdorner",
-    "adorn_components", 
-    "adorn_missing_components",
     "TemplateGenerator",
+    "adorn_components",
+    "adorn_missing_components",
 ]
 
 

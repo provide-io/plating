@@ -7,7 +7,7 @@ import pytest
 def test_old_api_module_removed():
     """Test that the old api.py module is gone."""
     with pytest.raises(ModuleNotFoundError):
-        import plating.api
+        pass
 
 
 def test_new_module_exists():
@@ -15,7 +15,7 @@ def test_new_module_exists():
     import importlib.util
 
     # Check if the module file exists and can be loaded
-    spec = importlib.util.find_spec('plating.plating')
+    spec = importlib.util.find_spec("plating.plating")
     assert spec is not None, "plating.plating module should exist"
     assert spec.origin is not None, "plating.plating should have a file origin"
 
@@ -27,12 +27,14 @@ def test_import_structure_basic():
 
     # Check if __init__.py has the right imports configured
     import plating
+
     init_content = plating.__file__
-    assert init_content.endswith('__init__.py'), "Should import from __init__.py"
+    assert init_content.endswith("__init__.py"), "Should import from __init__.py"
 
     # Verify the module exists
     import importlib
-    spec = importlib.util.find_spec('plating.plating')
+
+    spec = importlib.util.find_spec("plating.plating")
     assert spec is not None, "plating.plating module should be importable"
 
 

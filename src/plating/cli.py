@@ -8,7 +8,7 @@ import asyncio
 from pathlib import Path
 
 import click
-from provide.foundation import pout, perr
+from provide.foundation import perr, pout
 
 from plating.plating import Plating
 from plating.types import ComponentType, PlatingContext
@@ -33,27 +33,24 @@ def main() -> None:
     help="Provider name for context.",
 )
 @click.option(
-    "--package-name", 
+    "--package-name",
     type=str,
     default="pyvider.components",
     help="Package to search for components.",
 )
-def adorn_command(
-    component_type: tuple[str, ...], 
-    provider_name: str | None,
-    package_name: str
-) -> None:
+def adorn_command(component_type: tuple[str, ...], provider_name: str | None, package_name: str) -> None:
     """Create missing documentation templates and examples."""
+
     async def run():
         context = PlatingContext(provider_name=provider_name or "default")
         api = Plating(context, package_name)
-        
+
         # Convert string types to ComponentType enums
         types = [ComponentType(t) for t in component_type] if component_type else list(ComponentType)
-        
+
         pout(f"🎨 Adorning {len(types)} component types...")
         result = await api.adorn(types)
-        
+
         if result.success:
             pout(f"✅ Generated {result.templates_generated} templates")
             pout(f"📦 Processed {result.components_processed} components")
@@ -85,7 +82,7 @@ def adorn_command(
 )
 @click.option(
     "--package-name",
-    type=str, 
+    type=str,
     default="pyvider.components",
     help="Package to search for components.",
 )
@@ -105,19 +102,20 @@ def plate_command(
     provider_name: str | None,
     package_name: str,
     force: bool,
-    validate: bool
+    validate: bool,
 ) -> None:
     """Generate documentation from plating bundles."""
+
     async def run():
         context = PlatingContext(provider_name=provider_name or "default")
         api = Plating(context, package_name)
-        
+
         # Convert string types to ComponentType enums
         types = [ComponentType(t) for t in component_type] if component_type else None
-        
+
         pout(f"🍽️ Plating documentation to {output_dir}...")
         result = await api.plate(output_dir, types, force, validate)
-        
+
         if result.success:
             pout(f"✅ Generated {result.files_generated} files in {result.duration_seconds:.2f}s")
             pout(f"📦 Processed {result.bundles_processed} bundles")
@@ -156,32 +154,30 @@ def plate_command(
 @click.option(
     "--package-name",
     type=str,
-    default="pyvider.components", 
+    default="pyvider.components",
     help="Package to search for components.",
 )
 def validate_command(
-    output_dir: Path,
-    component_type: tuple[str, ...],
-    provider_name: str | None,
-    package_name: str
+    output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str
 ) -> None:
     """Validate generated documentation."""
+
     async def run():
         context = PlatingContext(provider_name=provider_name or "default")
         api = Plating(context, package_name)
-        
+
         # Convert string types to ComponentType enums
         types = [ComponentType(t) for t in component_type] if component_type else None
-        
+
         pout(f"🔍 Validating documentation in {output_dir}...")
         result = await api.validate(output_dir, types)
-        
-        pout(f"📊 Validation results:")
+
+        pout("📊 Validation results:")
         pout(f"  • Total files: {result.total}")
         pout(f"  • Passed: {result.passed}")
         pout(f"  • Failed: {result.failed}")
         pout(f"  • Duration: {result.duration_seconds:.2f}s")
-        
+
         if result.success:
             pout("✅ All validations passed")
         else:
@@ -192,7 +188,7 @@ def validate_command(
                     perr(f"    • {error}")
                 if len(result.lint_errors) > 5:
                     perr(f"    ... and {len(result.lint_errors) - 5} more")
-            
+
             if result.errors:
                 perr("  General errors:")
                 for error in result.errors:
@@ -215,53 +211,59 @@ def validate_command(
 )
 def info_command(provider_name: str | None, package_name: str) -> None:
     """Show registry information and statistics."""
+
     async def run():
         context = PlatingContext(provider_name=provider_name or "default")
         api = Plating(context, package_name)
-        
+
         stats = api.get_registry_stats()
-        
+
         pout("📊 Registry Statistics:")
         pout(f"  • Total components: {stats.get('total_components', 0)}")
         pout(f"  • Component types: {', '.join(stats.get('component_types', []))}")
-        
-        for comp_type in stats.get('component_types', []):
+
+        for comp_type in stats.get("component_types", []):
             count = stats.get(f"{comp_type}_count", 0)
             with_templates = stats.get(f"{comp_type}_with_templates", 0)
             with_examples = stats.get(f"{comp_type}_with_examples", 0)
-            
-            pout(f"  • {comp_type}: {count} total, {with_templates} with templates, {with_examples} with examples")
+
+            pout(
+                f"  • {comp_type}: {count} total, {with_templates} with templates, {with_examples} with examples"
+            )
 
     asyncio.run(run())
 
 
 @main.command("stats")
 @click.option(
-    "--package-name", 
+    "--package-name",
     type=str,
     default="pyvider.components",
     help="Package to search for components.",
 )
 def stats_command(package_name: str) -> None:
     """Show registry statistics."""
+
     async def run():
         context = PlatingContext(provider_name="default")
         api = Plating(context, package_name)
-        
+
         stats = api.get_registry_stats()
-        
+
         pout("📊 Registry Statistics:")
         pout(f"   Total components: {stats.get('total_components', 0)}")
-        
-        component_types = stats.get('component_types', [])
+
+        component_types = stats.get("component_types", [])
         if component_types:
             pout("\n📦 Components by type:")
             for comp_type in sorted(component_types):
                 count = stats.get(f"{comp_type}_count", 0)
                 with_templates = stats.get(f"{comp_type}_with_templates", 0)
                 with_examples = stats.get(f"{comp_type}_with_examples", 0)
-                pout(f"   {comp_type}: {count} total, {with_templates} with templates, {with_examples} with examples")
-    
+                pout(
+                    f"   {comp_type}: {count} total, {with_templates} with templates, {with_examples} with examples"
+                )
+
     asyncio.run(run())
 
 

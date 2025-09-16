@@ -2,8 +2,9 @@
 Comprehensive tests for the adorner module.
 """
 
-import pytest
 from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 from plating.adorner import PlatingAdorner, adorn_components, adorn_missing_components
 from plating.adorner.finder import ComponentFinder
@@ -31,7 +32,7 @@ class TestPlatingAdorner:
         mock_foundation_hub.discover_components.return_value = None
         mock_foundation_hub.list_components.return_value = []
         mock_foundation_hub.get_component.return_value = None
-        
+
         # Replace adorner's hub
         adorner.hub = mock_foundation_hub
 
@@ -44,13 +45,15 @@ class TestPlatingAdorner:
             mock_foundation_hub.discover_components.assert_called_once_with("pyvider.components")
 
     @pytest.mark.asyncio
-    async def test_adorn_missing_with_existing_bundles(self, adorner, mock_foundation_hub, mock_component_class):
+    async def test_adorn_missing_with_existing_bundles(
+        self, adorner, mock_foundation_hub, mock_component_class
+    ):
         """Test adorn_missing skips components with existing bundles."""
         # Mock components returned by hub
         mock_foundation_hub.discover_components.return_value = None
         mock_foundation_hub.list_components.return_value = ["existing_resource"]
         mock_foundation_hub.get_component.return_value = mock_component_class
-        
+
         # Replace adorner's hub
         adorner.hub = mock_foundation_hub
 
@@ -71,15 +74,15 @@ class TestPlatingAdorner:
         """Test adorn_missing dresses new components."""
         # Mock components returned by hub - only return component for resource dimension
         mock_foundation_hub.discover_components.return_value = None
-        
+
         def mock_list_components(dimension=None):
             if dimension == "resource":
                 return ["new_resource"]
             return []  # No components for other dimensions
-        
+
         mock_foundation_hub.list_components.side_effect = mock_list_components
         mock_foundation_hub.get_component.return_value = mock_component_class
-        
+
         # Replace adorner's hub
         adorner.hub = mock_foundation_hub
 
@@ -95,21 +98,23 @@ class TestPlatingAdorner:
                 assert result == {"resource": 1, "data_source": 0, "function": 0}
 
     @pytest.mark.asyncio
-    async def test_adorn_missing_with_component_type_filter(self, adorner, mock_component_class, mock_foundation_hub):
+    async def test_adorn_missing_with_component_type_filter(
+        self, adorner, mock_component_class, mock_foundation_hub
+    ):
         """Test adorn_missing filters by component type."""
         # Mock foundation hub to return components for both resource and data_source dimensions
         mock_foundation_hub.discover_components.return_value = None
-        
+
         def mock_list_components(dimension=None):
             if dimension == "resource":
                 return ["test_resource"]
             elif dimension == "data_source":
                 return ["test_data"]
             return []
-        
+
         mock_foundation_hub.list_components.side_effect = mock_list_components
         mock_foundation_hub.get_component.return_value = mock_component_class
-        
+
         # Replace adorner's hub
         adorner.hub = mock_foundation_hub
 

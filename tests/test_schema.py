@@ -44,12 +44,12 @@ class TestSchemaProcessor:
                 }
             }
         }
-        
+
         # Mock the hub's discovery and component methods
         mock_foundation_hub.discover_components.return_value = None
         mock_foundation_hub.list_components.side_effect = [[], [], [], []]  # For each dimension
         mock_foundation_hub.get_component.return_value = None
-        
+
         # Replace the processor's hub with our mock
         schema_processor.hub = mock_foundation_hub
 
@@ -65,22 +65,22 @@ class TestSchemaProcessor:
         mock_resource = mock_factory("resource", spec=[])
         mock_data = mock_factory("data_source", spec=[])
         mock_func = mock_factory("function", spec=[])
-        
+
         # Mock the hub's discovery and component retrieval
         mock_foundation_hub.discover_components.return_value = None
         mock_foundation_hub.list_components.side_effect = [
             ["test_provider"],  # provider dimension
             ["test_resource"],  # resource dimension
-            ["test_data"],      # data_source dimension
-            ["test_func"],      # function dimension
+            ["test_data"],  # data_source dimension
+            ["test_func"],  # function dimension
         ]
         mock_foundation_hub.get_component.side_effect = [
             mock_provider,
-            mock_resource, 
+            mock_resource,
             mock_data,
             mock_func,
         ]
-        
+
         # Replace the processor's hub with our mock
         schema_processor.hub = mock_foundation_hub
 
