@@ -72,7 +72,7 @@ CLI Usage:
 from plating._version import __version__
 
 # Core async API
-from plating.api import Plating, plating
+from plating.plating import Plating, plating
 
 # Type-safe data structures
 from plating.types import (
