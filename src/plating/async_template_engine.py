@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 #
-# plating/async_template_engine.py  
+# plating/async_template_engine.py
 #
 """Modern async template engine with foundation integration."""
 
@@ -9,13 +11,8 @@ from pathlib import Path
 from jinja2 import DictLoader, Environment, select_autoescape
 from provide.foundation import logger
 
-from .decorators import with_metrics, with_timing, plating_metrics
-from .types import PlatingContext
-
-# Use TYPE_CHECKING for forward reference to avoid circular import
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from .plating import PlatingBundle
+from plating.decorators import with_metrics, with_timing, plating_metrics
+from plating.types import PlatingContext
 
 
 class AsyncTemplateEngine:
@@ -46,7 +43,7 @@ class AsyncTemplateEngine:
     @with_metrics("template_render")
     async def render(
         self,
-        bundle: "PlatingBundle",
+        bundle: PlatingBundle,
         context: PlatingContext
     ) -> str:
         """Render template with context and partials.
@@ -90,7 +87,7 @@ class AsyncTemplateEngine:
     
     async def render_batch(
         self, 
-        items: list[tuple["PlatingBundle", PlatingContext]]
+        items: list[tuple[PlatingBundle, PlatingContext]]
     ) -> list[str]:
         """Render multiple templates in parallel.
         
@@ -108,7 +105,7 @@ class AsyncTemplateEngine:
         async with plating_metrics.track_operation("batch_render", count=len(items)):
             return await asyncio.gather(*tasks)
     
-    async def _load_template(self, bundle: "PlatingBundle") -> str:
+    async def _load_template(self, bundle: PlatingBundle) -> str:
         """Load main template from bundle."""
         cache_key = f"{bundle.plating_dir}:main"
         if cache_key in self._template_cache:
@@ -122,7 +119,7 @@ class AsyncTemplateEngine:
         self._template_cache[cache_key] = template_content
         return template_content
     
-    async def _load_partials(self, bundle: "PlatingBundle") -> dict[str, str]:
+    async def _load_partials(self, bundle: PlatingBundle) -> dict[str, str]:
         """Load partial templates from bundle."""
         import json
         
