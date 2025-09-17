@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 #
-# plating/async_template_engine.py  
+# plating/async_template_engine.py
 #
 """Modern async template engine with foundation integration."""
 
@@ -9,9 +11,8 @@ from pathlib import Path
 from jinja2 import DictLoader, Environment, select_autoescape
 from provide.foundation import logger
 
-from .decorators import with_metrics, with_timing, plating_metrics
-from .plating import PlatingBundle
-from .types import PlatingContext
+from plating.decorators import with_metrics, with_timing, plating_metrics
+from plating.types import PlatingContext
 
 
 class AsyncTemplateEngine:
@@ -41,7 +42,7 @@ class AsyncTemplateEngine:
     @with_timing
     @with_metrics("template_render")
     async def render(
-        self, 
+        self,
         bundle: PlatingBundle,
         context: PlatingContext
     ) -> str:

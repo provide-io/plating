@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 #
 # plating/registry.py
 #
@@ -9,8 +11,8 @@ from typing import Any
 from provide.foundation import Registry, RegistryEntry, logger
 from provide.foundation.resilience import RetryPolicy, BackoffStrategy, RetryExecutor
 
-from .plating import PlatingBundle, PlatingDiscovery
-from .types import ComponentType
+from plating.plating import PlatingBundle, PlatingDiscovery
+from plating.types import ComponentType
 
 
 class PlatingRegistryEntry(RegistryEntry):
