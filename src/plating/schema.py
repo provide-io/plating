@@ -9,10 +9,10 @@ import shutil
 from typing import TYPE_CHECKING, Any
 
 import attrs
-from provide.foundation import logger, pout, metrics
+from provide.foundation import logger, metrics, pout
 from provide.foundation.hub import Hub
 from provide.foundation.process import ProcessError, run_command
-from provide.foundation.resilience import RetryExecutor, RetryPolicy, BackoffStrategy
+from provide.foundation.resilience import BackoffStrategy, RetryExecutor, RetryPolicy
 from provide.foundation.utils import timed_block
 
 from plating.config import get_config
@@ -34,7 +34,7 @@ class SchemaProcessor:
             backoff=BackoffStrategy.EXPONENTIAL,
             base_delay=1.0,
             max_delay=10.0,
-            retryable_errors=(ProcessError, SchemaError, Exception)
+            retryable_errors=(ProcessError, SchemaError, Exception),
         )
         self.retry_executor = RetryExecutor(self.retry_policy)
         # Initialize foundation hub for component discovery
@@ -48,7 +48,7 @@ class SchemaProcessor:
                 metrics.counter("plating.schema_extractions_success").inc()
                 metrics.gauge("plating.schema_extraction_duration").set(timer.get("duration", 0))
                 return result
-            except Exception as e:
+            except Exception:
                 metrics.counter("plating.schema_extractions_failed").inc()
                 raise
 
@@ -65,7 +65,7 @@ class SchemaProcessor:
 
         # Get components by dimension from foundation registry
         providers = self._get_components_by_dimension("provider")
-        resources = self._get_components_by_dimension("resource") 
+        resources = self._get_components_by_dimension("resource")
         data_sources = self._get_components_by_dimension("data_source")
         functions = self._get_components_by_dimension("function")
 
