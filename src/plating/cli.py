@@ -10,7 +10,7 @@ from pathlib import Path
 import click
 from provide.foundation import pout, perr
 
-from plating.api import Plating
+from plating.plating import Plating
 from plating.types import ComponentType, PlatingContext
 
 
