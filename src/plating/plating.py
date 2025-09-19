@@ -21,7 +21,7 @@ from plating.types import AdornResult, ComponentType, PlateResult, PlatingContex
 class Plating:
     """Modern async API for all plating operations with foundation integration."""
 
-    def __init__(self, context: PlatingContext | None = None, package_name: str = "pyvider.components"):
+    def __init__(self, context: PlatingContext | None = None, package_name: str = "pyvider.components") -> None:
         """Initialize plating API with foundation context.
 
         Args:
@@ -400,7 +400,7 @@ class PlatingBundle:
 class PlatingDiscovery:
     """Discovers .plating bundles from installed packages."""
 
-    def __init__(self, package_name: str = "pyvider.components"):
+    def __init__(self, package_name: str = "pyvider.components") -> None:
         self.package_name = package_name
 
     def discover_bundles(self, component_type: str | None = None) -> list[PlatingBundle]:

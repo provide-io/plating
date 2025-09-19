@@ -5,19 +5,21 @@ from __future__ import annotations
 #
 """Component registry using foundation patterns."""
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from provide.foundation import Registry, RegistryEntry, logger
 from provide.foundation.resilience import BackoffStrategy, RetryExecutor, RetryPolicy
 
-from plating.plating import PlatingBundle, PlatingDiscovery
 from plating.types import ComponentType
+
+if TYPE_CHECKING:
+    from plating.plating import PlatingBundle, PlatingDiscovery
 
 
 class PlatingRegistryEntry(RegistryEntry):
     """Registry entry for plating bundles."""
 
-    def __init__(self, bundle: PlatingBundle, dimension: str):
+    def __init__(self, bundle: "PlatingBundle", dimension: str):
         """Initialize entry from bundle."""
         super().__init__(
             name=bundle.name,
