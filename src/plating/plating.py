@@ -23,7 +23,9 @@ from plating.types import AdornResult, ComponentType, PlateResult, PlatingContex
 class Plating:
     """Modern async API for all plating operations with foundation integration."""
 
-    def __init__(self, context: PlatingContext | None = None, package_name: str = "pyvider.components") -> None:
+    def __init__(
+        self, context: PlatingContext | None = None, package_name: str = "pyvider.components"
+    ) -> None:
         """Initialize plating API with foundation context.
 
         Args:
@@ -188,7 +190,7 @@ class Plating:
         return result
 
     async def _create_component_template(
-        self, component: "PlatingBundle", component_type: ComponentType
+        self, component: PlatingBundle, component_type: ComponentType
     ) -> None:
         """Create a basic template for a component."""
         from plating.adorner import TemplateGenerator
@@ -206,7 +208,7 @@ class Plating:
 
     async def _render_component_docs(
         self,
-        component: "PlatingBundle",
+        component: PlatingBundle,
         component_type: ComponentType,
         output_dir: Path,
         force: bool,
@@ -259,7 +261,7 @@ class Plating:
             result.errors.append(f"{component.name}: {e!s}")
 
     def _get_component_schema(
-        self, component: "PlatingBundle", component_type: ComponentType, provider_schema: dict
+        self, component: PlatingBundle, component_type: ComponentType, provider_schema: dict
     ) -> dict | None:
         """Extract component schema from provider schema."""
         if not provider_schema:
@@ -334,8 +336,9 @@ class PlatingBundle:
     def has_main_template(self) -> bool:
         """Check if this bundle has a main template."""
         template_file = self.docs_dir / f"{self.name}.tmpl.md"
+        pyvider_template = self.docs_dir / f"pyvider_{self.name}.tmpl.md"
         main_template = self.docs_dir / "main.md.j2"
-        return template_file.exists() or main_template.exists()
+        return template_file.exists() or pyvider_template.exists() or main_template.exists()
 
     def has_examples(self) -> bool:
         """Check if this bundle has examples."""
@@ -346,9 +349,10 @@ class PlatingBundle:
     def load_main_template(self) -> str | None:
         """Load the main template file for this component."""
         template_file = self.docs_dir / f"{self.name}.tmpl.md"
+        pyvider_template = self.docs_dir / f"pyvider_{self.name}.tmpl.md"
         main_template = self.docs_dir / "main.md.j2"
 
-        for template_path in [template_file, main_template]:
+        for template_path in [template_file, pyvider_template, main_template]:
             if template_path.exists():
                 try:
                     return template_path.read_text(encoding="utf-8")
