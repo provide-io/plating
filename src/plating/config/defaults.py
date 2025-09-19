@@ -53,7 +53,7 @@ FUNCTION_TYPE_GENERIC = "generic"
 
 # Common function names by category
 STRING_TRANSFORM_FUNCTIONS = frozenset({"upper", "lower", "title"})
-MATH_FUNCTIONS = frozenset({"add", "subtract", "multiply", "divide"})
+MATH_FUNCTIONS = frozenset({"add", "subtract", "multiply", "divide", "min", "max", "sum", "round"})
 STRING_MANIPULATION_FUNCTIONS = frozenset({"join", "split", "replace"})
 
 # =================================
