@@ -56,7 +56,6 @@ class Plating:
     @with_timing
     @with_retry
     @with_metrics
-    @plating_metrics
     async def adorn(
         self,
         output_dir: Path | None = None,
@@ -110,7 +109,6 @@ class Plating:
     @with_timing
     @with_retry
     @with_metrics
-    @plating_metrics
     async def plate(
         self,
         output_dir: Path | None = None,
