@@ -71,8 +71,14 @@ CLI Usage:
 
 from plating._version import __version__
 
+# New modular API (backwards compatible)
+from plating.api import PlatingAPI
+
 # Template engine
 from plating.async_template_engine import AsyncTemplateEngine, template_engine
+
+# New modular components
+from plating.bundles import FunctionPlatingBundle, PlatingBundle as ModularPlatingBundle
 
 # Foundation decorators and utilities
 from plating.decorators import (
@@ -82,11 +88,12 @@ from plating.decorators import (
     with_retry,
     with_timing,
 )
+from plating.discovery import PlatingDiscovery as ModularPlatingDiscovery, TemplateMetadataExtractor
+from plating.generation import DocumentationAdorner, DocumentationPlater, TemplateRenderer
 from plating.markdown_validator import MarkdownValidator, get_markdown_validator, reset_markdown_validator
 
 # Core async API
-# Core bundle system
-from plating.plating import Plating, PlatingBundle, PlatingDiscovery, plating
+from plating.plating import Plating, plating
 
 # Registry and validation
 from plating.registry import PlatingRegistry, get_plating_registry, reset_plating_registry
@@ -103,38 +110,45 @@ from plating.types import (
 )
 
 __all__ = [
-    # Version
-    "__version__",
-    # Core API
-    "Plating",
-    "plating",
-    # Type-safe structures
-    "ComponentType",
-    "PlatingContext",
-    "SchemaInfo",
-    "ArgumentInfo",
     "AdornResult",
-    "PlateResult",
-    "ValidationResult",
+    "ArgumentInfo",
     # Template engine
     "AsyncTemplateEngine",
-    "template_engine",
-    # Foundation decorators
-    "with_retry",
-    "with_circuit_breaker",
-    "with_metrics",
-    "with_timing",
-    "plating_metrics",
+    # Type-safe structures
+    "ComponentType",
+    "DocumentationAdorner",
+    "DocumentationPlater",
+    # New modular components
+    "FunctionPlatingBundle",
+    "MarkdownValidator",
+    "ModularPlatingBundle",
+    "ModularPlatingDiscovery",
+    "PlateResult",
+    # Core API
+    "Plating",
+    # New modular API
+    "PlatingAPI",
+    "PlatingContext",
     # Registry and validation
     "PlatingRegistry",
-    "get_plating_registry",
-    "reset_plating_registry",
-    "MarkdownValidator",
+    "SchemaInfo",
+    "TemplateMetadataExtractor",
+    "TemplateRenderer",
+    "ValidationResult",
+    # Version
+    "__version__",
     "get_markdown_validator",
+    "get_plating_registry",
+    "plating",
+    "plating_metrics",
     "reset_markdown_validator",
-    # Core system
-    "PlatingBundle",
-    "PlatingDiscovery",
+    "reset_plating_registry",
+    "template_engine",
+    "with_circuit_breaker",
+    "with_metrics",
+    # Foundation decorators
+    "with_retry",
+    "with_timing",
 ]
 
 
