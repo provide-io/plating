@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 #
-# plating/api.py
+# plating/plating.py
 #
 """Modern async API for plating operations with full foundation integration."""
 
 from pathlib import Path
 import time
+from typing import Any
 
-from attrs import define, field
 from provide.foundation import logger, metrics
 from provide.foundation.resilience import BackoffStrategy, CircuitBreaker, RetryPolicy
 
@@ -49,57 +49,71 @@ class Plating:
             max_delay=10.0,
             retryable_errors=(IOError, OSError, Exception),
         )
-
         self.circuit_breaker = CircuitBreaker(
-            failure_threshold=3, recovery_timeout=30.0, expected_exception=Exception
+            failure_threshold=3, recovery_timeout=30.0, expected_exception=(Exception,)
         )
 
-        # Schema processor
-        self._schema_processor = None
-        if self.context.provider_name:
-            mock_generator = type(
-                "MockGenerator", (), {"provider_name": self.context.provider_name, "provider_dir": Path.cwd()}
-            )()
-            self._schema_processor = SchemaProcessor(mock_generator)
-
     @with_timing
-    @with_metrics("adorn_operation")
-    async def adorn(self, component_types: list[ComponentType]) -> AdornResult:
-        """Create missing documentation templates and examples.
+    @with_retry
+    @with_metrics
+    @plating_metrics
+    async def adorn(
+        self,
+        output_dir: Path | None = None,
+        component_types: list[ComponentType] | None = None,
+        templates_only: bool = False,
+    ) -> AdornResult:
+        """Generate template structure for discovered components.
 
         Args:
-            component_types: Component types to process
+            output_dir: Directory to write templates (default: .plating)
+            component_types: Specific component types to adorn
+            templates_only: Only generate templates, skip discovery
 
         Returns:
-            AdornResult with operation statistics
+            AdornResult with generation statistics
         """
-        result = AdornResult()
+        if not component_types:
+            component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
 
-        async with plating_metrics.track_operation("adorn", types=len(component_types)):
-            for component_type in component_types:
+        output_dir = output_dir or Path(".plating")
+        output_dir.mkdir(exist_ok=True)
+
+        start_time = time.monotonic()
+        templates_generated = 0
+
+        for component_type in component_types:
+            components = self.registry.get_components_with_templates(component_type)
+            logger.info(f"Found {len(components)} {component_type.value} components to adorn")
+
+            for component in components:
                 try:
-                    # Get components from registry
-                    components = self.registry.get_components(component_type)
-                    components_without_templates = [c for c in components if not c.has_main_template()]
+                    template_dir = output_dir / component_type.value / component.name
+                    template_dir.mkdir(parents=True, exist_ok=True)
 
-                    for component in components_without_templates:
-                        await self._create_component_template(component, component_type)
-                        result.templates_generated += 1
-
-                    result.components_processed += len(components)
+                    # Generate basic template if it doesn't exist
+                    template_file = template_dir / f"{component.name}.tmpl.md"
+                    if not template_file.exists() or not templates_only:
+                        await self._generate_template(component, template_file)
+                        templates_generated += 1
 
                 except Exception as e:
-                    logger.error(f"Failed to adorn {component_type.value}: {e}")
-                    result.errors.append(f"{component_type.value}: {e!s}")
+                    logger.error(f"Failed to adorn {component.name}: {e}")
 
-        return result
+        duration = time.monotonic() - start_time
+        return AdornResult(
+            duration=duration,
+            templates_generated=templates_generated,
+            components_discovered=sum(len(self.registry.get_components(ct)) for ct in component_types),
+        )
 
     @with_timing
-    @with_retry(max_attempts=2, retryable_errors=(IOError, OSError))
-    @with_metrics("plate_operation")
+    @with_retry
+    @with_metrics
+    @plating_metrics
     async def plate(
         self,
-        output_dir: Path,
+        output_dir: Path | None = None,
         component_types: list[ComponentType] | None = None,
         force: bool = False,
         validate_markdown: bool = True,
@@ -107,194 +121,181 @@ class Plating:
         """Generate documentation from plating bundles.
 
         Args:
-            output_dir: Directory to write documentation
-            component_types: Component types to filter (None = all)
-            force: Force overwrite existing files
-            validate_markdown: Run markdown validation
+            output_dir: Output directory for documentation
+            component_types: Component types to generate
+            force: Overwrite existing files
+            validate_markdown: Enable markdown validation
 
         Returns:
-            PlateResult with operation statistics
+            PlateResult with generation statistics
         """
-        start_time = time.perf_counter()
-        result = PlateResult()
+        output_dir = output_dir or Path("docs")
+        output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Determine component types
-        if component_types is None:
-            component_types = self.registry.get_all_component_types()
+        if not component_types:
+            component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
 
-        async with plating_metrics.track_operation("plate", types=len(component_types)):
-            output_dir.mkdir(parents=True, exist_ok=True)
+        start_time = time.monotonic()
+        result = PlateResult(duration=0.0, files_generated=0, validation_errors=[], output_files=[])
 
-            for component_type in component_types:
-                try:
-                    components = self.registry.get_components_with_templates(component_type)
+        for component_type in component_types:
+            components = self.registry.get_components_with_templates(component_type)
+            logger.info(f"Generating docs for {len(components)} {component_type.value} components")
 
-                    for component in components:
-                        await self._render_component_docs(component, component_type, output_dir, force, result)
+            await self._render_component_docs(components, component_type, output_dir, force, result)
 
-                    result.bundles_processed += len(components)
+        result.duration = time.monotonic() - start_time
 
-                except Exception as e:
-                    logger.error(f"Failed to plate {component_type.value}: {e}")
-                    result.errors.append(f"{component_type.value}: {e!s}")
-
-        # Markdown validation
+        # Validate if requested
         if validate_markdown and result.output_files:
-            validation_result = self.validator.validate_files(result.output_files)
-            if not validation_result.success:
-                result.errors.extend(validation_result.lint_errors)
-
-        result.duration_seconds = time.perf_counter() - start_time
-        metrics.gauge("plating.plate_duration").set(result.duration_seconds)
+            validation_result = await self.validate(output_dir, component_types)
+            result.validation_errors = validation_result.errors
 
         return result
 
-    @with_timing
-    @with_metrics("validate_operation")
     async def validate(
         self, output_dir: Path | None = None, component_types: list[ComponentType] | None = None
     ) -> ValidationResult:
         """Validate generated documentation.
 
         Args:
-            output_dir: Directory containing documentation (default: docs/)
-            component_types: Component types to validate (None = all)
+            output_dir: Directory containing documentation
+            component_types: Component types to validate
 
         Returns:
-            ValidationResult with validation statistics
+            ValidationResult with any errors found
         """
-        start_time = time.perf_counter()
+        output_dir = output_dir or Path("docs")
+        component_types = component_types or [
+            ComponentType.RESOURCE,
+            ComponentType.DATA_SOURCE,
+            ComponentType.FUNCTION,
+        ]
 
-        if output_dir is None:
-            output_dir = Path("docs")
+        errors = []
+        files_checked = 0
 
-        if not output_dir.exists():
-            return ValidationResult(total=0, failed=1, errors=["Documentation directory not found"])
+        for component_type in component_types:
+            type_dir = output_dir / component_type.value.replace("_", "_")
+            if not type_dir.exists():
+                continue
 
-        # Find markdown files
-        markdown_files = list(output_dir.rglob("*.md"))
+            for md_file in type_dir.glob("*.md"):
+                try:
+                    validation_result = await self.validator.validate_file(md_file)
+                    if not validation_result.is_valid:
+                        errors.extend(validation_result.errors)
+                    files_checked += 1
+                except Exception as e:
+                    errors.append(f"Failed to validate {md_file}: {e}")
 
-        # Filter by component types if specified
-        if component_types:
-            filtered_files = []
-            for component_type in component_types:
-                subdir = component_type.output_subdir
-                filtered_files.extend(output_dir.glob(f"{subdir}/*.md"))
-            markdown_files = filtered_files
-
-        async with plating_metrics.track_operation("validate", files=len(markdown_files)):
-            # Validate markdown
-            result = self.validator.validate_files(markdown_files)
-            result.duration_seconds = time.perf_counter() - start_time
-
-            metrics.gauge("plating.validation_duration").set(result.duration_seconds)
-
-        return result
-
-    async def _create_component_template(
-        self, component: PlatingBundle, component_type: ComponentType
-    ) -> None:
-        """Create a basic template for a component."""
-        from plating.adorner import TemplateGenerator
-
-        template_dir = component.plating_dir / "docs"
-        template_dir.mkdir(parents=True, exist_ok=True)
-
-        generator = TemplateGenerator()
-        template_content = await generator.generate_template(component.name, component_type.value, None)
-
-        template_file = template_dir / "main.md.j2"
-        template_file.write_text(template_content)
-
-        logger.info(f"Created template for {component_type.value}/{component.name}")
+        return ValidationResult(errors=errors, files_checked=files_checked, is_valid=len(errors) == 0)
 
     async def _render_component_docs(
         self,
-        component: PlatingBundle,
+        components: list[PlatingBundle],
         component_type: ComponentType,
         output_dir: Path,
         force: bool,
         result: PlateResult,
     ) -> None:
-        """Render documentation for a single component."""
-        # Build context
-        context = PlatingContext(
-            name=component.name, component_type=component_type, provider_name=self.context.provider_name
-        )
+        """Render documentation for a list of components."""
+        output_subdir = output_dir / component_type.value.replace("_", "_")
+        output_subdir.mkdir(parents=True, exist_ok=True)
 
-        # Get schema if available
-        if self._schema_processor:
+        for component in components:
             try:
-                provider_schema = self._schema_processor.extract_provider_schema()
-                component_schema = self._get_component_schema(component, component_type, provider_schema)
-                if component_schema:
-                    from plating.types import SchemaInfo
+                output_file = output_subdir / f"{component.name}.md"
 
-                    context.schema = SchemaInfo.from_dict(component_schema)
+                if output_file.exists() and not force:
+                    logger.debug(f"Skipping existing file: {output_file}")
+                    continue
+
+                # Load and render template
+                template_content = component.load_main_template()
+                if not template_content:
+                    logger.warning(f"No template found for {component.name}")
+                    continue
+
+                # Get component schema if available
+                provider_schema = self._get_component_schema(component, component_type, {})
+
+                # Render with template engine
+                rendered_content = await template_engine.render(
+                    template_content, component=component, schema=provider_schema, context=self.context
+                )
+
+                # Write output
+                output_file.write_text(rendered_content, encoding="utf-8")
+                result.files_generated += 1
+                result.output_files.append(output_file)
+
+                logger.info(f"Generated {component_type.value} docs: {output_file}")
+
             except Exception as e:
-                logger.warning(f"Failed to extract schema for {component.name}: {e}")
-
-        # Load examples
-        context.examples = component.load_examples()
-
-        # Render template
-        try:
-            rendered = await template_engine.render(component, context)
-
-            # Write output
-            subdir = component_type.output_subdir
-            output_subdir = output_dir / subdir
-            output_subdir.mkdir(parents=True, exist_ok=True)
-
-            output_file = output_subdir / f"{component.name}.md"
-
-            if output_file.exists() and not force:
-                logger.debug(f"Skipping existing file: {output_file}")
-                return
-
-            output_file.write_text(rendered)
-            result.files_generated += 1
-            result.output_files.append(output_file)
-
-            logger.info(f"Generated {component_type.value} docs: {output_file}")
-
-        except Exception as e:
-            logger.error(f"Failed to render {component.name}: {e}")
-            result.errors.append(f"{component.name}: {e!s}")
+                logger.error(f"Failed to render {component.name}: {e}")
 
     def _get_component_schema(
-        self, component: PlatingBundle, component_type: ComponentType, provider_schema: dict
-    ) -> dict | None:
+        self, component: PlatingBundle, component_type: ComponentType, provider_schema: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Extract component schema from provider schema."""
         if not provider_schema:
             return None
 
-        provider_schemas = provider_schema.get("provider_schemas", {})
+        schemas = provider_schema.get(f"{component_type.value}_schemas", {})
+        if not schemas:
+            return None
 
-        for provider_data in provider_schemas.values():
-            if component_type == ComponentType.RESOURCE:
-                schemas = provider_data.get("resource_schemas", {})
-            elif component_type == ComponentType.DATA_SOURCE:
-                schemas = provider_data.get("data_source_schemas", {})
-            elif component_type == ComponentType.FUNCTION:
-                schemas = provider_data.get("functions", {})
-            else:
-                continue
-
-            # Try exact match and with prefix
-            for name in [component.name, f"pyvider_{component.name}"]:
-                if name in schemas:
-                    return schemas[name]
+        # Try to find schema by component name
+        for name, schema in schemas.items():
+            if name == component.name or name == f"pyvider_{component.name}":
+                return schema
 
         return None
 
-    def get_registry_stats(self) -> dict:
-        """Get statistics about the component registry."""
-        return self.registry.get_registry_stats()
+    def get_registry_stats(self) -> dict[str, Any]:
+        """Get registry statistics."""
+        stats = {"total_components": 0, "component_types": []}
+
+        for component_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]:
+            components = self.registry.get_components(component_type)
+            with_templates = self.registry.get_components_with_templates(component_type)
+
+            stats[component_type.value] = {
+                "total": len(components),
+                "with_templates": len(with_templates),
+            }
+            stats["total_components"] += len(components)
+            if components:
+                stats["component_types"].append(component_type.value)
+
+        return stats
+
+    async def _generate_template(self, component: PlatingBundle, template_file: Path) -> None:
+        """Generate a basic template for a component."""
+        template_content = f"""---
+page_title: "{component.component_type.title()}: {component.name}"
+description: |-
+  Terraform {component.component_type} for {component.name}
+---
+
+# {component.name} ({component.component_type.title()})
+
+Terraform {component.component_type} for {component.name}
+
+## Example Usage
+
+{{{{ example("example") }}}}
+
+## Schema
+
+{{{{ schema_markdown }}}}
+"""
+        template_file.write_text(template_content, encoding="utf-8")
 
 
-# Global instance for convenience
-_global_api = None
+# Global API instance
+_global_api: Plating | None = None
 
 
 def plating(context: PlatingContext | None = None) -> Plating:
@@ -310,225 +311,6 @@ def plating(context: PlatingContext | None = None) -> Plating:
     if _global_api is None:
         _global_api = Plating(context)
     return _global_api
-
-
-@define
-class PlatingBundle:
-    """Represents a single .plating bundle with its assets."""
-
-    name: str
-    plating_dir: Path
-    component_type: str
-
-    @property
-    def docs_dir(self) -> Path:
-        """Directory containing documentation templates and partials."""
-        return self.plating_dir / "docs"
-
-    @property
-    def examples_dir(self) -> Path:
-        """Directory containing example Terraform files."""
-        return self.plating_dir / "examples"
-
-    @property
-    def fixtures_dir(self) -> Path:
-        """Directory containing fixture files for tests (inside examples dir)."""
-        return self.examples_dir / "fixtures"
-
-    def has_main_template(self) -> bool:
-        """Check if this bundle has a main template."""
-        template_file = self.docs_dir / f"{self.name}.tmpl.md"
-        pyvider_template = self.docs_dir / f"pyvider_{self.name}.tmpl.md"
-        main_template = self.docs_dir / "main.md.j2"
-        return template_file.exists() or pyvider_template.exists() or main_template.exists()
-
-    def has_examples(self) -> bool:
-        """Check if this bundle has examples."""
-        if not self.examples_dir.exists():
-            return False
-        return any(self.examples_dir.glob("*.tf"))
-
-    def load_main_template(self) -> str | None:
-        """Load the main template file for this component."""
-        template_file = self.docs_dir / f"{self.name}.tmpl.md"
-        pyvider_template = self.docs_dir / f"pyvider_{self.name}.tmpl.md"
-        main_template = self.docs_dir / "main.md.j2"
-
-        for template_path in [template_file, pyvider_template, main_template]:
-            if template_path.exists():
-                try:
-                    return template_path.read_text(encoding="utf-8")
-                except Exception:
-                    return None
-        return None
-
-    def load_examples(self) -> dict[str, str]:
-        """Load all example files as a dictionary."""
-        examples: dict[str, str] = {}
-        if not self.examples_dir.exists():
-            return examples
-
-        for example_file in self.examples_dir.glob("*.tf"):
-            try:
-                examples[example_file.stem] = example_file.read_text(encoding="utf-8")
-            except Exception:
-                continue
-        return examples
-
-    def load_partials(self) -> dict[str, str]:
-        """Load all partial files from docs directory."""
-        partials: dict[str, str] = {}
-        if not self.docs_dir.exists():
-            return partials
-
-        for partial_file in self.docs_dir.glob("_*"):
-            if partial_file.is_file():
-                try:
-                    partials[partial_file.name] = partial_file.read_text(encoding="utf-8")
-                except Exception:
-                    continue
-        return partials
-
-    def load_fixtures(self) -> dict[str, str]:
-        """Load all fixture files from fixtures directory."""
-        fixtures: dict[str, str] = {}
-        if not self.fixtures_dir.exists():
-            return fixtures
-
-        for fixture_file in self.fixtures_dir.rglob("*"):
-            if fixture_file.is_file():
-                try:
-                    rel_path = fixture_file.relative_to(self.fixtures_dir)
-                    fixtures[str(rel_path)] = fixture_file.read_text(encoding="utf-8")
-                except Exception:
-                    continue
-        return fixtures
-
-
-@define
-class FunctionPlatingBundle(PlatingBundle):
-    """Specialized PlatingBundle for individual function templates."""
-
-    template_file: Path = field()
-
-    def load_main_template(self) -> str | None:
-        """Load the specific template file for this function."""
-        try:
-            return self.template_file.read_text(encoding="utf-8")
-        except Exception:
-            return None
-
-
-class PlatingDiscovery:
-    """Discovers .plating bundles from installed packages."""
-
-    def __init__(self, package_name: str = "pyvider.components") -> None:
-        self.package_name = package_name
-
-    def discover_bundles(self, component_type: str | None = None) -> list[PlatingBundle]:
-        """Discover all .plating bundles from the installed package."""
-        bundles: list[PlatingBundle] = []
-
-        try:
-            import importlib.util
-
-            spec = importlib.util.find_spec(self.package_name)
-            if not spec or not spec.origin:
-                return bundles
-        except (ModuleNotFoundError, ValueError):
-            return bundles
-
-        package_path = Path(spec.origin).parent
-
-        for plating_dir in package_path.rglob("*.plating"):
-            if not plating_dir.is_dir() or plating_dir.name.startswith("."):
-                continue
-
-            bundle_component_type = self._determine_component_type(plating_dir)
-            if component_type and bundle_component_type != component_type:
-                continue
-
-            # First try to discover sub-components (subdirectories with docs/)
-            sub_component_bundles = self._discover_sub_components(plating_dir, bundle_component_type)
-            if sub_component_bundles:
-                bundles.extend(sub_component_bundles)
-            else:
-                # For function bundles, check for individual template files
-                if bundle_component_type == "function":
-                    function_bundles = self._discover_function_templates(plating_dir)
-                    if function_bundles:
-                        bundles.extend(function_bundles)
-                    else:
-                        # Fallback to single bundle
-                        component_name = plating_dir.name.replace(".plating", "")
-                        bundle = PlatingBundle(
-                            name=component_name, plating_dir=plating_dir, component_type=bundle_component_type
-                        )
-                        bundles.append(bundle)
-                else:
-                    # Non-function components use single bundle approach
-                    component_name = plating_dir.name.replace(".plating", "")
-                    bundle = PlatingBundle(
-                        name=component_name, plating_dir=plating_dir, component_type=bundle_component_type
-                    )
-                    bundles.append(bundle)
-
-        return bundles
-
-    def _discover_sub_components(self, plating_dir: Path, component_type: str) -> list[PlatingBundle]:
-        """Discover individual components within a multi-component .plating bundle."""
-        sub_bundles = []
-
-        for item in plating_dir.iterdir():
-            if not item.is_dir():
-                continue
-
-            docs_dir = item / "docs"
-            if docs_dir.exists() and docs_dir.is_dir():
-                sub_component_type = item.name
-                if sub_component_type not in ["resource", "data_source", "function"]:
-                    sub_component_type = component_type
-
-                bundle = PlatingBundle(name=item.name, plating_dir=item, component_type=sub_component_type)
-                sub_bundles.append(bundle)
-
-        return sub_bundles
-
-    def _discover_function_templates(self, plating_dir: Path) -> list[PlatingBundle]:
-        """Discover individual function templates within a function .plating bundle."""
-        function_bundles: list[PlatingBundle] = []
-        docs_dir = plating_dir / "docs"
-
-        if not docs_dir.exists():
-            return function_bundles
-
-        # Find all .tmpl.md files except main.md.j2
-        for template_file in docs_dir.glob("*.tmpl.md"):
-            function_name = template_file.stem.replace(".tmpl", "")
-
-            # Create a specialized bundle for individual function templates
-            bundle = FunctionPlatingBundle(
-                name=function_name,
-                plating_dir=plating_dir,
-                component_type="function",
-                template_file=template_file,
-            )
-            function_bundles.append(bundle)
-
-        return function_bundles
-
-    def _determine_component_type(self, plating_dir: Path) -> str:
-        """Determine component type from the .plating directory path."""
-        path_parts = plating_dir.parts
-
-        if "resources" in path_parts:
-            return "resource"
-        elif "data_sources" in path_parts:
-            return "data_source"
-        elif "functions" in path_parts:
-            return "function"
-        else:
-            return "resource"
 
 
 # 🍲🚀⚡✨
