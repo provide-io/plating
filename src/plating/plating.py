@@ -8,12 +8,14 @@ from __future__ import annotations
 from pathlib import Path
 import time
 
-from attrs import define
+from attrs import define, field
 from provide.foundation import logger, metrics
 from provide.foundation.resilience import BackoffStrategy, CircuitBreaker, RetryPolicy
 
 from plating.async_template_engine import template_engine
+from plating.bundles import PlatingBundle
 from plating.decorators import plating_metrics, with_metrics, with_retry, with_timing
+from plating.discovery import PlatingDiscovery
 from plating.markdown_validator import get_markdown_validator
 from plating.registry import get_plating_registry
 from plating.schema import SchemaProcessor
@@ -403,6 +405,20 @@ class PlatingBundle:
         return fixtures
 
 
+@define
+class FunctionPlatingBundle(PlatingBundle):
+    """Specialized PlatingBundle for individual function templates."""
+
+    template_file: Path = field()
+
+    def load_main_template(self) -> str | None:
+        """Load the specific template file for this function."""
+        try:
+            return self.template_file.read_text(encoding="utf-8")
+        except Exception:
+            return None
+
+
 class PlatingDiscovery:
     """Discovers .plating bundles from installed packages."""
 
@@ -432,15 +448,30 @@ class PlatingDiscovery:
             if component_type and bundle_component_type != component_type:
                 continue
 
+            # First try to discover sub-components (subdirectories with docs/)
             sub_component_bundles = self._discover_sub_components(plating_dir, bundle_component_type)
             if sub_component_bundles:
                 bundles.extend(sub_component_bundles)
             else:
-                component_name = plating_dir.name.replace(".plating", "")
-                bundle = PlatingBundle(
-                    name=component_name, plating_dir=plating_dir, component_type=bundle_component_type
-                )
-                bundles.append(bundle)
+                # For function bundles, check for individual template files
+                if bundle_component_type == "function":
+                    function_bundles = self._discover_function_templates(plating_dir)
+                    if function_bundles:
+                        bundles.extend(function_bundles)
+                    else:
+                        # Fallback to single bundle
+                        component_name = plating_dir.name.replace(".plating", "")
+                        bundle = PlatingBundle(
+                            name=component_name, plating_dir=plating_dir, component_type=bundle_component_type
+                        )
+                        bundles.append(bundle)
+                else:
+                    # Non-function components use single bundle approach
+                    component_name = plating_dir.name.replace(".plating", "")
+                    bundle = PlatingBundle(
+                        name=component_name, plating_dir=plating_dir, component_type=bundle_component_type
+                    )
+                    bundles.append(bundle)
 
         return bundles
 
@@ -462,6 +493,29 @@ class PlatingDiscovery:
                 sub_bundles.append(bundle)
 
         return sub_bundles
+
+    def _discover_function_templates(self, plating_dir: Path) -> list[PlatingBundle]:
+        """Discover individual function templates within a function .plating bundle."""
+        function_bundles: list[PlatingBundle] = []
+        docs_dir = plating_dir / "docs"
+
+        if not docs_dir.exists():
+            return function_bundles
+
+        # Find all .tmpl.md files except main.md.j2
+        for template_file in docs_dir.glob("*.tmpl.md"):
+            function_name = template_file.stem.replace(".tmpl", "")
+
+            # Create a specialized bundle for individual function templates
+            bundle = FunctionPlatingBundle(
+                name=function_name,
+                plating_dir=plating_dir,
+                component_type="function",
+                template_file=template_file,
+            )
+            function_bundles.append(bundle)
+
+        return function_bundles
 
     def _determine_component_type(self, plating_dir: Path) -> str:
         """Determine component type from the .plating directory path."""
