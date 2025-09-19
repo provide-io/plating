@@ -84,21 +84,40 @@ class TemplateMetadataExtractor:
             "subtract": ("Subtracts the second number from the first", "1"),
             "multiply": ("Multiplies two numbers", "6"),
             "divide": ("Divides the first number by the second", "1.5"),
+            "min": ("Finds the minimum value in a list of numbers", "1"),
+            "max": ("Finds the maximum value in a list of numbers", "5"),
+            "sum": ("Calculates the sum of a list of numbers", "15"),
+            "round": ("Rounds a number to a specified precision", "3.14"),
         }
 
         description, example_output = math_descriptions.get(
             function_name, ("Performs a mathematical operation", "result")
         )
 
+        # Handle functions with special signatures
+        if function_name in ["min", "max", "sum"]:
+            signature = f"`{function_name}(numbers)`"
+            args = "- `numbers`: A list of numbers to process"
+            example = f"{function_name}([1, 3, 5, 2, 4]) # Returns: {example_output}"
+        elif function_name == "round":
+            signature = f"`{function_name}(number, precision)`"
+            args = "- `number`: The number to round\n- `precision`: Number of decimal places (optional, default: 0)"
+            example = f"{function_name}(3.14159, 2) # Returns: {example_output}"
+        else:
+            # Default two-argument functions (add, subtract, multiply, divide)
+            signature = f"`{function_name}(a, b)`"
+            args = "- `a`: The first number\n- `b`: The second number"
+            example = f"{function_name}(3, 2) # Returns: {example_output}"
+
         return {
-            "signature_markdown": f"`{function_name}(a, b)`",
-            "arguments_markdown": "- `a`: The first number\n- `b`: The second number",
+            "signature_markdown": signature,
+            "arguments_markdown": args,
             "has_variadic": False,
             "variadic_argument_markdown": "",
             "description": description,
             "examples": {
-                "example": f"{function_name}(3, 2) # Returns: {example_output}",
-                "basic": f"{function_name}(3, 2) # Returns: {example_output}",
+                "example": example,
+                "basic": example,
             },
         }
 
