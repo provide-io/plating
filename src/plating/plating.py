@@ -6,6 +6,7 @@
 from pathlib import Path
 import time
 
+from attrs import define
 from provide.foundation import logger, metrics
 from provide.foundation.resilience import BackoffStrategy, CircuitBreaker, RetryPolicy
 
