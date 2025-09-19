@@ -4,7 +4,7 @@ Unit tests for PlatingBundle class using TDD approach.
 
 from pathlib import Path
 
-from plating.plating import PlatingBundle
+from plating.bundles import PlatingBundle
 
 
 class TestPlatingBundle:
