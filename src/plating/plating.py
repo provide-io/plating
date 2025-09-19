@@ -306,4 +306,169 @@ def plating(context: PlatingContext | None = None) -> Plating:
     return _global_api
 
 
+@define
+class PlatingBundle:
+    """Represents a single .plating bundle with its assets."""
+
+    name: str
+    plating_dir: Path
+    component_type: str
+
+    @property
+    def docs_dir(self) -> Path:
+        """Directory containing documentation templates and partials."""
+        return self.plating_dir / "docs"
+
+    @property
+    def examples_dir(self) -> Path:
+        """Directory containing example Terraform files."""
+        return self.plating_dir / "examples"
+
+    @property
+    def fixtures_dir(self) -> Path:
+        """Directory containing fixture files for tests (inside examples dir)."""
+        return self.examples_dir / "fixtures"
+
+    def has_main_template(self) -> bool:
+        """Check if this bundle has a main template."""
+        template_file = self.docs_dir / f"{self.name}.tmpl.md"
+        main_template = self.docs_dir / "main.md.j2"
+        return template_file.exists() or main_template.exists()
+
+    def has_examples(self) -> bool:
+        """Check if this bundle has examples."""
+        if not self.examples_dir.exists():
+            return False
+        return any(self.examples_dir.glob("*.tf"))
+
+    def load_main_template(self) -> str | None:
+        """Load the main template file for this component."""
+        template_file = self.docs_dir / f"{self.name}.tmpl.md"
+        main_template = self.docs_dir / "main.md.j2"
+
+        for template_path in [template_file, main_template]:
+            if template_path.exists():
+                try:
+                    return template_path.read_text(encoding="utf-8")
+                except Exception:
+                    return None
+        return None
+
+    def load_examples(self) -> dict[str, str]:
+        """Load all example files as a dictionary."""
+        examples: dict[str, str] = {}
+        if not self.examples_dir.exists():
+            return examples
+
+        for example_file in self.examples_dir.glob("*.tf"):
+            try:
+                examples[example_file.stem] = example_file.read_text(encoding="utf-8")
+            except Exception:
+                continue
+        return examples
+
+    def load_partials(self) -> dict[str, str]:
+        """Load all partial files from docs directory."""
+        partials: dict[str, str] = {}
+        if not self.docs_dir.exists():
+            return partials
+
+        for partial_file in self.docs_dir.glob("_*"):
+            if partial_file.is_file():
+                try:
+                    partials[partial_file.name] = partial_file.read_text(encoding="utf-8")
+                except Exception:
+                    continue
+        return partials
+
+    def load_fixtures(self) -> dict[str, str]:
+        """Load all fixture files from fixtures directory."""
+        fixtures: dict[str, str] = {}
+        if not self.fixtures_dir.exists():
+            return fixtures
+
+        for fixture_file in self.fixtures_dir.rglob("*"):
+            if fixture_file.is_file():
+                try:
+                    rel_path = fixture_file.relative_to(self.fixtures_dir)
+                    fixtures[str(rel_path)] = fixture_file.read_text(encoding="utf-8")
+                except Exception:
+                    continue
+        return fixtures
+
+
+class PlatingDiscovery:
+    """Discovers .plating bundles from installed packages."""
+
+    def __init__(self, package_name: str = "pyvider.components"):
+        self.package_name = package_name
+
+    def discover_bundles(self, component_type: str | None = None) -> list[PlatingBundle]:
+        """Discover all .plating bundles from the installed package."""
+        bundles: list[PlatingBundle] = []
+
+        try:
+            import importlib.util
+
+            spec = importlib.util.find_spec(self.package_name)
+            if not spec or not spec.origin:
+                return bundles
+        except (ModuleNotFoundError, ValueError):
+            return bundles
+
+        package_path = Path(spec.origin).parent
+
+        for plating_dir in package_path.rglob("*.plating"):
+            if not plating_dir.is_dir() or plating_dir.name.startswith("."):
+                continue
+
+            bundle_component_type = self._determine_component_type(plating_dir)
+            if component_type and bundle_component_type != component_type:
+                continue
+
+            sub_component_bundles = self._discover_sub_components(plating_dir, bundle_component_type)
+            if sub_component_bundles:
+                bundles.extend(sub_component_bundles)
+            else:
+                component_name = plating_dir.name.replace(".plating", "")
+                bundle = PlatingBundle(
+                    name=component_name, plating_dir=plating_dir, component_type=bundle_component_type
+                )
+                bundles.append(bundle)
+
+        return bundles
+
+    def _discover_sub_components(self, plating_dir: Path, component_type: str) -> list[PlatingBundle]:
+        """Discover individual components within a multi-component .plating bundle."""
+        sub_bundles = []
+
+        for item in plating_dir.iterdir():
+            if not item.is_dir():
+                continue
+
+            docs_dir = item / "docs"
+            if docs_dir.exists() and docs_dir.is_dir():
+                sub_component_type = item.name
+                if sub_component_type not in ["resource", "data_source", "function"]:
+                    sub_component_type = component_type
+
+                bundle = PlatingBundle(name=item.name, plating_dir=item, component_type=sub_component_type)
+                sub_bundles.append(bundle)
+
+        return sub_bundles
+
+    def _determine_component_type(self, plating_dir: Path) -> str:
+        """Determine component type from the .plating directory path."""
+        path_parts = plating_dir.parts
+
+        if "resources" in path_parts:
+            return "resource"
+        elif "data_sources" in path_parts:
+            return "data_source"
+        elif "functions" in path_parts:
+            return "function"
+        else:
+            return "resource"
+
+
 # 🍲🚀⚡✨
