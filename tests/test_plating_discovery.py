@@ -5,7 +5,8 @@ Unit tests for PlatingDiscovery class using TDD approach.
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from plating.plating import PlatingBundle, PlatingDiscovery
+from plating.bundles import PlatingBundle
+from plating.discovery import PlatingDiscovery
 
 
 class TestPlatingDiscovery:
@@ -19,7 +20,7 @@ class TestPlatingDiscovery:
         custom_discovery = PlatingDiscovery(package_name="custom.package")
         assert custom_discovery.package_name == "custom.package"
 
-    @patch("plating.plating.importlib.util.find_spec")
+    @patch("plating.discovery.finder.importlib.util.find_spec")
     def test_discover_bundles_no_package(self, mock_find_spec):
         """Test discovery when package is not found."""
         mock_find_spec.return_value = None
@@ -30,7 +31,7 @@ class TestPlatingDiscovery:
         assert bundles == []
         mock_find_spec.assert_called_once_with("pyvider.components")
 
-    @patch("plating.plating.importlib.util.find_spec")
+    @patch("plating.discovery.finder.importlib.util.find_spec")
     def test_discover_bundles_no_origin(self, mock_find_spec):
         """Test discovery when package spec has no origin."""
         mock_spec = MagicMock()
@@ -42,7 +43,7 @@ class TestPlatingDiscovery:
 
         assert bundles == []
 
-    @patch("plating.plating.importlib.util.find_spec")
+    @patch("plating.discovery.finder.importlib.util.find_spec")
     def test_discover_bundles_with_plating_dirs(self, mock_find_spec, tmp_path):
         """Test discovery finds .plating directories."""
         # Create test structure
@@ -84,7 +85,7 @@ class TestPlatingDiscovery:
         assert "resource2" in bundle_names
         assert "data1" in bundle_names
 
-    @patch("plating.plating.importlib.util.find_spec")
+    @patch("plating.discovery.finder.importlib.util.find_spec")
     def test_discover_bundles_with_component_type_filter(self, mock_find_spec, tmp_path):
         """Test discovery filters by component type."""
         # Create test structure
@@ -140,7 +141,7 @@ class TestPlatingDiscovery:
         unknown_path = Path("/pkg/unknown/test.plating")
         assert discovery._determine_component_type(unknown_path) == "resource"
 
-    @patch("plating.plating.importlib.util.find_spec")
+    @patch("plating.discovery.finder.importlib.util.find_spec")
     def test_discover_multi_component_bundles(self, mock_find_spec, tmp_path):
         """Test discovery of multi-component bundles (subdirectories in .plating)."""
         # Create test structure with multi-component bundle
@@ -176,7 +177,7 @@ class TestPlatingDiscovery:
         assert "resource" in component_types
         assert "data_source" in component_types
 
-    @patch("plating.plating.importlib.util.find_spec")
+    @patch("plating.discovery.finder.importlib.util.find_spec")
     def test_discover_bundles_creates_correct_bundle_objects(self, mock_find_spec, tmp_path):
         """Test that discovered bundles have correct attributes."""
         # Create test structure
@@ -205,7 +206,7 @@ class TestPlatingDiscovery:
         assert bundle.plating_dir == test_plating
         assert bundle.component_type == "resource"
 
-    @patch("plating.plating.importlib.util.find_spec")
+    @patch("plating.discovery.finder.importlib.util.find_spec")
     def test_discover_bundles_recursive_search(self, mock_find_spec, tmp_path):
         """Test that discovery searches recursively for .plating directories."""
         # Create nested structure
@@ -230,7 +231,7 @@ class TestPlatingDiscovery:
         assert len(bundles) == 1
         assert bundles[0].name == "instance"
 
-    @patch("plating.plating.importlib.util.find_spec")
+    @patch("plating.discovery.finder.importlib.util.find_spec")
     def test_discover_bundles_ignores_hidden_directories(self, mock_find_spec, tmp_path):
         """Test that discovery ignores hidden .plating directories."""
         # Create test structure
