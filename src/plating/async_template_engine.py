@@ -6,6 +6,7 @@ from __future__ import annotations
 """Modern async template engine with foundation integration."""
 
 import asyncio
+from typing import TYPE_CHECKING
 
 from jinja2 import DictLoader, Environment, select_autoescape
 from provide.foundation import logger
@@ -13,11 +14,14 @@ from provide.foundation import logger
 from plating.decorators import plating_metrics, with_metrics, with_timing
 from plating.types import PlatingContext
 
+if TYPE_CHECKING:
+    from plating.plating import PlatingBundle
+
 
 class AsyncTemplateEngine:
     """Async-first template engine with foundation integration."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._jinja_env = None
         self._template_cache: dict[str, str] = {}
 
@@ -72,9 +76,14 @@ class AsyncTemplateEngine:
         # Convert context to dict
         context_dict = context.to_dict()
 
+        # Override template functions with context-aware implementations
+        env.globals["example"] = lambda key: self._format_example_with_context(key, context.examples)
+
         # Override schema function to return actual schema
         if context.schema:
             env.globals["schema"] = lambda: context.schema.to_markdown()
+        else:
+            env.globals["schema"] = lambda: ""
 
         # Render template asynchronously
         template = env.get_template("main.tmpl")
@@ -128,7 +137,19 @@ class AsyncTemplateEngine:
             return ""
         return f"```terraform\n{example_code}\n```"
 
-    def clear_cache(self):
+    def _format_example_with_context(self, key: str, examples: dict[str, str]) -> str:
+        """Format example code by looking up the key in the examples dictionary."""
+        if not key or not examples:
+            return ""
+
+        example_content = examples.get(key, "")
+        if not example_content:
+            logger.warning(f"Example '{key}' not found in examples")
+            return ""
+
+        return f"```terraform\n{example_content}\n```"
+
+    def clear_cache(self) -> None:
         """Clear template cache."""
         self._template_cache.clear()
 
