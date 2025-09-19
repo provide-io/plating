@@ -5,21 +5,18 @@ from __future__ import annotations
 #
 """Component registry using foundation patterns."""
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from provide.foundation import Registry, RegistryEntry, logger
 from provide.foundation.resilience import BackoffStrategy, RetryExecutor, RetryPolicy
 
 from plating.types import ComponentType
 
-if TYPE_CHECKING:
-    from plating.plating import PlatingBundle, PlatingDiscovery
-
 
 class PlatingRegistryEntry(RegistryEntry):
     """Registry entry for plating bundles."""
 
-    def __init__(self, bundle: "PlatingBundle", dimension: str):
+    def __init__(self, bundle: PlatingBundle, dimension: str) -> None:
         """Initialize entry from bundle."""
         super().__init__(
             name=bundle.name,
@@ -42,7 +39,7 @@ class PlatingRegistryEntry(RegistryEntry):
 class PlatingRegistry(Registry):
     """Component registry using foundation Registry pattern with ComponentSet support."""
 
-    def __init__(self, package_name: str = "pyvider.components"):
+    def __init__(self, package_name: str = "pyvider.components") -> None:
         """Initialize registry with package discovery.
 
         Args:
@@ -63,6 +60,8 @@ class PlatingRegistry(Registry):
 
         # Initialize discovery with error handling
         try:
+            from plating.plating import PlatingDiscovery
+
             self._discovery = PlatingDiscovery(package_name)
             # Auto-discover on initialization
             self._discover_and_register()
@@ -83,6 +82,7 @@ class PlatingRegistry(Registry):
             logger.info(f"Discovered {len(bundles)} plating bundles")
 
             for bundle in bundles:
+
                 entry = PlatingRegistryEntry(bundle, dimension=bundle.component_type)
                 self.register(
                     name=bundle.name,
