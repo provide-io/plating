@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from plating.config import get_config
+
 #
 # plating/generation/adorner.py
 #
@@ -10,6 +12,9 @@ from typing import Any
 
 class DocumentationAdorner:
     """Enhances documentation content with metadata and template variables."""
+
+    def __init__(self) -> None:
+        self.config = get_config()
 
     def adorn_function_template(
         self, template_content: str, function_name: str, metadata: dict[str, Any]
@@ -24,10 +29,12 @@ class DocumentationAdorner:
         Returns:
             Dictionary containing all template variables
         """
+
         # Create example function that templates can call
         def example(example_name: str) -> str:
             examples = metadata.get("examples", {})
-            return examples.get(example_name, f"# Example for {function_name}")
+            result = examples.get(example_name, self.config.example_placeholder)
+            return str(result)
 
         return {
             "function_name": function_name,
