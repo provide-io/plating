@@ -3,6 +3,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from plating.config import get_config
+from plating.config.defaults import (
+    MATH_FUNCTIONS,
+    STRING_MANIPULATION_FUNCTIONS,
+    STRING_TRANSFORM_FUNCTIONS,
+)
+
 #
 # plating/discovery/templates.py
 #
@@ -11,6 +18,9 @@ from typing import Any
 
 class TemplateMetadataExtractor:
     """Extracts metadata from function implementations for template rendering."""
+
+    def __init__(self) -> None:
+        self.config = get_config()
 
     def extract_function_metadata(self, function_name: str, component_type: str) -> dict[str, Any]:
         """Extract metadata for a function to populate templates.
@@ -34,11 +44,11 @@ class TemplateMetadataExtractor:
             Dictionary containing function metadata
         """
         # Analyze function name to generate appropriate metadata
-        if function_name in {"upper", "title", "lower"}:
+        if function_name in STRING_TRANSFORM_FUNCTIONS:
             return self._generate_string_transform_metadata(function_name)
-        elif function_name in {"add", "subtract", "multiply", "divide"}:
+        elif function_name in MATH_FUNCTIONS:
             return self._generate_math_function_metadata(function_name)
-        elif function_name in {"join", "split", "replace"}:
+        elif function_name in STRING_MANIPULATION_FUNCTIONS:
             return self._generate_string_manipulation_metadata(function_name)
         else:
             return self._generate_generic_metadata(function_name)
@@ -63,7 +73,7 @@ class TemplateMetadataExtractor:
             "description": description,
             "examples": {
                 "example": f'{function_name}("Hello World") # Returns: "{example_output}"',
-                "basic": f'{function_name}("Hello World") # Returns: "{example_output}"'
+                "basic": f'{function_name}("Hello World") # Returns: "{example_output}"',
             },
         }
 
@@ -74,21 +84,40 @@ class TemplateMetadataExtractor:
             "subtract": ("Subtracts the second number from the first", "1"),
             "multiply": ("Multiplies two numbers", "6"),
             "divide": ("Divides the first number by the second", "1.5"),
+            "min": ("Finds the minimum value in a list of numbers", "1"),
+            "max": ("Finds the maximum value in a list of numbers", "5"),
+            "sum": ("Calculates the sum of a list of numbers", "15"),
+            "round": ("Rounds a number to a specified precision", "3.14"),
         }
 
         description, example_output = math_descriptions.get(
             function_name, ("Performs a mathematical operation", "result")
         )
 
+        # Handle functions with special signatures
+        if function_name in ["min", "max", "sum"]:
+            signature = f"`{function_name}(numbers)`"
+            args = "- `numbers`: A list of numbers to process"
+            example = f"{function_name}([1, 3, 5, 2, 4]) # Returns: {example_output}"
+        elif function_name == "round":
+            signature = f"`{function_name}(number, precision)`"
+            args = "- `number`: The number to round\n- `precision`: Number of decimal places (optional, default: 0)"
+            example = f"{function_name}(3.14159, 2) # Returns: {example_output}"
+        else:
+            # Default two-argument functions (add, subtract, multiply, divide)
+            signature = f"`{function_name}(a, b)`"
+            args = "- `a`: The first number\n- `b`: The second number"
+            example = f"{function_name}(3, 2) # Returns: {example_output}"
+
         return {
-            "signature_markdown": f"`{function_name}(a, b)`",
-            "arguments_markdown": "- `a`: The first number\n- `b`: The second number",
+            "signature_markdown": signature,
+            "arguments_markdown": args,
             "has_variadic": False,
             "variadic_argument_markdown": "",
             "description": description,
             "examples": {
-                "example": f"{function_name}(3, 2) # Returns: {example_output}",
-                "basic": f"{function_name}(3, 2) # Returns: {example_output}"
+                "example": example,
+                "basic": example,
             },
         }
 
@@ -123,23 +152,20 @@ class TemplateMetadataExtractor:
             "has_variadic": False,
             "variadic_argument_markdown": "",
             "description": description,
-            "examples": {
-                "example": example,
-                "basic": example
-            },
+            "examples": {"example": example, "basic": example},
         }
 
     def _generate_generic_metadata(self, function_name: str) -> dict[str, Any]:
         """Generate generic metadata for unknown functions."""
         return {
-            "signature_markdown": f"`{function_name}(input)`",
-            "arguments_markdown": "- `input`: The input value to process",
+            "signature_markdown": self.config.fallback_signature_format.format(function_name=function_name),
+            "arguments_markdown": self.config.fallback_arguments_markdown,
             "has_variadic": False,
             "variadic_argument_markdown": "",
             "description": f"Processes input using {function_name} logic",
             "examples": {
                 "example": f'{function_name}("input") # Returns: processed output',
-                "basic": f'{function_name}("input") # Returns: processed output'
+                "basic": f'{function_name}("input") # Returns: processed output',
             },
         }
 

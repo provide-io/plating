@@ -1,7 +1,8 @@
 #
-# plating/config.py
+# plating/config/runtime.py
 #
 """Configuration management for plating."""
+# ruff: noqa: RUF009
 
 import os
 from pathlib import Path
@@ -9,53 +10,90 @@ from pathlib import Path
 from attrs import define
 from provide.foundation.config import RuntimeConfig, field
 
+from plating.config.defaults import (
+    DEFAULT_DATA_SOURCES_DIR,
+    DEFAULT_EXAMPLE_PLACEHOLDER,
+    DEFAULT_FALLBACK_ARGUMENTS_MARKDOWN,
+    DEFAULT_FALLBACK_SIGNATURE_FORMAT,
+    DEFAULT_FUNCTIONS_DIR,
+    DEFAULT_OUTPUT_DIR,
+    DEFAULT_RESOURCES_DIR,
+    DEFAULT_TEST_PARALLEL,
+    DEFAULT_TEST_TIMEOUT,
+    ENV_GARNISH_OUTPUT_DIR,
+    ENV_GARNISH_TEST_PARALLEL,
+    ENV_GARNISH_TEST_TIMEOUT,
+    ENV_GARNISH_TF_BINARY,
+    ENV_PLATING_EXAMPLE_PLACEHOLDER,
+    ENV_PLATING_FALLBACK_ARGUMENTS,
+    ENV_PLATING_FALLBACK_SIGNATURE,
+    ENV_TF_PLUGIN_CACHE_DIR,
+)
+
 
 @define
 class PlatingConfig(RuntimeConfig):
     """Configuration for plating operations."""
 
+    # Template generation configuration
+    example_placeholder: str = field(
+        default=DEFAULT_EXAMPLE_PLACEHOLDER,
+        description="Placeholder when no example is available",
+        env_var=ENV_PLATING_EXAMPLE_PLACEHOLDER,
+    )
+    fallback_signature_format: str = field(
+        default=DEFAULT_FALLBACK_SIGNATURE_FORMAT,
+        description="Fallback signature format for unknown functions",
+        env_var=ENV_PLATING_FALLBACK_SIGNATURE,
+    )
+    fallback_arguments_markdown: str = field(
+        default=DEFAULT_FALLBACK_ARGUMENTS_MARKDOWN,
+        description="Fallback arguments documentation",
+        env_var=ENV_PLATING_FALLBACK_ARGUMENTS,
+    )
+
     # Terraform/OpenTofu configuration
     terraform_binary: str | None = field(
         default=None,
         description="Path to terraform/tofu binary",
-        env_var="GARNISH_TF_BINARY",
+        env_var=ENV_GARNISH_TF_BINARY,
     )
     plugin_cache_dir: Path | None = field(
         default=None,
         description="Terraform plugin cache directory",
-        env_var="TF_PLUGIN_CACHE_DIR",
+        env_var=ENV_TF_PLUGIN_CACHE_DIR,
     )
 
     # Test execution configuration
     test_timeout: int = field(
-        default=120,
+        default=DEFAULT_TEST_TIMEOUT,
         description="Timeout for test execution in seconds",
-        env_var="GARNISH_TEST_TIMEOUT",
+        env_var=ENV_GARNISH_TEST_TIMEOUT,
     )
     test_parallel: int = field(
-        default=4,
+        default=DEFAULT_TEST_PARALLEL,
         description="Number of parallel test executions",
-        env_var="GARNISH_TEST_PARALLEL",
+        env_var=ENV_GARNISH_TEST_PARALLEL,
     )
 
     # Output configuration
     output_dir: Path = field(
-        default=Path("./docs"),
+        factory=lambda: Path(DEFAULT_OUTPUT_DIR),
         description="Default output directory for documentation",
-        env_var="GARNISH_OUTPUT_DIR",
+        env_var=ENV_GARNISH_OUTPUT_DIR,
     )
 
     # Component directories
     resources_dir: Path = field(
-        default=Path("./resources"),
+        factory=lambda: Path(DEFAULT_RESOURCES_DIR),
         description="Directory containing resource definitions",
     )
     data_sources_dir: Path = field(
-        default=Path("./data_sources"),
+        factory=lambda: Path(DEFAULT_DATA_SOURCES_DIR),
         description="Directory containing data source definitions",
     )
     functions_dir: Path = field(
-        default=Path("./functions"),
+        factory=lambda: Path(DEFAULT_FUNCTIONS_DIR),
         description="Directory containing function definitions",
     )
 
