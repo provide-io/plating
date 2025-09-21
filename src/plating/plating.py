@@ -8,6 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 import time
 from typing import Any
+import os
 
 from provide.foundation import logger, metrics
 from provide.foundation.resilience import BackoffStrategy, CircuitBreaker, RetryPolicy
@@ -20,6 +21,62 @@ from plating.discovery import PlatingDiscovery
 from plating.registry import get_plating_registry
 from plating.schema import SchemaProcessor
 from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, SchemaInfo, ValidationResult
+
+
+def find_project_root(start_dir: Path | None = None) -> Path | None:
+    """Find the project root by looking for key files.
+
+    Args:
+        start_dir: Directory to start searching from (defaults to current working directory)
+
+    Returns:
+        Path to project root or None if not found
+    """
+    if start_dir is None:
+        start_dir = Path.cwd()
+
+    current = start_dir.resolve()
+
+    # Look for project marker files
+    project_markers = ["pyproject.toml", "pyvider.toml", ".git", "setup.py", "setup.cfg"]
+
+    while current != current.parent:  # Stop at filesystem root
+        for marker in project_markers:
+            if (current / marker).exists():
+                logger.debug(f"Found project root at {current} (marker: {marker})")
+                return current
+        current = current.parent
+
+    logger.warning(f"No project root found starting from {start_dir}")
+    return None
+
+
+def get_output_directory(output_dir: Path | None, project_root: Path | None = None) -> Path:
+    """Determine the appropriate output directory for documentation.
+
+    Args:
+        output_dir: Explicitly specified output directory
+        project_root: Project root directory
+
+    Returns:
+        Resolved output directory path
+    """
+    if output_dir is not None:
+        # If output_dir is absolute, use as-is
+        if output_dir.is_absolute():
+            return output_dir
+        # If relative and we have project root, make it relative to project root
+        if project_root:
+            return project_root / output_dir
+        # Otherwise relative to current directory
+        return Path.cwd() / output_dir
+
+    # Default behavior: try to use project_root/docs if available
+    if project_root:
+        return project_root / "docs"
+
+    # Fallback to current directory/docs
+    return Path.cwd() / "docs"
 
 
 class Plating:
@@ -118,6 +175,7 @@ class Plating:
         component_types: list[ComponentType] | None = None,
         force: bool = False,
         validate_markdown: bool = True,
+        project_root: Path | None = None,
     ) -> PlateResult:
         """Generate documentation from plating bundles.
 
@@ -126,12 +184,35 @@ class Plating:
             component_types: Component types to generate
             force: Overwrite existing files
             validate_markdown: Enable markdown validation
+            project_root: Project root directory (auto-detected if not provided)
 
         Returns:
             PlateResult with generation statistics
         """
-        output_dir = output_dir or Path("docs")
-        output_dir.mkdir(parents=True, exist_ok=True)
+        # Detect project root if not provided
+        if project_root is None:
+            project_root = find_project_root()
+
+        # Determine final output directory with improved logic
+        final_output_dir = get_output_directory(output_dir, project_root)
+
+        logger.info(f"Using output directory: {final_output_dir}")
+        if project_root:
+            logger.info(f"Project root detected: {project_root}")
+        else:
+            logger.warning("No project root detected, using current directory as base")
+
+        # Validate and create output directory
+        try:
+            final_output_dir.mkdir(parents=True, exist_ok=True)
+        except PermissionError as e:
+            raise RuntimeError(f"Cannot create output directory {final_output_dir}: {e}") from e
+        except OSError as e:
+            raise RuntimeError(f"Failed to create output directory {final_output_dir}: {e}") from e
+
+        # Ensure we can write to the directory
+        if not os.access(final_output_dir, os.W_OK):
+            raise RuntimeError(f"Output directory {final_output_dir} is not writable")
 
         if not component_types:
             component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
@@ -143,10 +224,10 @@ class Plating:
             components = self.registry.get_components_with_templates(component_type)
             logger.info(f"Generating docs for {len(components)} {component_type.value} components")
 
-            await self._render_component_docs(components, component_type, output_dir, force, result)
+            await self._render_component_docs(components, component_type, final_output_dir, force, result)
 
         # Generate provider index page
-        await self._generate_provider_index(output_dir, force, result)
+        await self._generate_provider_index(final_output_dir, force, result)
 
         result.duration_seconds = time.monotonic() - start_time
 
@@ -158,18 +239,23 @@ class Plating:
         return result
 
     async def validate(
-        self, output_dir: Path | None = None, component_types: list[ComponentType] | None = None
+        self, output_dir: Path | None = None, component_types: list[ComponentType] | None = None, project_root: Path | None = None
     ) -> ValidationResult:
         """Validate generated documentation.
 
         Args:
             output_dir: Directory containing documentation
             component_types: Component types to validate
+            project_root: Project root directory (auto-detected if not provided)
 
         Returns:
             ValidationResult with any errors found
         """
-        output_dir = output_dir or Path("docs")
+        # Use same logic as plate method for consistency
+        if project_root is None:
+            project_root = find_project_root()
+
+        final_output_dir = get_output_directory(output_dir, project_root)
         component_types = component_types or [
             ComponentType.RESOURCE,
             ComponentType.DATA_SOURCE,
@@ -180,7 +266,7 @@ class Plating:
         files_checked = 0
 
         for component_type in component_types:
-            type_dir = output_dir / component_type.value.replace("_", "_")
+            type_dir = final_output_dir / component_type.value.replace("_", "_")
             if not type_dir.exists():
                 continue
 
