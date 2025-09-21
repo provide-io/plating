@@ -261,10 +261,10 @@ class PlatingCLIContext(CLIContext):
             plating_dict["schema_markdown"] = self.schema.to_markdown()
 
         if self.signature:
-            plating_dict["signature"] = self.signature
+            plating_dict["signature_markdown"] = self.signature
 
         if self.arguments:
-            plating_dict["arguments"] = "\n".join(
+            plating_dict["arguments_markdown"] = "\n".join(
                 f"- `{arg.name}` ({arg.type}) - {arg.description}" for arg in self.arguments
             )
 
