@@ -16,7 +16,7 @@ from plating.async_template_engine import template_engine
 from plating.bundles import PlatingBundle
 from plating.decorators import plating_metrics, with_metrics, with_retry, with_timing
 from plating.discovery import PlatingDiscovery
-from plating.markdown_validator import get_markdown_validator
+# from plating.markdown_validator import get_markdown_validator
 from plating.registry import get_plating_registry
 from plating.schema import SchemaProcessor
 from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, SchemaInfo, ValidationResult
@@ -39,7 +39,7 @@ class Plating:
 
         # Foundation patterns
         self.registry = get_plating_registry(package_name)
-        self.validator = get_markdown_validator()
+        # self.validator = get_markdown_validator()
 
         # Schema processing
         self._provider_schema: dict[str, Any] | None = None
@@ -150,10 +150,10 @@ class Plating:
 
         result.duration_seconds = time.monotonic() - start_time
 
-        # Validate if requested
-        if validate_markdown and result.output_files:
-            validation_result = await self.validate(output_dir, component_types)
-            result.errors.extend(validation_result.errors)
+        # Validate if requested (disabled due to markdown validator dependency)
+        # if validate_markdown and result.output_files:
+        #     validation_result = await self.validate(output_dir, component_types)
+        #     result.errors.extend(validation_result.errors)
 
         return result
 

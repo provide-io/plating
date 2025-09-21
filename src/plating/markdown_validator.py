@@ -8,7 +8,12 @@ from typing import Any
 
 from provide.foundation import logger, metrics
 from provide.foundation.resilience import BackoffStrategy, RetryExecutor, RetryPolicy
-from pymarkdown.api import PyMarkdownApi, PyMarkdownApiException
+try:
+    from pymarkdown.api import PyMarkdownApi, PyMarkdownApiException
+except ImportError:
+    # Fallback for environments without pymarkdownlnt
+    PyMarkdownApi = None
+    PyMarkdownApiException = Exception
 
 from .decorators import with_metrics, with_timing
 from .types import ValidationResult
@@ -24,8 +29,12 @@ class MarkdownValidator:
             config_file: Optional pymarkdown config file
             strict_mode: Enable strict configuration mode
         """
-        self._api = PyMarkdownApi()
-        self._configure_api(config_file, strict_mode)
+        if PyMarkdownApi is None:
+            logger.warning("pymarkdownlnt not available, markdown validation disabled")
+            self._api = None
+        else:
+            self._api = PyMarkdownApi()
+            self._configure_api(config_file, strict_mode)
 
         # Foundation resilience
         self._retry_policy = RetryPolicy(

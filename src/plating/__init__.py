@@ -90,7 +90,7 @@ from plating.decorators import (
 )
 from plating.discovery import PlatingDiscovery as ModularPlatingDiscovery, TemplateMetadataExtractor
 from plating.generation import DocumentationAdorner, DocumentationPlater, TemplateRenderer
-from plating.markdown_validator import MarkdownValidator, get_markdown_validator, reset_markdown_validator
+# from plating.markdown_validator import MarkdownValidator, get_markdown_validator, reset_markdown_validator
 
 # Core async API
 from plating.plating import Plating, plating
