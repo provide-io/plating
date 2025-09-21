@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-#
-# plating/core/schema_helpers.py
-#
-"""Schema extraction and processing helpers."""
-
 import inspect
 from typing import Any
 
 from provide.foundation import logger
-from plating.types import ComponentType, PlatingContext, SchemaInfo
+
 from plating.bundles import PlatingBundle
+from plating.types import ComponentType, SchemaInfo
+
+#
+# plating/core/schema_helpers.py
+#
+"""Schema extraction and processing helpers."""
 
 
 def extract_provider_schema(package_name: str) -> dict[str, Any]:

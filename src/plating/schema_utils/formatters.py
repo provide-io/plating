@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+from typing import Any
+
 #
-# plating/schema/formatters.py
+# plating/schema_utils/formatters.py
 #
 """Schema formatting and conversion utilities."""
-
-from typing import Any
 
 
 def format_type_string(type_info: Any) -> str:
@@ -117,10 +117,7 @@ def parse_schema_to_markdown(schema: dict[str, Any]) -> str:
                 characteristics.append("Computed")
 
             # Format like tfplugindocs: (Type, Characteristics)
-            if characteristics:
-                type_text = f"({attr_type}, {', '.join(characteristics)})"
-            else:
-                type_text = f"({attr_type})"
+            type_text = f"({attr_type}, {', '.join(characteristics)})" if characteristics else f"({attr_type})"
 
             markdown_lines.append(f"- `{attr_name}` {type_text} {description}".strip())
 
