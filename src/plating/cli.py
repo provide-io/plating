@@ -96,12 +96,18 @@ def adorn_command(component_type: tuple[str, ...], provider_name: str | None, pa
     default=True,
     help="Enable/disable markdown validation.",
 )
+@click.option(
+    "--project-root",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    help="Project root directory (auto-detected if not provided).",
+)
 def plate_command(
     output_dir: Path,
     component_type: tuple[str, ...],
     provider_name: str | None,
     package_name: str,
     force: bool,
+    project_root: Path | None,
     validate: bool,
 ) -> None:
     """Generate documentation from plating bundles."""
@@ -113,8 +119,11 @@ def plate_command(
         # Convert string types to ComponentType enums
         types = [ComponentType(t) for t in component_type] if component_type else None
 
-        pout(f"🍽️ Plating documentation to {output_dir}...")
-        result = await api.plate(output_dir, types, force, validate)
+        # Handle output_dir default behavior - if not specified, let the API auto-detect
+        final_output_dir = output_dir if output_dir != Path("docs") else None
+
+        pout(f"🍽️ Plating documentation...")
+        result = await api.plate(final_output_dir, types, force, validate, project_root)
 
         if result.success:
             pout(f"✅ Generated {result.files_generated} files in {result.duration_seconds:.2f}s")
