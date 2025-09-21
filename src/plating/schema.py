@@ -19,6 +19,7 @@ from plating.config import get_config
 from plating.errors import SchemaError
 from plating.models import FunctionInfo, ProviderInfo, ResourceInfo
 from plating.schema_utils.formatters import (
+    format_type_string,
     parse_function_arguments,
     parse_function_signature,
     parse_schema_to_markdown,
@@ -67,7 +68,7 @@ class SchemaProcessor:
             # Use foundation's discovery with pyvider components entry point
             self.hub.discover_components("pyvider.components")
         except Exception as e:
-            raise SchemaError(self.generator.provider_name, f"Component discovery failed: {e}")
+            raise SchemaError(self.generator.provider_name, f"Component discovery failed: {e}") from e
 
         # Get components by dimension from foundation registry
         providers = self._get_components_by_dimension("provider")
@@ -159,7 +160,7 @@ class SchemaProcessor:
                 stdout=e.stdout,
                 stderr=e.stderr,
             )
-            raise SchemaError(f"Failed to build provider: {e}")
+            raise SchemaError(f"Failed to build provider: {e}") from e
 
         # Find the built provider binary
         self._find_provider_binary()
@@ -201,7 +202,7 @@ provider "{self.generator.provider_name}" {{}}
                     stdout=e.stdout,
                     stderr=e.stderr,
                 )
-                raise SchemaError(f"Failed to initialize Terraform: {e}")
+                raise SchemaError(f"Failed to initialize Terraform: {e}") from e
 
             # Extract schema with retry
             try:
@@ -219,7 +220,7 @@ provider "{self.generator.provider_name}" {{}}
                     stdout=e.stdout,
                     stderr=e.stderr,
                 )
-                raise SchemaError(f"Failed to extract provider schema: {e}")
+                raise SchemaError(f"Failed to extract provider schema: {e}") from e
 
             schema_data = json.loads(schema_result.stdout)
             return schema_data
@@ -237,10 +238,10 @@ provider "{self.generator.provider_name}" {{}}
             self.generator.provider_dir / "bin" / "terraform-provider-*",
         ]
 
-        import glob
-
         for pattern in binary_paths:
-            matches = glob.glob(str(pattern))
+            pattern_path = Path(pattern).parent
+            glob_pattern = Path(pattern).name
+            matches = list(pattern_path.glob(glob_pattern))
             if matches:
                 return Path(matches[0])
 
@@ -317,6 +318,27 @@ provider "{self.generator.provider_name}" {{}}
                 has_variadic="variadic_parameter" in func_schema.get("signature", {}),
                 variadic_argument_markdown=variadic_markdown,
             )
+
+    # Backward compatibility wrapper methods for tests
+    def _format_type_string(self, type_info: Any) -> str:
+        """Format type information to string (backward compatibility)."""
+        return format_type_string(type_info)
+
+    def _parse_function_signature(self, func_schema: dict[str, Any]) -> str:
+        """Parse function signature from schema (backward compatibility)."""
+        return parse_function_signature(func_schema)
+
+    def _parse_function_arguments(self, func_schema: dict[str, Any]) -> str:
+        """Parse function arguments from schema (backward compatibility)."""
+        return parse_function_arguments(func_schema)
+
+    def _parse_variadic_argument(self, func_schema: dict[str, Any]) -> str:
+        """Parse variadic argument from schema (backward compatibility)."""
+        return parse_variadic_argument(func_schema)
+
+    def _parse_schema_to_markdown(self, schema: dict[str, Any]) -> str:
+        """Parse schema to markdown (backward compatibility)."""
+        return parse_schema_to_markdown(schema)
 
 
 # 🍲🥄📊🪄

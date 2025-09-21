@@ -1,20 +1,23 @@
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 
-from plating.generation import DocumentationPlater
+from plating.plating import Plating
+from plating.types import ComponentType
 
 #
 # plating/api.py
 #
-"""Main API orchestrator for plating documentation generation."""
+"""Backward compatibility API wrapper for the modern async Plating API."""
 
 
 class PlatingAPI:
-    """Main API class for orchestrating documentation generation."""
+    """Backward compatibility API wrapper around the modern async Plating class."""
 
     def __init__(self) -> None:
-        self.plater = DocumentationPlater()
+        """Initialize with default plating instance."""
+        self._plating = Plating()
 
     def generate_all_documentation(self, output_dir: Path | str) -> list[tuple[Path, str]]:
         """Generate documentation for all discovered components.
@@ -27,7 +30,21 @@ class PlatingAPI:
         """
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        return self.plater.generate_documentation(output_path)
+
+        # Run the async plate operation
+        result = asyncio.run(self._plating.plate(output_path))
+
+        # Convert to old format (file_path, content) tuples
+        files = []
+        for file_path in result.output_files:
+            try:
+                content = file_path.read_text(encoding="utf-8")
+                files.append((file_path, content))
+            except Exception:
+                # If we can't read the file, skip it
+                continue
+
+        return files
 
     def generate_function_documentation(self, output_dir: Path | str) -> list[tuple[Path, str]]:
         """Generate documentation for function components only.
@@ -40,7 +57,23 @@ class PlatingAPI:
         """
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        return self.plater.generate_documentation(output_path, component_type="function")
+
+        # Run the async plate operation for functions only
+        result = asyncio.run(self._plating.plate(
+            output_path,
+            component_types=[ComponentType.FUNCTION]
+        ))
+
+        # Convert to old format
+        files = []
+        for file_path in result.output_files:
+            try:
+                content = file_path.read_text(encoding="utf-8")
+                files.append((file_path, content))
+            except Exception:
+                continue
+
+        return files
 
     def generate_resource_documentation(self, output_dir: Path | str) -> list[tuple[Path, str]]:
         """Generate documentation for resource components only.
@@ -53,7 +86,23 @@ class PlatingAPI:
         """
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
-        return self.plater.generate_documentation(output_path, component_type="resource")
+
+        # Run the async plate operation for resources only
+        result = asyncio.run(self._plating.plate(
+            output_path,
+            component_types=[ComponentType.RESOURCE]
+        ))
+
+        # Convert to old format
+        files = []
+        for file_path in result.output_files:
+            try:
+                content = file_path.read_text(encoding="utf-8")
+                files.append((file_path, content))
+            except Exception:
+                continue
+
+        return files
 
     def write_generated_files(self, generated_files: list[tuple[Path, str]]) -> list[Path]:
         """Write generated documentation files to disk.
