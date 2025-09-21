@@ -381,10 +381,11 @@ class TestSchemaProcessor:
             assert mock_run.call_count == 3
             mock_rmtree.assert_called_once()
 
-    @patch("glob.glob")
+    @patch("pathlib.Path.glob")
     def test_find_provider_binary(self, mock_glob, schema_processor):
         """Test _find_provider_binary method."""
-        mock_glob.return_value = ["/test/provider/terraform-provider-test"]
+        # Mock Path.glob to return a list with one matching file
+        mock_glob.return_value = [Path("/test/provider/terraform-provider-test")]
 
         result = schema_processor._find_provider_binary()
 
