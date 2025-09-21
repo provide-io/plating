@@ -1,18 +1,19 @@
 from __future__ import annotations
 
-#
-# plating/core/doc_generator.py
-#
-"""Documentation generation utilities."""
-
 from pathlib import Path
 from typing import Any
 
 from provide.foundation import logger
+
 from plating.async_template_engine import template_engine
 from plating.bundles import PlatingBundle
-from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingContext, SchemaInfo
 from plating.core.schema_helpers import get_component_schema
+from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingContext, SchemaInfo
+
+#
+# plating/core/doc_generator.py
+#
+"""Documentation generation utilities."""
 
 
 async def render_component_docs(

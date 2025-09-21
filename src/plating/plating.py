@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-#
-# plating/plating.py
-#
-"""Modern async API for plating operations with full foundation integration."""
-
 import os
-from pathlib import Path
 import time
+from pathlib import Path
 from typing import Any
 
 from provide.foundation import logger
@@ -25,7 +20,10 @@ from plating.discovery import PlatingDiscovery
 from plating.registry import get_plating_registry
 from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, SchemaInfo, ValidationResult
 
-
+#
+# plating/plating.py
+#
+"""Modern async API for plating operations with full foundation integration."""
 
 
 class Plating:
@@ -174,7 +172,13 @@ class Plating:
             logger.info(f"Generating docs for {len(components)} {component_type.value} components")
 
             await render_component_docs(
-                components, component_type, final_output_dir, force, result, self.context, self._provider_schema or {}
+                components,
+                component_type,
+                final_output_dir,
+                force,
+                result,
+                self.context,
+                self._provider_schema or {},
             )
 
         # Generate provider index page
@@ -237,7 +241,6 @@ class Plating:
 
         return ValidationResult(errors=errors, files_checked=files_checked, is_valid=len(errors) == 0)
 
-
     async def _extract_provider_schema(self) -> dict[str, Any]:
         """Extract provider schema using foundation hub discovery."""
         if self._provider_schema is not None:
@@ -245,7 +248,6 @@ class Plating:
 
         self._provider_schema = extract_provider_schema(self.package_name)
         return self._provider_schema
-
 
     def get_registry_stats(self) -> dict[str, Any]:
         """Get registry statistics."""
@@ -264,8 +266,6 @@ class Plating:
                 stats["component_types"].append(component_type.value)
 
         return stats
-
-
 
 
 # Global API instance

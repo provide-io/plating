@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+from pathlib import Path
+
+from provide.foundation import logger
+
 #
 # plating/core/project_utils.py
 #
 """Project detection and directory utilities."""
-
-from pathlib import Path
-
-from provide.foundation import logger
 
 
 def find_project_root(start_dir: Path | None = None) -> Path | None:
