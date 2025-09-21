@@ -134,7 +134,7 @@ class Plating:
             component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
 
         start_time = time.monotonic()
-        result = PlateResult(duration=0.0, files_generated=0, validation_errors=[], output_files=[])
+        result = PlateResult(duration_seconds=0.0, files_generated=0, errors=[], output_files=[])
 
         for component_type in component_types:
             components = self.registry.get_components_with_templates(component_type)
@@ -142,12 +142,12 @@ class Plating:
 
             await self._render_component_docs(components, component_type, output_dir, force, result)
 
-        result.duration = time.monotonic() - start_time
+        result.duration_seconds = time.monotonic() - start_time
 
         # Validate if requested
         if validate_markdown and result.output_files:
             validation_result = await self.validate(output_dir, component_types)
-            result.validation_errors = validation_result.errors
+            result.errors.extend(validation_result.errors)
 
         return result
 
