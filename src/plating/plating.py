@@ -1,24 +1,21 @@
 from __future__ import annotations
 
 import os
-import time
 from pathlib import Path
+import time
 from typing import Any
 
 from provide.foundation import logger
 from provide.foundation.resilience import BackoffStrategy, CircuitBreaker, RetryPolicy
 
-from plating.async_template_engine import template_engine
-from plating.bundles import PlatingBundle
 from plating.core.doc_generator import generate_provider_index, generate_template, render_component_docs
 from plating.core.project_utils import find_project_root, get_output_directory
-from plating.core.schema_helpers import extract_provider_schema, get_component_schema
+from plating.core.schema_helpers import extract_provider_schema
 from plating.decorators import with_metrics, with_retry, with_timing
-from plating.discovery import PlatingDiscovery
 
 # from plating.markdown_validator import get_markdown_validator
 from plating.registry import get_plating_registry
-from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, SchemaInfo, ValidationResult
+from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, ValidationResult
 
 #
 # plating/plating.py
