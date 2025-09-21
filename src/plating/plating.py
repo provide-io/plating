@@ -16,6 +16,7 @@ from provide.foundation.resilience import BackoffStrategy, CircuitBreaker, Retry
 from plating.async_template_engine import template_engine
 from plating.bundles import PlatingBundle
 from plating.decorators import with_metrics, with_retry, with_timing
+from plating.discovery import PlatingDiscovery
 
 # from plating.markdown_validator import get_markdown_validator
 from plating.registry import get_plating_registry
