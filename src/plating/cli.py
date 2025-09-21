@@ -41,7 +41,7 @@ def main() -> None:
 def adorn_command(component_type: tuple[str, ...], provider_name: str | None, package_name: str) -> None:
     """Create missing documentation templates and examples."""
 
-    async def run():
+    async def run() -> None:
         context = PlatingContext(provider_name=provider_name or "default")
         api = Plating(context, package_name)
 
@@ -112,7 +112,7 @@ def plate_command(
 ) -> None:
     """Generate documentation from plating bundles."""
 
-    async def run():
+    async def run() -> None:
         context = PlatingContext(provider_name=provider_name or "default")
         api = Plating(context, package_name)
 
@@ -122,7 +122,7 @@ def plate_command(
         # Handle output_dir default behavior - if not specified, let the API auto-detect
         final_output_dir = output_dir if output_dir != Path("docs") else None
 
-        pout(f"🍽️ Plating documentation...")
+        pout("🍽️ Plating documentation...")
         result = await api.plate(final_output_dir, types, force, validate, project_root)
 
         if result.success:
@@ -171,7 +171,7 @@ def validate_command(
 ) -> None:
     """Validate generated documentation."""
 
-    async def run():
+    async def run() -> None:
         context = PlatingContext(provider_name=provider_name or "default")
         api = Plating(context, package_name)
 
@@ -221,7 +221,7 @@ def validate_command(
 def info_command(provider_name: str | None, package_name: str) -> None:
     """Show registry information and statistics."""
 
-    async def run():
+    async def run() -> None:
         context = PlatingContext(provider_name=provider_name or "default")
         api = Plating(context, package_name)
 
@@ -253,7 +253,7 @@ def info_command(provider_name: str | None, package_name: str) -> None:
 def stats_command(package_name: str) -> None:
     """Show registry statistics."""
 
-    async def run():
+    async def run() -> None:
         context = PlatingContext(provider_name="default")
         api = Plating(context, package_name)
 

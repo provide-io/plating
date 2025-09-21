@@ -144,7 +144,8 @@ class AsyncTemplateEngine:
 
         example_content = examples.get(key, "")
         if not example_content:
-            logger.warning(f"Example '{key}' not found in examples")
+            # Only log as debug since examples are often optional
+            logger.debug(f"Optional example '{key}' not found in examples")
             return ""
 
         return f"```terraform\n{example_content}\n```"

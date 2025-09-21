@@ -5,21 +5,20 @@ from __future__ import annotations
 #
 """Modern async API for plating operations with full foundation integration."""
 
+import os
 from pathlib import Path
 import time
 from typing import Any
-import os
 
-from provide.foundation import logger, metrics
+from provide.foundation import logger
 from provide.foundation.resilience import BackoffStrategy, CircuitBreaker, RetryPolicy
 
 from plating.async_template_engine import template_engine
 from plating.bundles import PlatingBundle
-from plating.decorators import plating_metrics, with_metrics, with_retry, with_timing
-from plating.discovery import PlatingDiscovery
+from plating.decorators import with_metrics, with_retry, with_timing
+
 # from plating.markdown_validator import get_markdown_validator
 from plating.registry import get_plating_registry
-from plating.schema import SchemaProcessor
 from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, SchemaInfo, ValidationResult
 
 
@@ -239,7 +238,10 @@ class Plating:
         return result
 
     async def validate(
-        self, output_dir: Path | None = None, component_types: list[ComponentType] | None = None, project_root: Path | None = None
+        self,
+        output_dir: Path | None = None,
+        component_types: list[ComponentType] | None = None,
+        project_root: Path | None = None,
     ) -> ValidationResult:
         """Validate generated documentation.
 
@@ -315,26 +317,30 @@ class Plating:
                 arguments = None
                 if component_type == ComponentType.FUNCTION:
                     from plating.discovery.templates import TemplateMetadataExtractor
+
                     extractor = TemplateMetadataExtractor()
                     metadata = extractor.extract_function_metadata(component.name, component_type.value)
                     signature = metadata.get("signature_markdown", "")
                     if metadata.get("arguments_markdown"):
                         # Convert markdown arguments to ArgumentInfo objects
                         from plating.types import ArgumentInfo
-                        arg_lines = metadata["arguments_markdown"].split('\n')
+
+                        arg_lines = metadata["arguments_markdown"].split("\n")
                         arguments = []
                         for line in arg_lines:
-                            if line.strip().startswith('- `'):
+                            if line.strip().startswith("- `"):
                                 # Parse "- `name` (type) - description"
-                                parts = line.strip()[3:].split('`', 1)
+                                parts = line.strip()[3:].split("`", 1)
                                 if len(parts) >= 2:
                                     name = parts[0]
                                     rest = parts[1].strip()
-                                    if rest.startswith('(') and ')' in rest:
-                                        type_end = rest.find(')')
+                                    if rest.startswith("(") and ")" in rest:
+                                        type_end = rest.find(")")
                                         arg_type = rest[1:type_end]
-                                        description = rest[type_end+1:].strip(' -')
-                                        arguments.append(ArgumentInfo(name=name, type=arg_type, description=description))
+                                        description = rest[type_end + 1 :].strip(" -")
+                                        arguments.append(
+                                            ArgumentInfo(name=name, type=arg_type, description=description)
+                                        )
 
                 # Create context for rendering
                 context_dict = self.context.to_dict() if self.context else {}
@@ -350,7 +356,20 @@ class Plating:
                     signature=signature,
                     arguments=arguments,
                     examples=examples,
-                    **{k: v for k, v in context_dict.items() if k not in ['name', 'component_type', 'schema', 'signature', 'arguments', 'examples', 'description']}
+                    **{
+                        k: v
+                        for k, v in context_dict.items()
+                        if k
+                        not in [
+                            "name",
+                            "component_type",
+                            "schema",
+                            "signature",
+                            "arguments",
+                            "examples",
+                            "description",
+                        ]
+                    },
                 )
 
                 # Render with template engine
@@ -426,20 +445,25 @@ class Plating:
                     # For functions, we'll extract signature info from the callable
                     try:
                         import inspect
+
                         sig = inspect.signature(func)
                         schema_dict = {
                             "signature": {
                                 "parameters": [
                                     {
                                         "name": param.name,
-                                        "type": str(param.annotation) if param.annotation != param.empty else "any",
-                                        "description": f"Parameter {param.name}"
+                                        "type": str(param.annotation)
+                                        if param.annotation != param.empty
+                                        else "any",
+                                        "description": f"Parameter {param.name}",
                                     }
                                     for param in sig.parameters.values()
                                 ],
-                                "return_type": str(sig.return_annotation) if sig.return_annotation != sig.empty else "any"
+                                "return_type": str(sig.return_annotation)
+                                if sig.return_annotation != sig.empty
+                                else "any",
                             },
-                            "description": func.__doc__ or f"Function {name}"
+                            "description": func.__doc__ or f"Function {name}",
                         }
                         schemas[name] = schema_dict
                     except Exception as e:
@@ -453,6 +477,7 @@ class Plating:
         try:
             # Import here to avoid circular dependencies
             import attrs
+
             if attrs.has(pvs_schema):
                 schema_dict = attrs.asdict(pvs_schema)
             else:

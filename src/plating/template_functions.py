@@ -6,6 +6,7 @@
 from typing import Any
 
 from jinja2 import BaseLoader, Environment, select_autoescape
+from provide.foundation import logger
 
 
 class SchemaRenderer:
@@ -75,7 +76,7 @@ class SchemaRenderer:
 class TemplateEngine:
     """Jinja2 template engine with custom functions for .plating rendering."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.schema_renderer = SchemaRenderer()
         self.env = Environment(
             loader=BaseLoader(),
@@ -119,11 +120,13 @@ class TemplateEngine:
     def _example_function(self, example_name: str) -> str:
         """{{ example('name') }} - Render named example in terraform code block."""
         if not hasattr(self, "_current_context") or not self._current_context:
-            return f"<!-- Example '{example_name}' not found -->"
+            logger.debug(f"Optional example '{example_name}' not available (no context)")
+            return ""
 
         examples = self._current_context.get("examples", {})
         if example_name not in examples:
-            return f"<!-- Example '{example_name}' not found -->"
+            logger.debug(f"Optional example '{example_name}' not found in examples")
+            return ""
 
         example_content = examples[example_name]
         return f"```terraform\n{example_content}\n```"
