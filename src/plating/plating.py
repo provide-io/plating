@@ -218,10 +218,17 @@ class Plating:
                 # Get component schema if available
                 provider_schema = self._get_component_schema(component, component_type, {})
 
-                # Render with template engine
-                rendered_content = await template_engine.render(
-                    template_content, component=component, schema=provider_schema, context=self.context
+                # Create context for rendering
+                context_dict = self.context.to_dict() if self.context else {}
+                render_context = PlatingContext(
+                    name=context_dict.get('name', component.name),
+                    component_type=component_type,
+                    schema=provider_schema,
+                    **{k: v for k, v in context_dict.items() if k not in ['name', 'component_type', 'schema']}
                 )
+
+                # Render with template engine
+                rendered_content = await template_engine.render(component, render_context)
 
                 # Write output
                 output_file.write_text(rendered_content, encoding="utf-8")
