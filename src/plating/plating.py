@@ -86,19 +86,21 @@ class Plating:
         templates_generated = 0
 
         for component_type in component_types:
-            components = self.registry.get_components_with_templates(component_type)
+            components = self.registry.get_components(component_type)
             logger.info(f"Found {len(components)} {component_type.value} components to adorn")
 
             for component in components:
                 try:
-                    template_dir = output_dir / component_type.value / component.name
-                    template_dir.mkdir(parents=True, exist_ok=True)
+                    # Only generate templates for components that don't have them (or if templates_only is False)
+                    if not component.has_main_template() or not templates_only:
+                        template_dir = output_dir / component_type.value / component.name
+                        template_dir.mkdir(parents=True, exist_ok=True)
 
-                    # Generate basic template if it doesn't exist
-                    template_file = template_dir / f"{component.name}.tmpl.md"
-                    if not template_file.exists() or not templates_only:
-                        generate_template(component, template_file)
-                        templates_generated += 1
+                        # Generate basic template if it doesn't exist
+                        template_file = template_dir / f"{component.name}.tmpl.md"
+                        if not template_file.exists() or not templates_only:
+                            generate_template(component, template_file)
+                            templates_generated += 1
 
                 except Exception as e:
                     logger.error(f"Failed to adorn {component.name}: {e}")
