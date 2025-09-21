@@ -218,13 +218,41 @@ class Plating:
                 # Get component schema if available
                 provider_schema = self._get_component_schema(component, component_type, {})
 
+                # Extract metadata for functions
+                signature = None
+                arguments = None
+                if component_type == ComponentType.FUNCTION:
+                    from plating.discovery.templates import TemplateMetadataExtractor
+                    extractor = TemplateMetadataExtractor()
+                    metadata = extractor.extract_function_metadata(component.name, component_type.value)
+                    signature = metadata.get("signature_markdown", "")
+                    if metadata.get("arguments_markdown"):
+                        # Convert markdown arguments to ArgumentInfo objects
+                        from plating.types import ArgumentInfo
+                        arg_lines = metadata["arguments_markdown"].split('\n')
+                        arguments = []
+                        for line in arg_lines:
+                            if line.strip().startswith('- `'):
+                                # Parse "- `name` (type) - description"
+                                parts = line.strip()[3:].split('`', 1)
+                                if len(parts) >= 2:
+                                    name = parts[0]
+                                    rest = parts[1].strip()
+                                    if rest.startswith('(') and ')' in rest:
+                                        type_end = rest.find(')')
+                                        arg_type = rest[1:type_end]
+                                        description = rest[type_end+1:].strip(' -')
+                                        arguments.append(ArgumentInfo(name=name, type=arg_type, description=description))
+
                 # Create context for rendering
                 context_dict = self.context.to_dict() if self.context else {}
                 render_context = PlatingContext(
                     name=context_dict.get('name', component.name),
                     component_type=component_type,
                     schema=provider_schema,
-                    **{k: v for k, v in context_dict.items() if k not in ['name', 'component_type', 'schema']}
+                    signature=signature,
+                    arguments=arguments,
+                    **{k: v for k, v in context_dict.items() if k not in ['name', 'component_type', 'schema', 'signature', 'arguments']}
                 )
 
                 # Render with template engine
