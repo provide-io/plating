@@ -15,6 +15,9 @@ from provide.foundation.resilience import BackoffStrategy, CircuitBreaker, Retry
 
 from plating.async_template_engine import template_engine
 from plating.bundles import PlatingBundle
+from plating.core.doc_generator import generate_provider_index, generate_template, render_component_docs
+from plating.core.project_utils import find_project_root, get_output_directory
+from plating.core.schema_helpers import extract_provider_schema, get_component_schema
 from plating.decorators import with_metrics, with_retry, with_timing
 from plating.discovery import PlatingDiscovery
 
@@ -23,60 +26,6 @@ from plating.registry import get_plating_registry
 from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, SchemaInfo, ValidationResult
 
 
-def find_project_root(start_dir: Path | None = None) -> Path | None:
-    """Find the project root by looking for key files.
-
-    Args:
-        start_dir: Directory to start searching from (defaults to current working directory)
-
-    Returns:
-        Path to project root or None if not found
-    """
-    if start_dir is None:
-        start_dir = Path.cwd()
-
-    current = start_dir.resolve()
-
-    # Look for project marker files
-    project_markers = ["pyproject.toml", "pyvider.toml", ".git", "setup.py", "setup.cfg"]
-
-    while current != current.parent:  # Stop at filesystem root
-        for marker in project_markers:
-            if (current / marker).exists():
-                logger.debug(f"Found project root at {current} (marker: {marker})")
-                return current
-        current = current.parent
-
-    logger.warning(f"No project root found starting from {start_dir}")
-    return None
-
-
-def get_output_directory(output_dir: Path | None, project_root: Path | None = None) -> Path:
-    """Determine the appropriate output directory for documentation.
-
-    Args:
-        output_dir: Explicitly specified output directory
-        project_root: Project root directory
-
-    Returns:
-        Resolved output directory path
-    """
-    if output_dir is not None:
-        # If output_dir is absolute, use as-is
-        if output_dir.is_absolute():
-            return output_dir
-        # If relative and we have project root, make it relative to project root
-        if project_root:
-            return project_root / output_dir
-        # Otherwise relative to current directory
-        return Path.cwd() / output_dir
-
-    # Default behavior: try to use project_root/docs if available
-    if project_root:
-        return project_root / "docs"
-
-    # Fallback to current directory/docs
-    return Path.cwd() / "docs"
 
 
 class Plating:
@@ -153,7 +102,7 @@ class Plating:
                     # Generate basic template if it doesn't exist
                     template_file = template_dir / f"{component.name}.tmpl.md"
                     if not template_file.exists() or not templates_only:
-                        await self._generate_template(component, template_file)
+                        generate_template(component, template_file)
                         templates_generated += 1
 
                 except Exception as e:
@@ -224,10 +173,14 @@ class Plating:
             components = self.registry.get_components_with_templates(component_type)
             logger.info(f"Generating docs for {len(components)} {component_type.value} components")
 
-            await self._render_component_docs(components, component_type, final_output_dir, force, result)
+            await render_component_docs(
+                components, component_type, final_output_dir, force, result, self.context, self._provider_schema or {}
+            )
 
         # Generate provider index page
-        await self._generate_provider_index(final_output_dir, force, result)
+        generate_provider_index(
+            final_output_dir, force, result, self.context, self._provider_schema or {}, self.registry
+        )
 
         result.duration_seconds = time.monotonic() - start_time
 
@@ -284,244 +237,15 @@ class Plating:
 
         return ValidationResult(errors=errors, files_checked=files_checked, is_valid=len(errors) == 0)
 
-    async def _render_component_docs(
-        self,
-        components: list[PlatingBundle],
-        component_type: ComponentType,
-        output_dir: Path,
-        force: bool,
-        result: PlateResult,
-    ) -> None:
-        """Render documentation for a list of components."""
-        output_subdir = output_dir / component_type.value.replace("_", "_")
-        output_subdir.mkdir(parents=True, exist_ok=True)
-
-        for component in components:
-            try:
-                output_file = output_subdir / f"{component.name}.md"
-
-                if output_file.exists() and not force:
-                    logger.debug(f"Skipping existing file: {output_file}")
-                    continue
-
-                # Load and render template
-                template_content = component.load_main_template()
-                if not template_content:
-                    logger.warning(f"No template found for {component.name}")
-                    continue
-
-                # Get component schema if available
-                schema_info = await self._get_component_schema(component, component_type)
-
-                # Extract metadata for functions
-                signature = None
-                arguments = None
-                if component_type == ComponentType.FUNCTION:
-                    from plating.discovery.templates import TemplateMetadataExtractor
-
-                    extractor = TemplateMetadataExtractor()
-                    metadata = extractor.extract_function_metadata(component.name, component_type.value)
-                    signature = metadata.get("signature_markdown", "")
-                    if metadata.get("arguments_markdown"):
-                        # Convert markdown arguments to ArgumentInfo objects
-                        from plating.types import ArgumentInfo
-
-                        arg_lines = metadata["arguments_markdown"].split("\n")
-                        arguments = []
-                        for line in arg_lines:
-                            if line.strip().startswith("- `"):
-                                # Parse "- `name` (type) - description"
-                                parts = line.strip()[3:].split("`", 1)
-                                if len(parts) >= 2:
-                                    name = parts[0]
-                                    rest = parts[1].strip()
-                                    if rest.startswith("(") and ")" in rest:
-                                        type_end = rest.find(")")
-                                        arg_type = rest[1:type_end]
-                                        description = rest[type_end + 1 :].strip(" -")
-                                        arguments.append(
-                                            ArgumentInfo(name=name, type=arg_type, description=description)
-                                        )
-
-                # Create context for rendering
-                context_dict = self.context.to_dict() if self.context else {}
-
-                # Load examples from the component bundle
-                examples = component.load_examples()
-
-                render_context = PlatingContext(
-                    name=component.name,  # Always use component.name, not context name
-                    component_type=component_type,
-                    description=f"Terraform {component_type.value} for {component.name}",
-                    schema=schema_info,
-                    signature=signature,
-                    arguments=arguments,
-                    examples=examples,
-                    **{
-                        k: v
-                        for k, v in context_dict.items()
-                        if k
-                        not in [
-                            "name",
-                            "component_type",
-                            "schema",
-                            "signature",
-                            "arguments",
-                            "examples",
-                            "description",
-                        ]
-                    },
-                )
-
-                # Render with template engine
-                rendered_content = await template_engine.render(component, render_context)
-
-                # Write output
-                output_file.write_text(rendered_content, encoding="utf-8")
-                result.files_generated += 1
-                result.output_files.append(output_file)
-
-                logger.info(f"Generated {component_type.value} docs: {output_file}")
-
-            except Exception as e:
-                logger.error(f"Failed to render {component.name}: {e}")
 
     async def _extract_provider_schema(self) -> dict[str, Any]:
         """Extract provider schema using foundation hub discovery."""
         if self._provider_schema is not None:
             return self._provider_schema
 
-        logger.info("Extracting provider schema via component discovery...")
+        self._provider_schema = extract_provider_schema(self.package_name)
+        return self._provider_schema
 
-        # Import here to avoid circular dependencies
-        from provide.foundation.hub import Hub
-
-        hub = Hub()
-
-        try:
-            # Use foundation's discovery with pyvider components entry point
-            hub.discover_components(self.package_name)
-        except Exception as e:
-            logger.warning(f"Component discovery failed: {e}")
-            self._provider_schema = {}
-            return self._provider_schema
-
-        # Get components by dimension from foundation registry
-        provider_schema = {
-            "resource_schemas": self._get_component_schemas_from_hub(hub, "resource"),
-            "data_source_schemas": self._get_component_schemas_from_hub(hub, "data_source"),
-            "functions": self._get_function_schemas_from_hub(hub, "function"),
-        }
-
-        self._provider_schema = provider_schema
-        return provider_schema
-
-    def _get_component_schemas_from_hub(self, hub: Hub, dimension: str) -> dict[str, Any]:
-        """Get component schemas from foundation hub by dimension."""
-        schemas = {}
-        try:
-            names = hub.list_components(dimension=dimension)
-            for name in names:
-                component = hub.get_component(name, dimension=dimension)
-                if component and hasattr(component, "get_schema"):
-                    try:
-                        schema = component.get_schema()
-                        # Convert PvsSchema to dict format for templates
-                        schema_dict = self._convert_pvs_schema_to_dict(schema)
-                        schemas[name] = schema_dict
-                    except Exception as e:
-                        logger.warning(f"Failed to get schema for {dimension} {name}: {e}")
-        except Exception as e:
-            logger.warning(f"Failed to get {dimension} components: {e}")
-        return schemas
-
-    def _get_function_schemas_from_hub(self, hub: Hub, dimension: str) -> dict[str, Any]:
-        """Get function schemas from foundation hub."""
-        schemas = {}
-        try:
-            names = hub.list_components(dimension=dimension)
-            for name in names:
-                func = hub.get_component(name, dimension=dimension)
-                if func:
-                    # For functions, we'll extract signature info from the callable
-                    try:
-                        import inspect
-
-                        sig = inspect.signature(func)
-                        schema_dict = {
-                            "signature": {
-                                "parameters": [
-                                    {
-                                        "name": param.name,
-                                        "type": str(param.annotation)
-                                        if param.annotation != param.empty
-                                        else "any",
-                                        "description": f"Parameter {param.name}",
-                                    }
-                                    for param in sig.parameters.values()
-                                ],
-                                "return_type": str(sig.return_annotation)
-                                if sig.return_annotation != sig.empty
-                                else "any",
-                            },
-                            "description": func.__doc__ or f"Function {name}",
-                        }
-                        schemas[name] = schema_dict
-                    except Exception as e:
-                        logger.warning(f"Failed to get schema for function {name}: {e}")
-        except Exception as e:
-            logger.warning(f"Failed to get function components: {e}")
-        return schemas
-
-    def _convert_pvs_schema_to_dict(self, pvs_schema: Any) -> dict[str, Any]:
-        """Convert PvsSchema object to dictionary format for templates."""
-        try:
-            # Import here to avoid circular dependencies
-            import attrs
-
-            if attrs.has(pvs_schema):
-                schema_dict = attrs.asdict(pvs_schema)
-            else:
-                # Fallback: try to access schema attributes directly
-                schema_dict = {
-                    "block": {
-                        "attributes": getattr(pvs_schema, "attributes", {}),
-                        "block_types": getattr(pvs_schema, "block_types", {}),
-                    },
-                    "description": getattr(pvs_schema, "description", ""),
-                }
-        except Exception as e:
-            logger.warning(f"Failed to convert PvsSchema to dict: {e}")
-            schema_dict = {"block": {"attributes": {}}}
-
-        return schema_dict
-
-    async def _get_component_schema(
-        self, component: PlatingBundle, component_type: ComponentType
-    ) -> SchemaInfo | None:
-        """Extract component schema and convert to SchemaInfo."""
-        # Extract provider schema if not already done
-        provider_schema = await self._extract_provider_schema()
-
-        if not provider_schema:
-            return None
-
-        schemas = provider_schema.get(f"{component_type.value}_schemas", {})
-        if not schemas:
-            return None
-
-        # Try to find schema by component name (with and without pyvider_ prefix)
-        component_schema = None
-        for name, schema in schemas.items():
-            if name == component.name or name == f"pyvider_{component.name}":
-                component_schema = schema
-                break
-
-        if not component_schema:
-            return None
-
-        # Convert to SchemaInfo for template rendering
-        return SchemaInfo.from_dict(component_schema)
 
     def get_registry_stats(self) -> dict[str, Any]:
         """Get registry statistics."""
@@ -541,121 +265,7 @@ class Plating:
 
         return stats
 
-    async def _generate_template(self, component: PlatingBundle, template_file: Path) -> None:
-        """Generate a basic template for a component."""
-        template_content = f"""---
-page_title: "{component.component_type.title()}: {component.name}"
-description: |-
-  Terraform {component.component_type} for {component.name}
----
 
-# {component.name} ({component.component_type.title()})
-
-Terraform {component.component_type} for {component.name}
-
-## Example Usage
-
-{{{{ example("example") }}}}
-
-## Schema
-
-{{{{ schema_markdown }}}}
-"""
-        template_file.write_text(template_content, encoding="utf-8")
-
-    async def _generate_provider_index(self, output_dir: Path, force: bool, result: PlateResult) -> None:
-        """Generate provider index page."""
-        index_file = output_dir / "index.md"
-
-        if index_file.exists() and not force:
-            logger.debug(f"Skipping existing provider index: {index_file}")
-            return
-
-        logger.info("Generating provider index page...")
-
-        # Get provider name from context
-        provider_name = self.context.provider_name or "pyvider"
-        display_name = provider_name.title()
-
-        # Extract provider schema for configuration documentation
-        provider_schema = await self._extract_provider_schema()
-        provider_config_schema = None
-
-        # Look for provider configuration schema
-        for schema_key, schema_data in provider_schema.items():
-            if "provider" in schema_key.lower():
-                provider_config_schema = schema_data
-                break
-
-        # Create provider schema info if available
-        provider_schema_info = None
-        if provider_config_schema:
-            provider_schema_info = SchemaInfo.from_dict(provider_config_schema)
-
-        # Create provider example configuration
-        provider_example = f'''provider "{provider_name}" {{
-  # Configuration options
-}}'''
-
-        # Generate index content
-        index_content = f'''---
-page_title: "{display_name} Provider"
-description: |-
-  Terraform provider for {provider_name}
----
-
-# {display_name} Provider
-
-Terraform provider for {provider_name} - A Python-based Terraform provider built with the Pyvider framework.
-
-## Example Usage
-
-```terraform
-{provider_example}
-```
-
-## Schema
-
-{provider_schema_info.to_markdown() if provider_schema_info else "No provider configuration required."}
-
-## Resources
-
-'''
-
-        # Add links to resources
-        resource_components = self.registry.get_components_with_templates(ComponentType.RESOURCE)
-        if resource_components:
-            for component in sorted(resource_components, key=lambda c: c.name):
-                index_content += f"- [`{provider_name}_{component.name}`](./resource/{component.name}.md)\n"
-        else:
-            index_content += "No resources available.\n"
-
-        index_content += "\n## Data Sources\n\n"
-
-        # Add links to data sources
-        data_source_components = self.registry.get_components_with_templates(ComponentType.DATA_SOURCE)
-        if data_source_components:
-            for component in sorted(data_source_components, key=lambda c: c.name):
-                index_content += f"- [`{provider_name}_{component.name}`](./data_source/{component.name}.md)\n"
-        else:
-            index_content += "No data sources available.\n"
-
-        index_content += "\n## Functions\n\n"
-
-        # Add links to functions
-        function_components = self.registry.get_components_with_templates(ComponentType.FUNCTION)
-        if function_components:
-            for component in sorted(function_components, key=lambda c: c.name):
-                index_content += f"- [`{component.name}`](./function/{component.name}.md)\n"
-        else:
-            index_content += "No functions available.\n"
-
-        # Write the index file
-        index_file.write_text(index_content, encoding="utf-8")
-        result.files_generated += 1
-        result.output_files.append(index_file)
-
-        logger.info(f"Generated provider index: {index_file}")
 
 
 # Global API instance
