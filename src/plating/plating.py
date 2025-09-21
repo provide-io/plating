@@ -145,6 +145,9 @@ class Plating:
 
             await self._render_component_docs(components, component_type, output_dir, force, result)
 
+        # Generate provider index page
+        await self._generate_provider_index(output_dir, force, result)
+
         result.duration_seconds = time.monotonic() - start_time
 
         # Validate if requested
@@ -447,6 +450,100 @@ Terraform {component.component_type} for {component.name}
 {{{{ schema_markdown }}}}
 """
         template_file.write_text(template_content, encoding="utf-8")
+
+    async def _generate_provider_index(self, output_dir: Path, force: bool, result: PlateResult) -> None:
+        """Generate provider index page."""
+        index_file = output_dir / "index.md"
+
+        if index_file.exists() and not force:
+            logger.debug(f"Skipping existing provider index: {index_file}")
+            return
+
+        logger.info("Generating provider index page...")
+
+        # Get provider name from context
+        provider_name = self.context.provider_name or "pyvider"
+        display_name = provider_name.title()
+
+        # Extract provider schema for configuration documentation
+        provider_schema = await self._extract_provider_schema()
+        provider_config_schema = None
+
+        # Look for provider configuration schema
+        for schema_key, schema_data in provider_schema.items():
+            if "provider" in schema_key.lower():
+                provider_config_schema = schema_data
+                break
+
+        # Create provider schema info if available
+        provider_schema_info = None
+        if provider_config_schema:
+            provider_schema_info = SchemaInfo.from_dict(provider_config_schema)
+
+        # Create provider example configuration
+        provider_example = f'''provider "{provider_name}" {{
+  # Configuration options
+}}'''
+
+        # Generate index content
+        index_content = f'''---
+page_title: "{display_name} Provider"
+description: |-
+  Terraform provider for {provider_name}
+---
+
+# {display_name} Provider
+
+Terraform provider for {provider_name} - A Python-based Terraform provider built with the Pyvider framework.
+
+## Example Usage
+
+```terraform
+{provider_example}
+```
+
+## Schema
+
+{provider_schema_info.to_markdown() if provider_schema_info else "No provider configuration required."}
+
+## Resources
+
+'''
+
+        # Add links to resources
+        resource_components = self.registry.get_components_with_templates(ComponentType.RESOURCE)
+        if resource_components:
+            for component in sorted(resource_components, key=lambda c: c.name):
+                index_content += f"- [`{provider_name}_{component.name}`](./resource/{component.name}.md)\n"
+        else:
+            index_content += "No resources available.\n"
+
+        index_content += "\n## Data Sources\n\n"
+
+        # Add links to data sources
+        data_source_components = self.registry.get_components_with_templates(ComponentType.DATA_SOURCE)
+        if data_source_components:
+            for component in sorted(data_source_components, key=lambda c: c.name):
+                index_content += f"- [`{provider_name}_{component.name}`](./data_source/{component.name}.md)\n"
+        else:
+            index_content += "No data sources available.\n"
+
+        index_content += "\n## Functions\n\n"
+
+        # Add links to functions
+        function_components = self.registry.get_components_with_templates(ComponentType.FUNCTION)
+        if function_components:
+            for component in sorted(function_components, key=lambda c: c.name):
+                index_content += f"- [`{component.name}`](./function/{component.name}.md)\n"
+        else:
+            index_content += "No functions available.\n"
+
+        # Write the index file
+        index_file.write_text(index_content, encoding="utf-8")
+        result.files_generated += 1
+        result.output_files.append(index_file)
+
+        logger.info(f"Generated provider index: {index_file}")
 
 
 # Global API instance
