@@ -62,10 +62,19 @@ class DocumentationAdorner:
             result = examples.get(example_name, self.config.example_placeholder)
             return str(result)
 
+        # Create schema function that templates can call
+        def schema() -> str:
+            schema_info = metadata.get("schema", {})
+            if not schema_info:
+                return "No schema information available."
+            # Convert schema to markdown format
+            return str(schema_info)
+
         return {
             "resource_name": resource_name,
             "template_content": template_content,
             "example": example,
+            "schema": schema,
             **metadata,
         }
 
