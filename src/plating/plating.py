@@ -19,7 +19,7 @@ from plating.discovery import PlatingDiscovery
 from plating.markdown_validator import get_markdown_validator
 from plating.registry import get_plating_registry
 from plating.schema import SchemaProcessor
-from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, ValidationResult
+from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, SchemaInfo, ValidationResult
 
 
 class Plating:
@@ -40,6 +40,9 @@ class Plating:
         # Foundation patterns
         self.registry = get_plating_registry(package_name)
         self.validator = get_markdown_validator()
+
+        # Schema processing
+        self._provider_schema: dict[str, Any] | None = None
 
         # Resilience patterns
         self.retry_policy = RetryPolicy(
@@ -216,7 +219,7 @@ class Plating:
                     continue
 
                 # Get component schema if available
-                provider_schema = self._get_component_schema(component, component_type, {})
+                schema_info = await self._get_component_schema(component, component_type)
 
                 # Extract metadata for functions
                 signature = None
@@ -254,7 +257,7 @@ class Plating:
                     name=component.name,  # Always use component.name, not context name
                     component_type=component_type,
                     description=f"Terraform {component_type.value} for {component.name}",
-                    schema=provider_schema,
+                    schema=schema_info,
                     signature=signature,
                     arguments=arguments,
                     examples=examples,
@@ -274,10 +277,117 @@ class Plating:
             except Exception as e:
                 logger.error(f"Failed to render {component.name}: {e}")
 
-    def _get_component_schema(
-        self, component: PlatingBundle, component_type: ComponentType, provider_schema: dict[str, Any]
-    ) -> dict[str, Any] | None:
-        """Extract component schema from provider schema."""
+    async def _extract_provider_schema(self) -> dict[str, Any]:
+        """Extract provider schema using foundation hub discovery."""
+        if self._provider_schema is not None:
+            return self._provider_schema
+
+        logger.info("Extracting provider schema via component discovery...")
+
+        # Import here to avoid circular dependencies
+        from provide.foundation.hub import Hub
+
+        hub = Hub()
+
+        try:
+            # Use foundation's discovery with pyvider components entry point
+            hub.discover_components(self.package_name)
+        except Exception as e:
+            logger.warning(f"Component discovery failed: {e}")
+            self._provider_schema = {}
+            return self._provider_schema
+
+        # Get components by dimension from foundation registry
+        provider_schema = {
+            "resource_schemas": self._get_component_schemas_from_hub(hub, "resource"),
+            "data_source_schemas": self._get_component_schemas_from_hub(hub, "data_source"),
+            "functions": self._get_function_schemas_from_hub(hub, "function"),
+        }
+
+        self._provider_schema = provider_schema
+        return provider_schema
+
+    def _get_component_schemas_from_hub(self, hub: Hub, dimension: str) -> dict[str, Any]:
+        """Get component schemas from foundation hub by dimension."""
+        schemas = {}
+        try:
+            names = hub.list_components(dimension=dimension)
+            for name in names:
+                component = hub.get_component(name, dimension=dimension)
+                if component and hasattr(component, "get_schema"):
+                    try:
+                        schema = component.get_schema()
+                        # Convert PvsSchema to dict format for templates
+                        schema_dict = self._convert_pvs_schema_to_dict(schema)
+                        schemas[name] = schema_dict
+                    except Exception as e:
+                        logger.warning(f"Failed to get schema for {dimension} {name}: {e}")
+        except Exception as e:
+            logger.warning(f"Failed to get {dimension} components: {e}")
+        return schemas
+
+    def _get_function_schemas_from_hub(self, hub: Hub, dimension: str) -> dict[str, Any]:
+        """Get function schemas from foundation hub."""
+        schemas = {}
+        try:
+            names = hub.list_components(dimension=dimension)
+            for name in names:
+                func = hub.get_component(name, dimension=dimension)
+                if func:
+                    # For functions, we'll extract signature info from the callable
+                    try:
+                        import inspect
+                        sig = inspect.signature(func)
+                        schema_dict = {
+                            "signature": {
+                                "parameters": [
+                                    {
+                                        "name": param.name,
+                                        "type": str(param.annotation) if param.annotation != param.empty else "any",
+                                        "description": f"Parameter {param.name}"
+                                    }
+                                    for param in sig.parameters.values()
+                                ],
+                                "return_type": str(sig.return_annotation) if sig.return_annotation != sig.empty else "any"
+                            },
+                            "description": func.__doc__ or f"Function {name}"
+                        }
+                        schemas[name] = schema_dict
+                    except Exception as e:
+                        logger.warning(f"Failed to get schema for function {name}: {e}")
+        except Exception as e:
+            logger.warning(f"Failed to get function components: {e}")
+        return schemas
+
+    def _convert_pvs_schema_to_dict(self, pvs_schema: Any) -> dict[str, Any]:
+        """Convert PvsSchema object to dictionary format for templates."""
+        try:
+            # Import here to avoid circular dependencies
+            import attrs
+            if attrs.has(pvs_schema):
+                schema_dict = attrs.asdict(pvs_schema)
+            else:
+                # Fallback: try to access schema attributes directly
+                schema_dict = {
+                    "block": {
+                        "attributes": getattr(pvs_schema, "attributes", {}),
+                        "block_types": getattr(pvs_schema, "block_types", {}),
+                    },
+                    "description": getattr(pvs_schema, "description", ""),
+                }
+        except Exception as e:
+            logger.warning(f"Failed to convert PvsSchema to dict: {e}")
+            schema_dict = {"block": {"attributes": {}}}
+
+        return schema_dict
+
+    async def _get_component_schema(
+        self, component: PlatingBundle, component_type: ComponentType
+    ) -> SchemaInfo | None:
+        """Extract component schema and convert to SchemaInfo."""
+        # Extract provider schema if not already done
+        provider_schema = await self._extract_provider_schema()
+
         if not provider_schema:
             return None
 
@@ -285,12 +395,18 @@ class Plating:
         if not schemas:
             return None
 
-        # Try to find schema by component name
+        # Try to find schema by component name (with and without pyvider_ prefix)
+        component_schema = None
         for name, schema in schemas.items():
             if name == component.name or name == f"pyvider_{component.name}":
-                return schema
+                component_schema = schema
+                break
 
-        return None
+        if not component_schema:
+            return None
+
+        # Convert to SchemaInfo for template rendering
+        return SchemaInfo.from_dict(component_schema)
 
     def get_registry_stats(self) -> dict[str, Any]:
         """Get registry statistics."""
