@@ -12,7 +12,7 @@ from provide.foundation.hub import Hub
 from plating.adorner.finder import ComponentFinder
 from plating.adorner.templates import TemplateGenerator
 from plating.errors import AdorningError, handle_error
-from plating.plating import PlatingDiscovery
+from plating.discovery import PlatingDiscovery
 
 
 class PlatingAdorner:
