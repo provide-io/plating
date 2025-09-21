@@ -246,13 +246,19 @@ class Plating:
 
                 # Create context for rendering
                 context_dict = self.context.to_dict() if self.context else {}
+
+                # Load examples from the component bundle
+                examples = component.load_examples()
+
                 render_context = PlatingContext(
-                    name=context_dict.get('name', component.name),
+                    name=component.name,  # Always use component.name, not context name
                     component_type=component_type,
+                    description=f"Terraform {component_type.value} for {component.name}",
                     schema=provider_schema,
                     signature=signature,
                     arguments=arguments,
-                    **{k: v for k, v in context_dict.items() if k not in ['name', 'component_type', 'schema', 'signature', 'arguments']}
+                    examples=examples,
+                    **{k: v for k, v in context_dict.items() if k not in ['name', 'component_type', 'schema', 'signature', 'arguments', 'examples', 'description']}
                 )
 
                 # Render with template engine
