@@ -219,7 +219,7 @@ class ExampleCompiler:
         return f'''terraform {{
   required_providers {{
     {self.provider_name} = {{
-      source  = "registry.terraform.io/provide-io/{self.provider_name}"
+      source  = "local/providers/{self.provider_name}"
       version = ">= {self.provider_version}"
     }}
   }}
