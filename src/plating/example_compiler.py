@@ -14,7 +14,7 @@ from plating.types import ComponentType
 """Executable example compilation for Terraform provider documentation."""
 
 
-@define(frozen=True)
+@define
 class CompilationResult:
     """Result of example compilation process."""
 
@@ -85,13 +85,7 @@ class ExampleCompiler:
         # Generate complete showcase example
         try:
             complete_path = self._generate_complete_example(bundles, examples_dir, result)
-            result = CompilationResult(
-                examples_generated=result.examples_generated,
-                output_files=result.output_files,
-                errors=result.errors,
-                provider_config_path=result.provider_config_path,
-                complete_example_path=complete_path,
-            )
+            result.complete_example_path = complete_path
         except Exception as e:
             result.errors.append(f"Failed to generate complete example: {e}")
 
@@ -144,13 +138,7 @@ class ExampleCompiler:
         readme_path.write_text(readme_content, encoding="utf-8")
         result.output_files.append(readme_path)
 
-        result = CompilationResult(
-            examples_generated=result.examples_generated + 1,
-            output_files=result.output_files,
-            errors=result.errors,
-            provider_config_path=result.provider_config_path,
-            complete_example_path=result.complete_example_path,
-        )
+        result.examples_generated += 1
 
     def _generate_combined_example(
         self,
@@ -177,13 +165,7 @@ class ExampleCompiler:
         readme_path.write_text(readme_content, encoding="utf-8")
         result.output_files.append(readme_path)
 
-        result = CompilationResult(
-            examples_generated=result.examples_generated + 1,
-            output_files=result.output_files,
-            errors=result.errors,
-            provider_config_path=result.provider_config_path,
-            complete_example_path=result.complete_example_path,
-        )
+        result.examples_generated += 1
 
     def _generate_complete_example(
         self, bundles: list[PlatingBundle], examples_dir: Path, result: CompilationResult
