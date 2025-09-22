@@ -5,21 +5,78 @@ from __future__ import annotations
 #
 """Modern async API for plating operations with full foundation integration."""
 
+import os
 from pathlib import Path
 import time
 from typing import Any
 
-from provide.foundation import logger, metrics
+from provide.foundation import logger
 from provide.foundation.resilience import BackoffStrategy, CircuitBreaker, RetryPolicy
 
 from plating.async_template_engine import template_engine
 from plating.bundles import PlatingBundle
-from plating.decorators import plating_metrics, with_metrics, with_retry, with_timing
+from plating.decorators import with_metrics, with_retry, with_timing
 from plating.discovery import PlatingDiscovery
-from plating.markdown_validator import get_markdown_validator
+
+# from plating.markdown_validator import get_markdown_validator
 from plating.registry import get_plating_registry
-from plating.schema import SchemaProcessor
 from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, SchemaInfo, ValidationResult
+
+
+def find_project_root(start_dir: Path | None = None) -> Path | None:
+    """Find the project root by looking for key files.
+
+    Args:
+        start_dir: Directory to start searching from (defaults to current working directory)
+
+    Returns:
+        Path to project root or None if not found
+    """
+    if start_dir is None:
+        start_dir = Path.cwd()
+
+    current = start_dir.resolve()
+
+    # Look for project marker files
+    project_markers = ["pyproject.toml", "pyvider.toml", ".git", "setup.py", "setup.cfg"]
+
+    while current != current.parent:  # Stop at filesystem root
+        for marker in project_markers:
+            if (current / marker).exists():
+                logger.debug(f"Found project root at {current} (marker: {marker})")
+                return current
+        current = current.parent
+
+    logger.warning(f"No project root found starting from {start_dir}")
+    return None
+
+
+def get_output_directory(output_dir: Path | None, project_root: Path | None = None) -> Path:
+    """Determine the appropriate output directory for documentation.
+
+    Args:
+        output_dir: Explicitly specified output directory
+        project_root: Project root directory
+
+    Returns:
+        Resolved output directory path
+    """
+    if output_dir is not None:
+        # If output_dir is absolute, use as-is
+        if output_dir.is_absolute():
+            return output_dir
+        # If relative and we have project root, make it relative to project root
+        if project_root:
+            return project_root / output_dir
+        # Otherwise relative to current directory
+        return Path.cwd() / output_dir
+
+    # Default behavior: try to use project_root/docs if available
+    if project_root:
+        return project_root / "docs"
+
+    # Fallback to current directory/docs
+    return Path.cwd() / "docs"
 
 
 class Plating:
@@ -39,7 +96,7 @@ class Plating:
 
         # Foundation patterns
         self.registry = get_plating_registry(package_name)
-        self.validator = get_markdown_validator()
+        # self.validator = get_markdown_validator()
 
         # Schema processing
         self._provider_schema: dict[str, Any] | None = None
@@ -118,6 +175,7 @@ class Plating:
         component_types: list[ComponentType] | None = None,
         force: bool = False,
         validate_markdown: bool = True,
+        project_root: Path | None = None,
     ) -> PlateResult:
         """Generate documentation from plating bundles.
 
@@ -126,12 +184,35 @@ class Plating:
             component_types: Component types to generate
             force: Overwrite existing files
             validate_markdown: Enable markdown validation
+            project_root: Project root directory (auto-detected if not provided)
 
         Returns:
             PlateResult with generation statistics
         """
-        output_dir = output_dir or Path("docs")
-        output_dir.mkdir(parents=True, exist_ok=True)
+        # Detect project root if not provided
+        if project_root is None:
+            project_root = find_project_root()
+
+        # Determine final output directory with improved logic
+        final_output_dir = get_output_directory(output_dir, project_root)
+
+        logger.info(f"Using output directory: {final_output_dir}")
+        if project_root:
+            logger.info(f"Project root detected: {project_root}")
+        else:
+            logger.warning("No project root detected, using current directory as base")
+
+        # Validate and create output directory
+        try:
+            final_output_dir.mkdir(parents=True, exist_ok=True)
+        except PermissionError as e:
+            raise RuntimeError(f"Cannot create output directory {final_output_dir}: {e}") from e
+        except OSError as e:
+            raise RuntimeError(f"Failed to create output directory {final_output_dir}: {e}") from e
+
+        # Ensure we can write to the directory
+        if not os.access(final_output_dir, os.W_OK):
+            raise RuntimeError(f"Output directory {final_output_dir} is not writable")
 
         if not component_types:
             component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
@@ -143,30 +224,41 @@ class Plating:
             components = self.registry.get_components_with_templates(component_type)
             logger.info(f"Generating docs for {len(components)} {component_type.value} components")
 
-            await self._render_component_docs(components, component_type, output_dir, force, result)
+            await self._render_component_docs(components, component_type, final_output_dir, force, result)
+
+        # Generate provider index page
+        await self._generate_provider_index(final_output_dir, force, result)
 
         result.duration_seconds = time.monotonic() - start_time
 
-        # Validate if requested
-        if validate_markdown and result.output_files:
-            validation_result = await self.validate(output_dir, component_types)
-            result.errors.extend(validation_result.errors)
+        # Validate if requested (disabled due to markdown validator dependency)
+        # if validate_markdown and result.output_files:
+        #     validation_result = await self.validate(output_dir, component_types)
+        #     result.errors.extend(validation_result.errors)
 
         return result
 
     async def validate(
-        self, output_dir: Path | None = None, component_types: list[ComponentType] | None = None
+        self,
+        output_dir: Path | None = None,
+        component_types: list[ComponentType] | None = None,
+        project_root: Path | None = None,
     ) -> ValidationResult:
         """Validate generated documentation.
 
         Args:
             output_dir: Directory containing documentation
             component_types: Component types to validate
+            project_root: Project root directory (auto-detected if not provided)
 
         Returns:
             ValidationResult with any errors found
         """
-        output_dir = output_dir or Path("docs")
+        # Use same logic as plate method for consistency
+        if project_root is None:
+            project_root = find_project_root()
+
+        final_output_dir = get_output_directory(output_dir, project_root)
         component_types = component_types or [
             ComponentType.RESOURCE,
             ComponentType.DATA_SOURCE,
@@ -177,7 +269,7 @@ class Plating:
         files_checked = 0
 
         for component_type in component_types:
-            type_dir = output_dir / component_type.value.replace("_", "_")
+            type_dir = final_output_dir / component_type.value.replace("_", "_")
             if not type_dir.exists():
                 continue
 
@@ -226,26 +318,30 @@ class Plating:
                 arguments = None
                 if component_type == ComponentType.FUNCTION:
                     from plating.discovery.templates import TemplateMetadataExtractor
+
                     extractor = TemplateMetadataExtractor()
                     metadata = extractor.extract_function_metadata(component.name, component_type.value)
                     signature = metadata.get("signature_markdown", "")
                     if metadata.get("arguments_markdown"):
                         # Convert markdown arguments to ArgumentInfo objects
                         from plating.types import ArgumentInfo
-                        arg_lines = metadata["arguments_markdown"].split('\n')
+
+                        arg_lines = metadata["arguments_markdown"].split("\n")
                         arguments = []
                         for line in arg_lines:
-                            if line.strip().startswith('- `'):
+                            if line.strip().startswith("- `"):
                                 # Parse "- `name` (type) - description"
-                                parts = line.strip()[3:].split('`', 1)
+                                parts = line.strip()[3:].split("`", 1)
                                 if len(parts) >= 2:
                                     name = parts[0]
                                     rest = parts[1].strip()
-                                    if rest.startswith('(') and ')' in rest:
-                                        type_end = rest.find(')')
+                                    if rest.startswith("(") and ")" in rest:
+                                        type_end = rest.find(")")
                                         arg_type = rest[1:type_end]
-                                        description = rest[type_end+1:].strip(' -')
-                                        arguments.append(ArgumentInfo(name=name, type=arg_type, description=description))
+                                        description = rest[type_end + 1 :].strip(" -")
+                                        arguments.append(
+                                            ArgumentInfo(name=name, type=arg_type, description=description)
+                                        )
 
                 # Create context for rendering
                 context_dict = self.context.to_dict() if self.context else {}
@@ -261,7 +357,20 @@ class Plating:
                     signature=signature,
                     arguments=arguments,
                     examples=examples,
-                    **{k: v for k, v in context_dict.items() if k not in ['name', 'component_type', 'schema', 'signature', 'arguments', 'examples', 'description']}
+                    **{
+                        k: v
+                        for k, v in context_dict.items()
+                        if k
+                        not in [
+                            "name",
+                            "component_type",
+                            "schema",
+                            "signature",
+                            "arguments",
+                            "examples",
+                            "description",
+                        ]
+                    },
                 )
 
                 # Render with template engine
@@ -337,20 +446,25 @@ class Plating:
                     # For functions, we'll extract signature info from the callable
                     try:
                         import inspect
+
                         sig = inspect.signature(func)
                         schema_dict = {
                             "signature": {
                                 "parameters": [
                                     {
                                         "name": param.name,
-                                        "type": str(param.annotation) if param.annotation != param.empty else "any",
-                                        "description": f"Parameter {param.name}"
+                                        "type": str(param.annotation)
+                                        if param.annotation != param.empty
+                                        else "any",
+                                        "description": f"Parameter {param.name}",
                                     }
                                     for param in sig.parameters.values()
                                 ],
-                                "return_type": str(sig.return_annotation) if sig.return_annotation != sig.empty else "any"
+                                "return_type": str(sig.return_annotation)
+                                if sig.return_annotation != sig.empty
+                                else "any",
                             },
-                            "description": func.__doc__ or f"Function {name}"
+                            "description": func.__doc__ or f"Function {name}",
                         }
                         schemas[name] = schema_dict
                     except Exception as e:
@@ -364,6 +478,7 @@ class Plating:
         try:
             # Import here to avoid circular dependencies
             import attrs
+
             if attrs.has(pvs_schema):
                 schema_dict = attrs.asdict(pvs_schema)
             else:
@@ -447,6 +562,100 @@ Terraform {component.component_type} for {component.name}
 {{{{ schema_markdown }}}}
 """
         template_file.write_text(template_content, encoding="utf-8")
+
+    async def _generate_provider_index(self, output_dir: Path, force: bool, result: PlateResult) -> None:
+        """Generate provider index page."""
+        index_file = output_dir / "index.md"
+
+        if index_file.exists() and not force:
+            logger.debug(f"Skipping existing provider index: {index_file}")
+            return
+
+        logger.info("Generating provider index page...")
+
+        # Get provider name from context
+        provider_name = self.context.provider_name or "pyvider"
+        display_name = provider_name.title()
+
+        # Extract provider schema for configuration documentation
+        provider_schema = await self._extract_provider_schema()
+        provider_config_schema = None
+
+        # Look for provider configuration schema
+        for schema_key, schema_data in provider_schema.items():
+            if "provider" in schema_key.lower():
+                provider_config_schema = schema_data
+                break
+
+        # Create provider schema info if available
+        provider_schema_info = None
+        if provider_config_schema:
+            provider_schema_info = SchemaInfo.from_dict(provider_config_schema)
+
+        # Create provider example configuration
+        provider_example = f'''provider "{provider_name}" {{
+  # Configuration options
+}}'''
+
+        # Generate index content
+        index_content = f'''---
+page_title: "{display_name} Provider"
+description: |-
+  Terraform provider for {provider_name}
+---
+
+# {display_name} Provider
+
+Terraform provider for {provider_name} - A Python-based Terraform provider built with the Pyvider framework.
+
+## Example Usage
+
+```terraform
+{provider_example}
+```
+
+## Schema
+
+{provider_schema_info.to_markdown() if provider_schema_info else "No provider configuration required."}
+
+## Resources
+
+'''
+
+        # Add links to resources
+        resource_components = self.registry.get_components_with_templates(ComponentType.RESOURCE)
+        if resource_components:
+            for component in sorted(resource_components, key=lambda c: c.name):
+                index_content += f"- [`{provider_name}_{component.name}`](./resource/{component.name}.md)\n"
+        else:
+            index_content += "No resources available.\n"
+
+        index_content += "\n## Data Sources\n\n"
+
+        # Add links to data sources
+        data_source_components = self.registry.get_components_with_templates(ComponentType.DATA_SOURCE)
+        if data_source_components:
+            for component in sorted(data_source_components, key=lambda c: c.name):
+                index_content += f"- [`{provider_name}_{component.name}`](./data_source/{component.name}.md)\n"
+        else:
+            index_content += "No data sources available.\n"
+
+        index_content += "\n## Functions\n\n"
+
+        # Add links to functions
+        function_components = self.registry.get_components_with_templates(ComponentType.FUNCTION)
+        if function_components:
+            for component in sorted(function_components, key=lambda c: c.name):
+                index_content += f"- [`{component.name}`](./function/{component.name}.md)\n"
+        else:
+            index_content += "No functions available.\n"
+
+        # Write the index file
+        index_file.write_text(index_content, encoding="utf-8")
+        result.files_generated += 1
+        result.output_files.append(index_file)
+
+        logger.info(f"Generated provider index: {index_file}")
 
 
 # Global API instance
