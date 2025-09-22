@@ -221,9 +221,8 @@ class TestModernAPI:
         assert components[0].name == "test_resource"
 
     @pytest.mark.asyncio
-    @patch("plating.registry.get_plating_registry")
     @patch("plating.markdown_validator.PyMarkdownApi")
-    async def test_plate_operation_comprehensive(self, mock_md_api, mock_registry_factory):
+    async def test_plate_operation_comprehensive(self, mock_md_api):
         """Test comprehensive plate operation."""
         # Mock bundle
         mock_bundle = Mock()
@@ -236,18 +235,20 @@ class TestModernAPI:
         def mock_load_examples():
             return {"basic": 'resource "test" {}'}
 
+        def mock_load_main_template():
+            return "# Test Template\n{{ schema() }}\n{{ example('basic') }}"
+
         mock_bundle.load_examples = mock_load_examples
+        mock_bundle.load_main_template = mock_load_main_template
         mock_bundle.plating_dir = Path("/mock/path")
 
-        # Mock registry
-        mock_registry = Mock()
-        mock_registry.get_components_with_templates.return_value = [mock_bundle]
-        mock_registry_factory.return_value = mock_registry
-
-        # Mock the render_component_docs function
-        with patch("plating.core.doc_generator.render_component_docs") as mock_render:
+        # Mock the render_component_docs function and provider index generation
+        with patch("plating.core.doc_generator.render_component_docs") as mock_render, \
+             patch("plating.core.doc_generator.generate_provider_index") as mock_index, \
+             patch("plating.core.doc_generator.template_engine") as mock_template_engine:
             # Make render_component_docs async and handle the result object
             async def mock_render_docs(components, component_type, output_dir, force, result, context, schema):
+                print(f"mock_render_docs called with {len(components)} components")
                 # Simulate file generation by adding to result.output_files
                 test_file = output_dir / "test_resource.md"
                 result.output_files.append(test_file)
@@ -261,20 +262,32 @@ class TestModernAPI:
             mock_md_instance.scan_path.return_value = Mock(scan_failures=[], pragma_errors=[])
             mock_md_api.return_value = mock_md_instance
 
-            api = Plating()
+            # Mock registry after api is created
+            with patch("plating.registry.get_plating_registry") as mock_registry_factory:
+                # Mock registry
+                mock_registry = Mock()
+                def mock_get_components_with_templates(component_type):
+                    print(f"get_components_with_templates called with {component_type}")
+                    return [mock_bundle]
 
-            with patch("pathlib.Path.mkdir"), patch("pathlib.Path.write_text") as mock_write:
-                result = await api.plate(
-                    Path("docs"), component_types=[ComponentType.RESOURCE], validate_markdown=True
-                )
+                mock_registry.get_components_with_templates.side_effect = mock_get_components_with_templates
+                mock_registry_factory.return_value = mock_registry
 
-                # Should succeed
-                assert result.success is True
-                assert result.files_generated >= 1
-                assert len(result.output_files) >= 1
+                api = Plating()
+                api.registry = mock_registry  # Override the registry directly
 
-                # Should call render_component_docs
-                mock_render.assert_called()
+                with patch("pathlib.Path.mkdir"), patch("pathlib.Path.write_text") as mock_write:
+                    result = await api.plate(
+                        Path("docs"), component_types=[ComponentType.RESOURCE], validate_markdown=True
+                    )
+
+                    # Should succeed
+                    assert result.success is True
+                    assert result.files_generated >= 1
+                    assert len(result.output_files) >= 1
+
+                    # Should call render_component_docs
+                    mock_render.assert_called()
 
     @pytest.mark.asyncio
     @patch("plating.registry.PlatingDiscovery")
