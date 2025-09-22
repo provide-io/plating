@@ -11,7 +11,9 @@
       "Bash(plating list:*)",
       "Bash(plating:*)",
       "Bash(head:*)",
-      "Bash(terraform:*)"
+      "Bash(terraform:*)",
+      "Read(//private/tmp/tf_test/**)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": [],
