@@ -107,7 +107,7 @@ class AsyncTemplateEngine:
 
     async def _load_template(self, bundle: PlatingBundle) -> str:
         """Load main template from bundle."""
-        cache_key = f"{bundle.plating_dir}:main"
+        cache_key = f"{bundle.plating_dir}:{bundle.name}:main"
         if cache_key in self._template_cache:
             return self._template_cache[cache_key]
 
@@ -121,7 +121,7 @@ class AsyncTemplateEngine:
         """Load partial templates from bundle."""
         import json
 
-        cache_key = f"{bundle.plating_dir}:partials"
+        cache_key = f"{bundle.plating_dir}:{bundle.name}:partials"
         if cache_key in self._template_cache:
             return json.loads(self._template_cache[cache_key])
 
