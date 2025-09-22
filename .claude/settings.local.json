@@ -14,7 +14,12 @@
       "Bash(terraform:*)",
       "Read(//private/tmp/tf_test/**)",
       "Bash(tree:*)",
-      "Read(//Users/tim/.terraform.d/plugins/local/providers/pyvider/0.0.5/darwin_arm64/**)"
+      "Read(//Users/tim/.terraform.d/plugins/local/providers/pyvider/0.0.5/darwin_arm64/**)",
+      "Bash(__NEW_LINE__ echo \"Testing basic example with local provider:\")",
+      "Bash(__NEW_LINE__ echo \"1. Terraform Init:\")",
+      "Bash(__NEW_LINE__ echo \"\")",
+      "Bash(__NEW_LINE__ cd /Users/tim/code/gh/provide-io/pyvider-components)",
+      "Bash(TF_LOG=debug terraform plan -no-color)"
     ],
     "deny": [],
     "ask": [],
