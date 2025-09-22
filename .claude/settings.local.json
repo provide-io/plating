@@ -10,7 +10,8 @@
       "Bash(plating sets:*)",
       "Bash(plating list:*)",
       "Bash(plating:*)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(terraform:*)"
     ],
     "deny": [],
     "ask": [],
