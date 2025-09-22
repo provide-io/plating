@@ -53,12 +53,24 @@ class PlatingBundle:
         pyvider_template = self.docs_dir / f"pyvider_{self.name}.tmpl.md"
         main_template = self.docs_dir / "main.md.j2"
 
-        for template_path in [template_file, pyvider_template, main_template]:
+        # First, try component-specific templates
+        for template_path in [template_file, pyvider_template]:
             if template_path.exists():
                 try:
                     return template_path.read_text(encoding="utf-8")
                 except Exception:
                     return None
+
+        # Only use main.md.j2 if it's the only component in this bundle directory
+        # Check if this bundle contains multiple components by looking for other .tmpl.md files
+        if main_template.exists():
+            component_templates = list(self.docs_dir.glob("*.tmpl.md"))
+            if len(component_templates) <= 1:  # Only this component or no specific templates
+                try:
+                    return main_template.read_text(encoding="utf-8")
+                except Exception:
+                    return None
+
         return None
 
     def load_examples(self) -> dict[str, str]:

@@ -4,10 +4,14 @@
 import pytest
 
 
-def test_old_api_module_removed():
-    """Test that the old api.py module is gone."""
-    with pytest.raises(ModuleNotFoundError):
-        pass
+def test_old_api_module_updated():
+    """Test that the old api.py module is updated for backward compatibility."""
+    # Should be able to import PlatingAPI for backward compatibility
+    from plating.api import PlatingAPI
+
+    # Should be able to create instance
+    api = PlatingAPI()
+    assert api is not None
 
 
 def test_new_module_exists():
