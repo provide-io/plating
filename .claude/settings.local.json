@@ -9,7 +9,8 @@
       "Bash(pip show:*)",
       "Bash(plating sets:*)",
       "Bash(plating list:*)",
-      "Bash(plating:*)"
+      "Bash(plating:*)",
+      "Bash(head:*)"
     ],
     "deny": [],
     "ask": [],
