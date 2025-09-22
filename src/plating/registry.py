@@ -60,7 +60,7 @@ class PlatingRegistry(Registry):
 
         # Initialize discovery with error handling
         try:
-            from plating.plating import PlatingDiscovery
+            from plating.discovery import PlatingDiscovery
 
             self._discovery = PlatingDiscovery(package_name)
             # Auto-discover on initialization
