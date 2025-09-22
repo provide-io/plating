@@ -301,8 +301,11 @@ class TestModernAPI:
         # Use pytest's tmp_path (which works well with foundation patterns)
         docs_dir = tmp_path
 
-        # Create test markdown file
-        test_file = docs_dir / "test.md"
+        # Create test markdown file in the correct subdirectory structure
+        # The validate method looks for files in component_type subdirectories
+        resource_dir = docs_dir / "resource"  # ComponentType.RESOURCE.value = "resource"
+        resource_dir.mkdir(parents=True, exist_ok=True)
+        test_file = resource_dir / "test.md"
         test_file.write_text("# Test Header\n\nSome content.\n")
 
         pout(f"Testing validation in {docs_dir}", color="cyan")  # Foundation I/O
