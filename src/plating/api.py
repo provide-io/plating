@@ -59,10 +59,7 @@ class PlatingAPI:
         output_path.mkdir(parents=True, exist_ok=True)
 
         # Run the async plate operation for functions only
-        result = asyncio.run(self._plating.plate(
-            output_path,
-            component_types=[ComponentType.FUNCTION]
-        ))
+        result = asyncio.run(self._plating.plate(output_path, component_types=[ComponentType.FUNCTION]))
 
         # Convert to old format
         files = []
@@ -88,10 +85,7 @@ class PlatingAPI:
         output_path.mkdir(parents=True, exist_ok=True)
 
         # Run the async plate operation for resources only
-        result = asyncio.run(self._plating.plate(
-            output_path,
-            component_types=[ComponentType.RESOURCE]
-        ))
+        result = asyncio.run(self._plating.plate(output_path, component_types=[ComponentType.RESOURCE]))
 
         # Convert to old format
         files = []

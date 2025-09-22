@@ -105,7 +105,7 @@ class Plating:
                 except Exception as e:
                     logger.error(f"Failed to adorn {component.name}: {e}")
 
-        duration = time.monotonic() - start_time
+        time.monotonic() - start_time  # End timing
         return AdornResult(
             components_processed=sum(len(self.registry.get_components(ct)) for ct in component_types),
             templates_generated=templates_generated,
@@ -245,7 +245,7 @@ class Plating:
             failed=len(errors),
             skipped=0,
             duration_seconds=0.0,
-            errors=errors
+            errors=errors,
         )
 
     async def _extract_provider_schema(self) -> dict[str, Any]:
