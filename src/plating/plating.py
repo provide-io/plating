@@ -167,9 +167,16 @@ class Plating:
         start_time = time.monotonic()
         result = PlateResult(duration_seconds=0.0, files_generated=0, errors=[], output_files=[])
 
+        # Track unique bundles processed
+        processed_bundles: set[str] = set()
+
         for component_type in component_types:
             components = self.registry.get_components_with_templates(component_type)
             logger.info(f"Generating docs for {len(components)} {component_type.value} components")
+
+            # Track unique bundle directories
+            for component in components:
+                processed_bundles.add(str(component.plating_dir))
 
             await render_component_docs(
                 components,
@@ -186,6 +193,8 @@ class Plating:
             final_output_dir, force, result, self.context, self._provider_schema or {}, self.registry
         )
 
+        # Update result with tracking info
+        result.bundles_processed = len(processed_bundles)
         result.duration_seconds = time.monotonic() - start_time
 
         # Validate if requested (disabled due to markdown validator dependency)
