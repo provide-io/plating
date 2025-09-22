@@ -221,11 +221,11 @@ class TestModernAPI:
         assert components[0].name == "test_resource"
 
     @pytest.mark.asyncio
-    @patch("plating.registry.PlatingDiscovery")
+    @patch("plating.registry.get_plating_registry")
     @patch("plating.markdown_validator.PyMarkdownApi")
-    async def test_plate_operation_comprehensive(self, mock_md_api, mock_discovery):
+    async def test_plate_operation_comprehensive(self, mock_md_api, mock_registry_factory):
         """Test comprehensive plate operation."""
-        # Mock discovery
+        # Mock bundle
         mock_bundle = Mock()
         mock_bundle.name = "test_resource"
         mock_bundle.component_type = "resource"
@@ -239,9 +239,10 @@ class TestModernAPI:
         mock_bundle.load_examples = mock_load_examples
         mock_bundle.plating_dir = Path("/mock/path")
 
-        mock_discovery_instance = Mock()
-        mock_discovery_instance.discover_bundles.return_value = [mock_bundle]
-        mock_discovery.return_value = mock_discovery_instance
+        # Mock registry
+        mock_registry = Mock()
+        mock_registry.get_components_with_templates.return_value = [mock_bundle]
+        mock_registry_factory.return_value = mock_registry
 
         # Mock the render_component_docs function
         with patch("plating.core.doc_generator.render_component_docs") as mock_render:
@@ -251,7 +252,7 @@ class TestModernAPI:
                 test_file = output_dir / "test_resource.md"
                 result.output_files.append(test_file)
                 result.files_generated += 1
-                return result
+                # Return None like the real function
 
             mock_render.side_effect = mock_render_docs
 
