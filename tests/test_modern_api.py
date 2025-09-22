@@ -221,73 +221,77 @@ class TestModernAPI:
         assert components[0].name == "test_resource"
 
     @pytest.mark.asyncio
-    @patch("plating.markdown_validator.PyMarkdownApi")
-    async def test_plate_operation_comprehensive(self, mock_md_api):
-        """Test comprehensive plate operation."""
-        # Mock bundle
-        mock_bundle = Mock()
-        mock_bundle.name = "test_resource"
-        mock_bundle.component_type = "resource"
-        mock_bundle.has_main_template.return_value = True
-        mock_bundle.has_examples.return_value = False
+    async def test_plate_operation_comprehensive(self, tmp_path):
+        """Test comprehensive plate operation with minimal mocking."""
+        # Create a real bundle structure in tmp_path
+        bundle_dir = tmp_path / "test_resource.plating"
+        bundle_dir.mkdir()
 
-        # Make load_examples return serializable data
-        def mock_load_examples():
-            return {"basic": 'resource "test" {}'}
+        # Create docs directory and template
+        docs_dir = bundle_dir / "docs"
+        docs_dir.mkdir()
+        template_file = docs_dir / "test_resource.tmpl.md"
+        template_file.write_text("""---
+page_title: "Resource: test_resource"
+description: Test resource description
+---
 
-        def mock_load_main_template():
-            return "# Test Template\n{{ schema() }}\n{{ example('basic') }}"
+# test_resource (Resource)
 
-        mock_bundle.load_examples = mock_load_examples
-        mock_bundle.load_main_template = mock_load_main_template
-        mock_bundle.plating_dir = Path("/mock/path")
+Test resource for unit testing.
 
-        # Mock the render_component_docs function and provider index generation
-        with patch("plating.core.doc_generator.render_component_docs") as mock_render, \
-             patch("plating.core.doc_generator.generate_provider_index") as mock_index, \
-             patch("plating.core.doc_generator.template_engine") as mock_template_engine:
-            # Make render_component_docs async and handle the result object
-            async def mock_render_docs(components, component_type, output_dir, force, result, context, schema):
-                print(f"mock_render_docs called with {len(components)} components")
-                # Simulate file generation by adding to result.output_files
-                test_file = output_dir / "test_resource.md"
-                result.output_files.append(test_file)
-                result.files_generated += 1
-                # Return None like the real function
+## Example Usage
 
-            mock_render.side_effect = mock_render_docs
+{{ example("basic") }}
 
-            # Mock markdown validator
-            mock_md_instance = Mock()
-            mock_md_instance.scan_path.return_value = Mock(scan_failures=[], pragma_errors=[])
-            mock_md_api.return_value = mock_md_instance
+## Schema
 
-            # Mock registry after api is created
-            with patch("plating.registry.get_plating_registry") as mock_registry_factory:
-                # Mock registry
-                mock_registry = Mock()
-                def mock_get_components_with_templates(component_type):
-                    print(f"get_components_with_templates called with {component_type}")
-                    return [mock_bundle]
+{{ schema() }}
+""")
 
-                mock_registry.get_components_with_templates.side_effect = mock_get_components_with_templates
-                mock_registry_factory.return_value = mock_registry
+        # Create examples directory and file
+        examples_dir = bundle_dir / "examples"
+        examples_dir.mkdir()
+        example_file = examples_dir / "basic.tf"
+        example_file.write_text('resource "test_resource" "example" {\n  name = "test"\n}')
 
-                api = Plating()
-                api.registry = mock_registry  # Override the registry directly
+        # Create a minimal registry that returns our test bundle
+        from plating.bundles import PlatingBundle
+        test_bundle = PlatingBundle(
+            name="test_resource",
+            plating_dir=bundle_dir,
+            component_type="resource"
+        )
 
-                with patch("pathlib.Path.mkdir"), patch("pathlib.Path.write_text") as mock_write:
-                    result = await api.plate(
-                        Path("docs"), component_types=[ComponentType.RESOURCE], validate_markdown=True
-                    )
+        # Mock the registry to return our test bundle
+        with patch("plating.registry.get_plating_registry") as mock_registry_factory:
+            mock_registry = Mock()
+            mock_registry.get_components_with_templates.return_value = [test_bundle]
+            mock_registry_factory.return_value = mock_registry
 
-                    # Should succeed
-                    assert result.success is True
-                    assert result.files_generated >= 1
-                    assert len(result.output_files) >= 1
+            # Create output directory
+            output_dir = tmp_path / "docs_output"
 
-                    # Should call render_component_docs
-                    mock_render.assert_called()
+            api = Plating()
+            api.registry = mock_registry
+
+            result = await api.plate(
+                output_dir,
+                component_types=[ComponentType.RESOURCE],
+                validate_markdown=False  # Disable markdown validation for simplicity
+            )
+
+            # Should succeed
+            assert result.success is True
+            assert result.files_generated >= 1
+            assert len(result.output_files) >= 1
+
+            # Check that files were actually created
+            expected_file = output_dir / "resource" / "test_resource.md"
+            assert expected_file.exists()
+            content = expected_file.read_text()
+            assert "test_resource" in content
+            assert "Resource" in content
 
     @pytest.mark.asyncio
     @patch("plating.registry.PlatingDiscovery")
