@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-#
-# plating/registry.py
-#
-"""Component registry using foundation patterns."""
-
 from typing import Any
 
 from provide.foundation import Registry, RegistryEntry, logger
 from provide.foundation.resilience import BackoffStrategy, RetryExecutor, RetryPolicy
 
+from plating.bundles import PlatingBundle
+from plating.discovery import PlatingDiscovery
 from plating.types import ComponentType
+
+#
+# plating/registry.py
+#
+"""Component registry using foundation patterns."""
 
 
 class PlatingRegistryEntry(RegistryEntry):
@@ -60,8 +62,6 @@ class PlatingRegistry(Registry):
 
         # Initialize discovery with error handling
         try:
-            from plating.discovery import PlatingDiscovery
-
             self._discovery = PlatingDiscovery(package_name)
             # Auto-discover on initialization
             self._discover_and_register()
@@ -82,7 +82,6 @@ class PlatingRegistry(Registry):
             logger.info(f"Discovered {len(bundles)} plating bundles")
 
             for bundle in bundles:
-
                 entry = PlatingRegistryEntry(bundle, dimension=bundle.component_type)
                 self.register(
                     name=bundle.name,
