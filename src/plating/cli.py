@@ -101,6 +101,11 @@ def adorn_command(component_type: tuple[str, ...], provider_name: str | None, pa
     type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
     help="Project root directory (auto-detected if not provided).",
 )
+@click.option(
+    "--generate-examples",
+    is_flag=True,
+    help="Generate executable example files alongside documentation.",
+)
 def plate_command(
     output_dir: Path,
     component_type: tuple[str, ...],
@@ -109,6 +114,7 @@ def plate_command(
     force: bool,
     project_root: Path | None,
     validate: bool,
+    generate_examples: bool,
 ) -> None:
     """Generate documentation from plating bundles."""
 
@@ -134,6 +140,48 @@ def plate_command(
                     pout(f"  • {file}")
                 if len(result.output_files) > 10:
                     pout(f"  ... and {len(result.output_files) - 10} more")
+
+            # Generate executable examples if requested
+            if generate_examples:
+                from plating.example_compiler import ExampleCompiler
+
+                pout("📁 Generating executable examples...")
+
+                # Get the same output directory that was used for docs
+                docs_output_dir = final_output_dir or Path("docs")
+
+                # Get all bundles with examples
+                bundles_with_examples = []
+                for component_type_enum in types or list(ComponentType):
+                    bundles = api.registry.get_components_with_templates(component_type_enum)
+                    bundles_with_examples.extend([b for b in bundles if b.has_examples()])
+
+                if bundles_with_examples:
+                    compiler = ExampleCompiler(
+                        provider_name=provider_name or "pyvider", provider_version="0.0.5"
+                    )
+
+                    compilation_result = compiler.compile_examples(
+                        bundles_with_examples, docs_output_dir, types
+                    )
+
+                    if compilation_result.examples_generated > 0:
+                        pout(f"✅ Generated {compilation_result.examples_generated} executable examples")
+                        pout("📂 Example files:")
+                        for example_file in compilation_result.output_files[:5]:  # Show first 5
+                            pout(f"  • {example_file}")
+                        if len(compilation_result.output_files) > 5:
+                            pout(f"  ... and {len(compilation_result.output_files) - 5} more")
+                    else:
+                        pout("ℹ️  No examples found to compile")
+
+                    if compilation_result.errors:
+                        perr("⚠️ Some example compilation errors:")
+                        for error in compilation_result.errors:
+                            perr(f"  • {error}")
+                else:
+                    pout("ℹ️  No components with examples found")
+
         else:
             perr("❌ Plate operation failed:")
             for error in result.errors:
