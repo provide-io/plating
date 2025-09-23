@@ -49,7 +49,7 @@ def adorn_command(component_type: tuple[str, ...], provider_name: str | None, pa
         types = [ComponentType(t) for t in component_type] if component_type else list(ComponentType)
 
         pout(f"🎨 Adorning {len(types)} component types...")
-        result = await api.adorn(types)
+        result = await api.adorn(component_types=types)
 
         if result.success:
             pout(f"✅ Generated {result.templates_generated} templates")

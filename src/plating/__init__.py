@@ -31,7 +31,7 @@ Example Usage:
         api = Plating(context)
 
         # Create missing templates
-        adorn_result = await api.adorn([ComponentType.RESOURCE])
+        adorn_result = await api.adorn(component_types=[ComponentType.RESOURCE])
         print(f"Created {adorn_result.templates_generated} templates")
 
         # Generate docs with validation
@@ -90,8 +90,8 @@ from plating.decorators import (
 )
 from plating.discovery import PlatingDiscovery as ModularPlatingDiscovery, TemplateMetadataExtractor
 from plating.generation import DocumentationAdorner, DocumentationPlater, TemplateRenderer
-# from plating.markdown_validator import MarkdownValidator, get_markdown_validator, reset_markdown_validator
 
+# from plating.markdown_validator import MarkdownValidator, get_markdown_validator, reset_markdown_validator
 # Core async API
 from plating.plating import Plating, plating
 
