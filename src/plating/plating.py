@@ -91,16 +91,21 @@ class Plating:
 
             for component in components:
                 try:
-                    # Only generate templates for components that don't have them (or if templates_only is False)
-                    if not component.has_main_template() or not templates_only:
-                        template_dir = output_dir / component_type.value / component.name
-                        template_dir.mkdir(parents=True, exist_ok=True)
+                    # Skip generating stub templates if source templates already exist
+                    if component.has_main_template():
+                        logger.debug(f"Skipping {component.name} - source template already exists")
+                        continue
 
-                        # Generate basic template if it doesn't exist
-                        template_file = template_dir / f"{component.name}.tmpl.md"
-                        if not template_file.exists() or not templates_only:
-                            generate_template(component, template_file)
-                            templates_generated += 1
+                    # Only generate stub templates for components that don't have source templates
+                    template_dir = output_dir / component_type.value / component.name
+                    template_dir.mkdir(parents=True, exist_ok=True)
+
+                    # Generate basic template only if it doesn't exist in source
+                    template_file = template_dir / f"{component.name}.tmpl.md"
+                    if not template_file.exists():
+                        generate_template(component, template_file)
+                        templates_generated += 1
+                        logger.info(f"Generated stub template for {component.name} (no source template found)")
 
                 except Exception as e:
                     logger.error(f"Failed to adorn {component.name}: {e}")
