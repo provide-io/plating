@@ -33,8 +33,10 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "provide-testkit[standard,build]",
 ]
 docs = [
+    "provide-testkit[docs]",
 ]
 
 [project.scripts]
