@@ -10,8 +10,8 @@ import functools
 import time
 from typing import Any, TypeVar
 
-from provide.foundation import logger, metrics
-from provide.foundation.resilience import BackoffStrategy, CircuitBreaker, RetryExecutor, RetryPolicy
+from provide.foundation import logger
+from provide.foundation.resilience import BackoffStrategy, SyncCircuitBreaker, RetryExecutor, RetryPolicy
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -81,7 +81,7 @@ def with_circuit_breaker(
     """
 
     def decorator(func: F) -> F:
-        circuit = CircuitBreaker(
+        circuit = SyncCircuitBreaker(
             failure_threshold=failure_threshold,
             recovery_timeout=recovery_timeout,
             expected_exception=expected_exception,
@@ -106,16 +106,13 @@ def with_circuit_breaker(
 
 
 def with_metrics(operation_name: str) -> Callable[[F], F]:
-    """Decorator for automatic metrics collection.
+    """Decorator for automatic metrics collection via structured logging.
 
     Args:
         operation_name: Name for the operation metrics
     """
 
     def decorator(func: F) -> F:
-        counter_name = f"plating.{operation_name}"
-        duration_name = f"plating.{operation_name}_duration"
-
         if asyncio.iscoroutinefunction(func):
 
             @functools.wraps(func)
@@ -123,14 +120,24 @@ def with_metrics(operation_name: str) -> Callable[[F], F]:
                 start = time.perf_counter()
                 try:
                     result = await func(*args, **kwargs)
-                    metrics.counter(counter_name).inc(labels={"status": "success"})
+                    duration = time.perf_counter() - start
+                    logger.info(
+                        f"Operation {operation_name} completed",
+                        operation=operation_name,
+                        status="success",
+                        duration_seconds=duration,
+                    )
                     return result
                 except Exception as e:
-                    metrics.counter(counter_name).inc(labels={"status": "error", "error": type(e).__name__})
-                    raise
-                finally:
                     duration = time.perf_counter() - start
-                    metrics.gauge(duration_name).set(duration)
+                    logger.error(
+                        f"Operation {operation_name} failed",
+                        operation=operation_name,
+                        status="error",
+                        error=type(e).__name__,
+                        duration_seconds=duration,
+                    )
+                    raise
 
             return async_wrapper
         else:
@@ -140,14 +147,24 @@ def with_metrics(operation_name: str) -> Callable[[F], F]:
                 start = time.perf_counter()
                 try:
                     result = func(*args, **kwargs)
-                    metrics.counter(counter_name).inc(labels={"status": "success"})
+                    duration = time.perf_counter() - start
+                    logger.info(
+                        f"Operation {operation_name} completed",
+                        operation=operation_name,
+                        status="success",
+                        duration_seconds=duration,
+                    )
                     return result
                 except Exception as e:
-                    metrics.counter(counter_name).inc(labels={"status": "error", "error": type(e).__name__})
-                    raise
-                finally:
                     duration = time.perf_counter() - start
-                    metrics.gauge(duration_name).set(duration)
+                    logger.error(
+                        f"Operation {operation_name} failed",
+                        operation=operation_name,
+                        status="error",
+                        error=type(e).__name__,
+                        duration_seconds=duration,
+                    )
+                    raise
 
             return sync_wrapper
 
@@ -203,33 +220,34 @@ async def async_rate_limited(rate: float, burst: int = 10):
 
 
 class PlatingMetrics:
-    """Centralized metrics collection for plating operations."""
-
-    def __init__(self):
-        self.bundles_processed = metrics.counter("plating.bundles_processed")
-        self.templates_rendered = metrics.counter("plating.templates_rendered")
-        self.schema_extractions = metrics.counter("plating.schema_extractions")
-        self.validation_runs = metrics.counter("plating.validation_runs")
-
-        self.render_duration = metrics.gauge("plating.render_duration_seconds")
-        self.schema_duration = metrics.gauge("plating.schema_duration_seconds")
-        self.validation_duration = metrics.gauge("plating.validation_duration_seconds")
+    """Centralized metrics collection for plating operations via structured logging."""
 
     @asynccontextmanager
     async def track_operation(self, operation: str, **labels):
         """Context manager for tracking operations with labels."""
         start = time.perf_counter()
-        counter = metrics.counter(f"plating.{operation}")
-        duration = metrics.gauge(f"plating.{operation}_duration")
 
         try:
             yield
-            counter.inc(labels={**labels, "status": "success"})
+            duration = time.perf_counter() - start
+            logger.info(
+                f"Plating operation {operation} completed",
+                operation=operation,
+                status="success",
+                duration_seconds=duration,
+                **labels,
+            )
         except Exception as e:
-            counter.inc(labels={**labels, "status": "error", "error": type(e).__name__})
+            duration = time.perf_counter() - start
+            logger.error(
+                f"Plating operation {operation} failed",
+                operation=operation,
+                status="error",
+                error=type(e).__name__,
+                duration_seconds=duration,
+                **labels,
+            )
             raise
-        finally:
-            duration.set(time.perf_counter() - start, labels=labels)
 
 
 # Global metrics instance

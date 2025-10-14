@@ -6,7 +6,7 @@
 from pathlib import Path
 from typing import Any
 
-from provide.foundation import logger, metrics
+from provide.foundation import logger
 from provide.foundation.resilience import BackoffStrategy, RetryExecutor, RetryPolicy
 try:
     from pymarkdown.api import PyMarkdownApi, PyMarkdownApiException
@@ -173,8 +173,12 @@ class MarkdownValidator:
                     file_result.errors + file_result.lint_errors
                 )
 
-        metrics.gauge("markdown_validation.total_files").set(len(file_paths))
-        metrics.gauge("markdown_validation.failed_files").set(combined_result.failed)
+        logger.info(
+            "Markdown validation batch completed",
+            total_files=len(file_paths),
+            failed_files=combined_result.failed,
+            passed_files=combined_result.passed,
+        )
 
         return combined_result
 

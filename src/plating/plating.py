@@ -6,7 +6,7 @@ import time
 from typing import Any
 
 from provide.foundation import logger
-from provide.foundation.resilience import BackoffStrategy, CircuitBreaker, RetryPolicy
+from provide.foundation.resilience import BackoffStrategy, SyncCircuitBreaker, RetryPolicy
 
 from plating.core.doc_generator import generate_provider_index, generate_template, render_component_docs
 from plating.core.project_utils import find_project_root, get_output_directory
@@ -53,7 +53,7 @@ class Plating:
             max_delay=10.0,
             retryable_errors=(IOError, OSError, Exception),
         )
-        self.circuit_breaker = CircuitBreaker(
+        self.circuit_breaker = SyncCircuitBreaker(
             failure_threshold=3, recovery_timeout=30.0, expected_exception=(Exception,)
         )
 
