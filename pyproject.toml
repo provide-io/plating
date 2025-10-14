@@ -61,6 +61,10 @@ asyncio_mode = "auto"
 pythonpath = ["src", "."]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
+filterwarnings = [
+    "ignore::RuntimeWarning:threading",
+    "ignore:coroutine.*was never awaited:RuntimeWarning",
+]
 
 [tool.ruff]
 line-length = 111
