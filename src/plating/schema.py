@@ -9,7 +9,7 @@ import shutil
 from typing import TYPE_CHECKING, Any
 
 import attrs
-from provide.foundation import logger, metrics, pout
+from provide.foundation import logger, pout
 from provide.foundation.hub import Hub
 from provide.foundation.process import ProcessError, run_command
 from provide.foundation.resilience import BackoffStrategy, RetryExecutor, RetryPolicy
@@ -52,11 +52,10 @@ class SchemaProcessor:
         with timed_block(logger, "schema_extraction_total") as timer:
             try:
                 result = self._extract_schema_via_discovery()
-                metrics.counter("plating.schema_extractions_success").inc()
-                metrics.gauge("plating.schema_extraction_duration").set(timer.get("duration", 0))
+                logger.info("Schema extraction successful", duration=timer.get("duration", 0))
                 return result
-            except Exception:
-                metrics.counter("plating.schema_extractions_failed").inc()
+            except Exception as e:
+                logger.error("Schema extraction failed", error=str(e))
                 raise
 
     def _extract_schema_via_discovery(self) -> dict[str, Any]:

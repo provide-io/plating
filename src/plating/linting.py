@@ -9,7 +9,7 @@ from typing import Any
 
 from provide.foundation import logger
 from provide.foundation.process import ProcessError, run_command
-from provide.foundation.resilience import CircuitBreaker, CircuitState
+from provide.foundation.resilience import SyncCircuitBreaker, CircuitState
 
 
 class MarkdownLinter:
@@ -18,7 +18,7 @@ class MarkdownLinter:
     def __init__(self, config_file: Path | None = None):
         self.config_file = config_file
         # Circuit breaker for markdownlint operations
-        self.circuit_breaker = CircuitBreaker(
+        self.circuit_breaker = SyncCircuitBreaker(
             failure_threshold=3, recovery_timeout=30.0, expected_exception=ProcessError
         )
 
