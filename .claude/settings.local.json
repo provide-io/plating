@@ -24,7 +24,8 @@
       "Bash(__NEW_LINE__)",
       "Bash(/Users/tim/.terraform.d/plugins/local/providers/pyvider/0.0.5/darwin_arm64/terraform-provider-pyvider:*)",
       "Bash(python -m pytest tests/ -xvs)",
-      "Bash(python -m pytest:*)"
+      "Bash(python -m pytest:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": [],
