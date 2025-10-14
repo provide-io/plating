@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 import attrs
 from provide.foundation import logger, pout
 from provide.foundation.hub import Hub
-from provide.foundation.process import ProcessError, run_command
+from provide.foundation.process import ProcessError, run
 from provide.foundation.resilience import BackoffStrategy, RetryExecutor, RetryPolicy
 from provide.foundation.utils import timed_block
 
@@ -146,7 +146,7 @@ class SchemaProcessor:
         pout(f"Building provider in {self.generator.provider_dir}")
         try:
             self.retry_executor.execute_sync(
-                run_command,
+                run,
                 ["python", "-m", "build"],
                 cwd=self.generator.provider_dir,
                 capture_output=True,
@@ -188,7 +188,7 @@ provider "{self.generator.provider_name}" {{}}
             # Initialize Terraform with retry
             try:
                 self.retry_executor.execute_sync(
-                    run_command,
+                    run,
                     [tf_binary, "init"],
                     cwd=temp_dir,
                     capture_output=True,
@@ -206,7 +206,7 @@ provider "{self.generator.provider_name}" {{}}
             # Extract schema with retry
             try:
                 schema_result = self.retry_executor.execute_sync(
-                    run_command,
+                    run,
                     [tf_binary, "providers", "schema", "-json"],
                     cwd=temp_dir,
                     capture_output=True,

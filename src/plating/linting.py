@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from provide.foundation import logger
-from provide.foundation.process import ProcessError, run_command
+from provide.foundation.process import ProcessError, run
 from provide.foundation.resilience import SyncCircuitBreaker, CircuitState
 
 
@@ -85,7 +85,7 @@ class MarkdownLinter:
             cmd.extend(["--config", str(self.config_file)])
 
         try:
-            result = self.circuit_breaker.call(run_command, cmd, capture_output=True, check=False)
+            result = self.circuit_breaker.call(run, cmd, capture_output=True, check=False)
 
             errors = []
             if result.returncode != 0:
@@ -134,7 +134,7 @@ class MarkdownLinter:
             cmd.extend(["--config", str(self.config_file)])
 
         try:
-            result = self.circuit_breaker.call(run_command, cmd, capture_output=True, check=False)
+            result = self.circuit_breaker.call(run, cmd, capture_output=True, check=False)
 
             return result.returncode == 0
 
