@@ -11,7 +11,7 @@ import time
 from typing import Any, TypeVar
 
 from provide.foundation import logger
-from provide.foundation.resilience import BackoffStrategy, SyncCircuitBreaker, RetryExecutor, RetryPolicy
+from provide.foundation.resilience import BackoffStrategy, RetryExecutor, RetryPolicy, SyncCircuitBreaker
 
 F = TypeVar("F", bound=Callable[..., Any])
 

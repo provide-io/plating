@@ -8,6 +8,7 @@ from typing import Any
 
 from provide.foundation import logger
 from provide.foundation.resilience import BackoffStrategy, RetryExecutor, RetryPolicy
+
 try:
     from pymarkdown.api import PyMarkdownApi, PyMarkdownApiException
 except ImportError:

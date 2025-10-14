@@ -329,16 +329,25 @@ class PlatingCLIContext(CLIContext):
 
         # Get parent class fields (log_level, debug, etc.)
         parent_kwargs = {}
-        parent_field_names = {"log_level", "profile", "debug", "json_output", "config_file",
-                             "log_file", "log_format", "no_color", "no_emoji"}
+        parent_field_names = {
+            "log_level",
+            "profile",
+            "debug",
+            "json_output",
+            "config_file",
+            "log_file",
+            "log_format",
+            "no_color",
+            "no_emoji",
+        }
         for key in parent_field_names:
             if key in data:
                 parent_kwargs[key] = data[key]
 
         # Handle Path conversions for parent fields
-        if "config_file" in parent_kwargs and parent_kwargs["config_file"]:
+        if parent_kwargs.get("config_file"):
             parent_kwargs["config_file"] = Path(parent_kwargs["config_file"])
-        if "log_file" in parent_kwargs and parent_kwargs["log_file"]:
+        if parent_kwargs.get("log_file"):
             parent_kwargs["log_file"] = Path(parent_kwargs["log_file"])
 
         # Create instance with all fields
@@ -350,7 +359,7 @@ class PlatingCLIContext(CLIContext):
             examples=examples,
             signature=signature,
             arguments=arguments,
-            **parent_kwargs
+            **parent_kwargs,
         )
 
     def save_context(self, path: Path) -> None:

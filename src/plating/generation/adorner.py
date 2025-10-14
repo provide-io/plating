@@ -56,6 +56,7 @@ class DocumentationAdorner:
         Returns:
             Dictionary containing all template variables
         """
+
         # Create example function that templates can call
         def example(example_name: str) -> str:
             examples = metadata.get("examples", {})
