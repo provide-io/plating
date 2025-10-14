@@ -289,33 +289,69 @@ class PlatingCLIContext(CLIContext):
         self._domains = domains
         self._set_metadata = set_metadata or {}
 
-    def from_dict(self, data: dict[str, Any]) -> "PlatingCLIContext":
-        """Update from dictionary."""
-        # Call parent's from_dict first
-        super().from_dict(data)
+    @classmethod
+    def from_dict(cls, data: dict[str, Any], source: Any = None) -> "PlatingCLIContext":
+        """Create context from dictionary.
 
-        # Set our custom fields
-        self.name = data.get("name", "")
+        Args:
+            data: Dictionary with context values
+            source: Source of the configuration data (ignored for compatibility)
+
+        Returns:
+            New PlatingCLIContext instance
+        """
+        # Extract plating-specific fields
+        name = data.get("name", "")
+        provider_name = data.get("provider_name", "")
+        description = data.get("description", "")
+        examples = data.get("examples", {})
+        signature = data.get("signature")
+
+        # Handle component_type conversion
+        component_type = ComponentType.RESOURCE  # default
         if "component_type" in data:
-            # Handle both string and enum values
             comp_type = data["component_type"]
             if isinstance(comp_type, str):
                 # Try to find by display name or value
                 for ct in ComponentType:
                     if ct.display_name == comp_type or ct.value == comp_type:
-                        self.component_type = ct
+                        component_type = ct
                         break
             else:
-                self.component_type = comp_type
-        self.provider_name = data.get("provider_name", "")
-        self.description = data.get("description", "")
-        self.examples = data.get("examples", {})
-        self.signature = data.get("signature")
+                component_type = comp_type
+
+        # Handle arguments
+        arguments = None
         if "arguments" in data:
             args_data = data["arguments"]
             if isinstance(args_data, list):
-                self.arguments = [ArgumentInfo.from_dict(arg) for arg in args_data]
-        return self
+                arguments = [ArgumentInfo.from_dict(arg) for arg in args_data]
+
+        # Get parent class fields (log_level, debug, etc.)
+        parent_kwargs = {}
+        parent_field_names = {"log_level", "profile", "debug", "json_output", "config_file",
+                             "log_file", "log_format", "no_color", "no_emoji"}
+        for key in parent_field_names:
+            if key in data:
+                parent_kwargs[key] = data[key]
+
+        # Handle Path conversions for parent fields
+        if "config_file" in parent_kwargs and parent_kwargs["config_file"]:
+            parent_kwargs["config_file"] = Path(parent_kwargs["config_file"])
+        if "log_file" in parent_kwargs and parent_kwargs["log_file"]:
+            parent_kwargs["log_file"] = Path(parent_kwargs["log_file"])
+
+        # Create instance with all fields
+        return cls(
+            name=name,
+            component_type=component_type,
+            provider_name=provider_name,
+            description=description,
+            examples=examples,
+            signature=signature,
+            arguments=arguments,
+            **parent_kwargs
+        )
 
     def save_context(self, path: Path) -> None:
         """Save context to file using foundation's config management."""
@@ -324,15 +360,13 @@ class PlatingCLIContext(CLIContext):
     @classmethod
     def load_context(cls, path: Path) -> "PlatingCLIContext":
         """Load context from file using foundation's config management."""
-
-        context = cls()
-
-        # Load the JSON data and apply it
+        # Load the JSON data and create instance from it
         if path.exists():
             data = json.loads(path.read_text())
-            context.from_dict(data)
+            return cls.from_dict(data)
 
-        return context
+        # Return default instance if file doesn't exist
+        return cls()
 
 
 @define

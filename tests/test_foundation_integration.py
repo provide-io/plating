@@ -73,19 +73,21 @@ class TestPlatingContext:
 
     def test_plating_context_from_dict_handles_component_types(self):
         """Test from_dict properly handles ComponentType conversion."""
-        context = PlatingContext()
-
         # Test with display name
         data = {"name": "test", "component_type": "Data Source", "provider_name": "provider"}
-        context.from_dict(data)
+        context = PlatingContext.from_dict(data)
 
         assert context.component_type == ComponentType.DATA_SOURCE
+        assert context.name == "test"
+        assert context.provider_name == "provider"
 
         # Test with enum value
         data["component_type"] = "function"
-        context.from_dict(data)
+        context = PlatingContext.from_dict(data)
 
         assert context.component_type == ComponentType.FUNCTION
+        assert context.name == "test"
+        assert context.provider_name == "provider"
 
     def test_plating_context_save_and_load_config(self, tmp_path):
         """Test config persistence using foundation patterns."""
