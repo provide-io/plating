@@ -11,8 +11,8 @@ from provide.foundation.hub import Hub
 
 from plating.adorner.finder import ComponentFinder
 from plating.adorner.templates import TemplateGenerator
-from plating.errors import AdorningError, handle_error
 from plating.discovery import PlatingDiscovery
+from plating.errors import AdorningError, handle_error
 
 
 class PlatingAdorner:

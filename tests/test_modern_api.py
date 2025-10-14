@@ -257,11 +257,8 @@ Test resource for unit testing.
 
         # Create a minimal registry that returns our test bundle
         from plating.bundles import PlatingBundle
-        test_bundle = PlatingBundle(
-            name="test_resource",
-            plating_dir=bundle_dir,
-            component_type="resource"
-        )
+
+        test_bundle = PlatingBundle(name="test_resource", plating_dir=bundle_dir, component_type="resource")
 
         # Mock the registry to return our test bundle
         with patch("plating.registry.get_plating_registry") as mock_registry_factory:
@@ -278,7 +275,7 @@ Test resource for unit testing.
             result = await api.plate(
                 output_dir,
                 component_types=[ComponentType.RESOURCE],
-                validate_markdown=False  # Disable markdown validation for simplicity
+                validate_markdown=False,  # Disable markdown validation for simplicity
             )
 
             # Should succeed
