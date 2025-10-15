@@ -182,7 +182,8 @@ class TestModernAPI:
 
             mock_template_gen.return_value.generate_template = mock_generate_template
 
-            api = Plating()
+            from plating.types import PlatingContext
+            api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
             result = await api.adorn(component_types=[ComponentType.RESOURCE])
 
             # Verify result
@@ -210,7 +211,8 @@ class TestModernAPI:
         mock_discovery_instance.discover_bundles.return_value = [mock_bundle]
         mock_discovery.return_value = mock_discovery_instance
 
-        api = Plating()
+        from plating.types import PlatingContext
+        api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
 
         # Should have registry configured
         assert api.registry is not None
@@ -269,7 +271,8 @@ Test resource for unit testing.
             # Create output directory
             output_dir = tmp_path / "docs_output"
 
-            api = Plating()
+            from plating.types import PlatingContext
+            api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
             api.registry = mock_registry
 
             result = await api.plate(
@@ -311,7 +314,8 @@ Test resource for unit testing.
 
         pout(f"Testing validation in {docs_dir}", color="cyan")  # Foundation I/O
 
-        api = Plating()
+        from plating.types import PlatingContext
+        api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
         result = await api.validate(docs_dir)
 
         # Should validate successfully
@@ -329,7 +333,8 @@ Test resource for unit testing.
 
         try:
             # Should handle registry creation errors gracefully
-            api = Plating()
+            from plating.types import PlatingContext
+            api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
             # API should still be created but registry might have issues
             assert api is not None
             pout("Error handling test passed", color="green")

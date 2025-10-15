@@ -328,16 +328,16 @@ class TestGlobalInstances:
     def test_global_registry_management(self):
         """Test global registry creation and reset."""
         # Should create new instance
-        registry1 = get_plating_registry()
+        registry1 = get_plating_registry("pyvider.components")
         assert registry1 is not None
 
         # Should return same instance
-        registry2 = get_plating_registry()
+        registry2 = get_plating_registry("pyvider.components")
         assert registry1 is registry2
 
         # Reset should clear global instance
         reset_plating_registry()
-        registry3 = get_plating_registry()
+        registry3 = get_plating_registry("pyvider.components")
         assert registry3 is not registry1
 
     def test_global_validator_management(self):

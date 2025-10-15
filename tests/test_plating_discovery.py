@@ -13,11 +13,11 @@ class TestPlatingDiscovery:
     """Test suite for PlatingDiscovery functionality."""
 
     def test_discovery_initialization(self):
-        """Test that PlatingDiscovery can be initialized with package name."""
-        discovery = PlatingDiscovery()
+        """Test that PlatingDiscovery requires package name."""
+        discovery = PlatingDiscovery("pyvider.components")
         assert discovery.package_name == "pyvider.components"
 
-        custom_discovery = PlatingDiscovery(package_name="custom.package")
+        custom_discovery = PlatingDiscovery("custom.package")
         assert custom_discovery.package_name == "custom.package"
 
     @patch("plating.discovery.finder.importlib.util.find_spec")
@@ -25,7 +25,7 @@ class TestPlatingDiscovery:
         """Test discovery when package is not found."""
         mock_find_spec.return_value = None
 
-        discovery = PlatingDiscovery()
+        discovery = PlatingDiscovery("pyvider.components")
         bundles = discovery.discover_bundles()
 
         assert bundles == []
@@ -38,7 +38,7 @@ class TestPlatingDiscovery:
         mock_spec.origin = None
         mock_find_spec.return_value = mock_spec
 
-        discovery = PlatingDiscovery()
+        discovery = PlatingDiscovery("pyvider.components")
         bundles = discovery.discover_bundles()
 
         assert bundles == []
@@ -76,7 +76,7 @@ class TestPlatingDiscovery:
         mock_spec.origin = str(package_dir / "__init__.py")
         mock_find_spec.return_value = mock_spec
 
-        discovery = PlatingDiscovery()
+        discovery = PlatingDiscovery("pyvider.components")
         bundles = discovery.discover_bundles()
 
         assert len(bundles) == 3
@@ -109,7 +109,7 @@ class TestPlatingDiscovery:
         mock_spec.origin = str(package_dir / "__init__.py")
         mock_find_spec.return_value = mock_spec
 
-        discovery = PlatingDiscovery()
+        discovery = PlatingDiscovery("pyvider.components")
 
         # Test filtering for resources only
         resource_bundles = discovery.discover_bundles(component_type="resource")
@@ -123,7 +123,7 @@ class TestPlatingDiscovery:
 
     def test_determine_component_type_from_path(self):
         """Test component type determination from path."""
-        discovery = PlatingDiscovery()
+        discovery = PlatingDiscovery("pyvider.components")
 
         # Test resource path
         resource_path = Path("/pkg/resources/test.plating")
@@ -166,7 +166,7 @@ class TestPlatingDiscovery:
         mock_spec.origin = str(package_dir / "__init__.py")
         mock_find_spec.return_value = mock_spec
 
-        discovery = PlatingDiscovery()
+        discovery = PlatingDiscovery("pyvider.components")
         bundles = discovery.discover_bundles()
 
         # Should find 2 bundles (one for each subdirectory)
@@ -195,7 +195,7 @@ class TestPlatingDiscovery:
         mock_spec.origin = str(package_dir / "__init__.py")
         mock_find_spec.return_value = mock_spec
 
-        discovery = PlatingDiscovery()
+        discovery = PlatingDiscovery("pyvider.components")
         bundles = discovery.discover_bundles()
 
         assert len(bundles) == 1
@@ -225,7 +225,7 @@ class TestPlatingDiscovery:
         mock_spec.origin = str(package_dir / "__init__.py")
         mock_find_spec.return_value = mock_spec
 
-        discovery = PlatingDiscovery()
+        discovery = PlatingDiscovery("pyvider.components")
         bundles = discovery.discover_bundles()
 
         assert len(bundles) == 1
@@ -251,7 +251,7 @@ class TestPlatingDiscovery:
         mock_spec.origin = str(package_dir / "__init__.py")
         mock_find_spec.return_value = mock_spec
 
-        discovery = PlatingDiscovery()
+        discovery = PlatingDiscovery("pyvider.components")
         bundles = discovery.discover_bundles()
 
         assert len(bundles) == 1
