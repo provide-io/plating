@@ -35,14 +35,16 @@ def main() -> None:
 @click.option(
     "--package-name",
     type=str,
-    default="pyvider.components",
+    required=True,
     help="Package to search for components.",
 )
 def adorn_command(component_type: tuple[str, ...], provider_name: str | None, package_name: str) -> None:
     """Create missing documentation templates and examples."""
 
     async def run() -> None:
-        context = PlatingContext(provider_name=provider_name or "default")
+        if not provider_name:
+            raise click.UsageError("--provider-name is required")
+        context = PlatingContext(provider_name=provider_name)
         api = Plating(context, package_name)
 
         # Convert string types to ComponentType enums
@@ -83,7 +85,7 @@ def adorn_command(component_type: tuple[str, ...], provider_name: str | None, pa
 @click.option(
     "--package-name",
     type=str,
-    default="pyvider.components",
+    required=True,
     help="Package to search for components.",
 )
 @click.option(
@@ -119,7 +121,9 @@ def plate_command(
     """Generate documentation from plating bundles."""
 
     async def run() -> None:
-        context = PlatingContext(provider_name=provider_name or "default")
+        if not provider_name:
+            raise click.UsageError("--provider-name is required")
+        context = PlatingContext(provider_name=provider_name)
         api = Plating(context, package_name)
 
         # Convert string types to ComponentType enums
@@ -211,7 +215,7 @@ def plate_command(
 @click.option(
     "--package-name",
     type=str,
-    default="pyvider.components",
+    required=True,
     help="Package to search for components.",
 )
 def validate_command(
@@ -220,7 +224,9 @@ def validate_command(
     """Validate generated documentation."""
 
     async def run() -> None:
-        context = PlatingContext(provider_name=provider_name or "default")
+        if not provider_name:
+            raise click.UsageError("--provider-name is required")
+        context = PlatingContext(provider_name=provider_name)
         api = Plating(context, package_name)
 
         # Convert string types to ComponentType enums
@@ -263,14 +269,16 @@ def validate_command(
 @click.option(
     "--package-name",
     type=str,
-    default="pyvider.components",
+    required=True,
     help="Package to search for components.",
 )
 def info_command(provider_name: str | None, package_name: str) -> None:
     """Show registry information and statistics."""
 
     async def run() -> None:
-        context = PlatingContext(provider_name=provider_name or "default")
+        if not provider_name:
+            raise click.UsageError("--provider-name is required")
+        context = PlatingContext(provider_name=provider_name)
         api = Plating(context, package_name)
 
         stats = api.get_registry_stats()
@@ -295,14 +303,15 @@ def info_command(provider_name: str | None, package_name: str) -> None:
 @click.option(
     "--package-name",
     type=str,
-    default="pyvider.components",
+    required=True,
     help="Package to search for components.",
 )
 def stats_command(package_name: str) -> None:
     """Show registry statistics."""
 
     async def run() -> None:
-        context = PlatingContext(provider_name="default")
+        # Stats command doesn't need provider context
+        context = PlatingContext(provider_name="")
         api = Plating(context, package_name)
 
         stats = api.get_registry_stats()

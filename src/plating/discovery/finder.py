@@ -14,7 +14,7 @@ from plating.bundles import FunctionPlatingBundle, PlatingBundle
 class PlatingDiscovery:
     """Discovers .plating bundles from installed packages."""
 
-    def __init__(self, package_name: str = "pyvider.components") -> None:
+    def __init__(self, package_name: str) -> None:
         self.package_name = package_name
 
     def discover_bundles(self, component_type: str | None = None) -> list[PlatingBundle]:
