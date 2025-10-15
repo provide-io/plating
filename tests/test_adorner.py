@@ -17,7 +17,7 @@ class TestPlatingAdorner:
     @pytest.fixture
     def adorner(self):
         """Create a PlatingAdorner instance."""
-        return PlatingAdorner()
+        return PlatingAdorner("pyvider.components")
 
     def test_initialization(self, adorner):
         """Test PlatingAdorner initialization."""
