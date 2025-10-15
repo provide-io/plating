@@ -27,15 +27,15 @@ class Plating:
     """Modern async API for all plating operations with foundation integration."""
 
     def __init__(
-        self, context: PlatingContext | None = None, package_name: str = "pyvider.components"
+        self, context: PlatingContext, package_name: str
     ) -> None:
         """Initialize plating API with foundation context.
 
         Args:
-            context: PlatingContext with configuration (optional)
-            package_name: Package to search for plating bundles
+            context: PlatingContext with configuration (required)
+            package_name: Package to search for plating bundles (required)
         """
-        self.context = context or PlatingContext(provider_name="default")
+        self.context = context
         self.package_name = package_name
 
         # Foundation patterns

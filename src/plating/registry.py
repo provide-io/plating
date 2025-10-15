@@ -41,7 +41,7 @@ class PlatingRegistryEntry(RegistryEntry):
 class PlatingRegistry(Registry):
     """Component registry using foundation Registry pattern with ComponentSet support."""
 
-    def __init__(self, package_name: str = "pyvider.components") -> None:
+    def __init__(self, package_name: str) -> None:
         """Initialize registry with package discovery.
 
         Args:
@@ -213,7 +213,7 @@ class PlatingRegistry(Registry):
 _global_registry = None
 
 
-def get_plating_registry(package_name: str = "pyvider.components") -> PlatingRegistry:
+def get_plating_registry(package_name: str) -> PlatingRegistry:
     """Get or create the global plating registry.
 
     Args:

@@ -159,7 +159,9 @@ def generate_provider_index(
     logger.info("Generating provider index page...")
 
     # Get provider name from context
-    provider_name = context.provider_name or "pyvider"
+    provider_name = context.provider_name
+    if not provider_name:
+        raise ValueError("Provider name is required in PlatingContext for index generation")
     display_name = provider_name.title()
 
     # Extract provider schema for configuration documentation
