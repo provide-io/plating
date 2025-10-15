@@ -9,7 +9,7 @@ from typing import Any
 
 from provide.foundation import logger
 from provide.foundation.process import ProcessError, run
-from provide.foundation.resilience import SyncCircuitBreaker, CircuitState
+from provide.foundation.resilience import CircuitState, SyncCircuitBreaker
 
 
 class MarkdownLinter:
