@@ -18,8 +18,14 @@ from plating.errors import AdorningError, handle_error
 class PlatingAdorner:
     """Adorns components with .plating directories."""
 
-    def __init__(self):
-        self.plating_discovery = PlatingDiscovery()
+    def __init__(self, package_name: str):
+        """Initialize adorner with package name.
+
+        Args:
+            package_name: Python package to search for components
+        """
+        self.package_name = package_name
+        self.plating_discovery = PlatingDiscovery(package_name)
         self.template_generator = TemplateGenerator()
         self.component_finder = ComponentFinder()
         # Initialize foundation hub for component discovery
@@ -33,7 +39,7 @@ class PlatingAdorner:
         """
         # Discover all components via foundation hub
         try:
-            self.hub.discover_components("pyvider.components")
+            self.hub.discover_components(self.package_name)
         except Exception as e:
             logger.error(f"Component discovery failed: {e}")
             return {"resource": 0, "data_source": 0, "function": 0}
