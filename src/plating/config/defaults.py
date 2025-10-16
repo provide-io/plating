@@ -40,7 +40,7 @@ ENV_GARNISH_OUTPUT_DIR = "GARNISH_OUTPUT_DIR"
 # =================================
 # Package discovery defaults
 # =================================
-DEFAULT_PACKAGE_NAME = "pyvider.components"
+# Note: No default package name - must be specified explicitly
 
 # =================================
 # Template metadata constants
