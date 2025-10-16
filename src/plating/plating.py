@@ -97,7 +97,7 @@ class Plating:
                         continue
 
                     # Only generate stub templates for components that don't have source templates
-                    template_dir = output_dir / component_type.value / component.name
+                    template_dir = output_dir / component_type.output_subdir / component.name
                     template_dir.mkdir(parents=True, exist_ok=True)
 
                     # Generate basic template only if it doesn't exist in source
@@ -241,7 +241,7 @@ class Plating:
         passed = 0
 
         for component_type in component_types:
-            type_dir = final_output_dir / component_type.value.replace("_", "_")
+            type_dir = final_output_dir / component_type.output_subdir
             if not type_dir.exists():
                 continue
 
