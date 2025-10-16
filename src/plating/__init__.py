@@ -71,8 +71,7 @@ CLI Usage:
 
 from plating._version import __version__
 
-# New modular API (backwards compatible)
-from plating.api import PlatingAPI
+# Old PlatingAPI removed - use Plating class directly
 
 # Template engine
 from plating.async_template_engine import AsyncTemplateEngine, template_engine
@@ -126,8 +125,6 @@ __all__ = [
     "PlateResult",
     # Core API
     "Plating",
-    # New modular API
-    "PlatingAPI",
     "PlatingContext",
     # Registry and validation
     "PlatingRegistry",
