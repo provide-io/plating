@@ -22,7 +22,6 @@ class CompilationResult:
     output_files: list[Path] = field(factory=list)
     errors: list[str] = field(factory=list)
     provider_config_path: Path | None = field(default=None)
-    complete_example_path: Path | None = field(default=None)
 
 
 class ExampleCompiler:
@@ -82,13 +81,6 @@ class ExampleCompiler:
                     result.errors.append(error_msg)
                     logger.error(error_msg)
 
-        # Generate complete showcase example
-        try:
-            complete_path = self._generate_complete_example(bundles, examples_dir, result)
-            result.complete_example_path = complete_path
-        except Exception as e:
-            result.errors.append(f"Failed to generate complete example: {e}")
-
         logger.info(f"Generated {result.examples_generated} executable examples")
         return result
 
@@ -109,10 +101,6 @@ class ExampleCompiler:
         # Generate individual example directories
         for example_name, example_content in examples.items():
             self._generate_individual_example(bundle, component_dir, example_name, example_content, result)
-
-        # Generate combined example if multiple examples exist
-        if len(examples) > 1:
-            self._generate_combined_example(bundle, component_dir, examples, result)
 
     def _generate_individual_example(
         self,
