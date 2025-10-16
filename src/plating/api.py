@@ -15,9 +15,17 @@ from plating.types import ComponentType
 class PlatingAPI:
     """Backward compatibility API wrapper around the modern async Plating class."""
 
-    def __init__(self) -> None:
-        """Initialize with default plating instance."""
-        self._plating = Plating()
+    def __init__(self, provider_name: str, package_name: str) -> None:
+        """Initialize plating instance with provider context.
+
+        Args:
+            provider_name: Name of the provider (required)
+            package_name: Python package containing components (required)
+        """
+        from plating.types import PlatingContext
+
+        context = PlatingContext(provider_name=provider_name)
+        self._plating = Plating(context, package_name)
 
     def generate_all_documentation(self, output_dir: Path | str) -> list[tuple[Path, str]]:
         """Generate documentation for all discovered components.
