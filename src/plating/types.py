@@ -70,7 +70,7 @@ class ComponentType(Enum):
         return {
             # Terraform
             self.RESOURCE: "resources",
-            self.DATA_SOURCE: "data_sources",
+            self.DATA_SOURCE: "data-sources",
             self.FUNCTION: "functions",
             self.PROVIDER: "providers",
             # Kubernetes
