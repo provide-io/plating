@@ -26,7 +26,7 @@ async def render_component_docs(
     provider_schema: dict[str, Any],
 ) -> None:
     """Render documentation for a list of components."""
-    output_subdir = output_dir / component_type.value.replace("_", "_")
+    output_subdir = output_dir / component_type.output_subdir
     output_subdir.mkdir(parents=True, exist_ok=True)
 
     for component in components:
@@ -212,7 +212,7 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     resource_components = registry.get_components_with_templates(ComponentType.RESOURCE)
     if resource_components:
         for component in sorted(resource_components, key=lambda c: c.name):
-            index_content += f"- [`{provider_name}_{component.name}`](./resource/{component.name}.md)\n"
+            index_content += f"- [`{provider_name}_{component.name}`](./{ComponentType.RESOURCE.output_subdir}/{component.name}.md)\n"
     else:
         index_content += "No resources available.\n"
 
@@ -222,7 +222,7 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     data_source_components = registry.get_components_with_templates(ComponentType.DATA_SOURCE)
     if data_source_components:
         for component in sorted(data_source_components, key=lambda c: c.name):
-            index_content += f"- [`{provider_name}_{component.name}`](./data_source/{component.name}.md)\n"
+            index_content += f"- [`{provider_name}_{component.name}`](./{ComponentType.DATA_SOURCE.output_subdir}/{component.name}.md)\n"
     else:
         index_content += "No data sources available.\n"
 
@@ -232,7 +232,7 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     function_components = registry.get_components_with_templates(ComponentType.FUNCTION)
     if function_components:
         for component in sorted(function_components, key=lambda c: c.name):
-            index_content += f"- [`{component.name}`](./function/{component.name}.md)\n"
+            index_content += f"- [`{component.name}`](./{ComponentType.FUNCTION.output_subdir}/{component.name}.md)\n"
     else:
         index_content += "No functions available.\n"
 
