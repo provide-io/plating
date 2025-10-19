@@ -26,7 +26,8 @@
       "Bash(python -m pytest tests/ -xvs)",
       "Bash(python -m pytest:*)",
       "Bash(python:*)",
-      "Bash(uv pip:*)"
+      "Bash(uv pip:*)",
+      "Bash(xargs -I {} find {} -type f)"
     ],
     "deny": [],
     "ask": [],
