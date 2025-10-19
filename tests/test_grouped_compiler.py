@@ -287,7 +287,7 @@ class TestGroupedExampleCompiler:
         assert not (output_dir / "integration" / "full_stack").exists()
 
     def test_compile_detects_tf_filename_collision(self, tmp_path):
-        """Test that compilation fails on .tf filename collision."""
+        """Test that discovery fails on .tf filename collision."""
         # Create two bundles with SAME NAME
         network1_dir = tmp_path / "network1.plating"
         (network1_dir / "examples" / "full_stack").mkdir(parents=True)
@@ -307,20 +307,17 @@ class TestGroupedExampleCompiler:
         ]
 
         compiler = GroupedExampleCompiler(provider_name="test")
-        groups = compiler.discover_groups(bundles)
-
-        output_dir = tmp_path / "output"
 
         with pytest.raises(ValueError) as exc_info:
-            compiler.compile_groups(groups, output_dir)
+            groups = compiler.discover_groups(bundles)
 
         error_msg = str(exc_info.value)
         assert "collision" in error_msg.lower()
         assert "full_stack" in error_msg
-        assert "network.tf" in error_msg
+        assert "network" in error_msg
 
     def test_compile_detects_fixture_collision(self, tmp_path):
-        """Test that compilation fails on fixture filename collision."""
+        """Test that discovery fails on fixture filename collision."""
         # Create two bundles with same fixture filename
         network_dir = tmp_path / "network.plating"
         network_fixtures = network_dir / "examples" / "full_stack" / "fixtures"
@@ -340,12 +337,9 @@ class TestGroupedExampleCompiler:
         ]
 
         compiler = GroupedExampleCompiler(provider_name="test")
-        groups = compiler.discover_groups(bundles)
-
-        output_dir = tmp_path / "output"
 
         with pytest.raises(ValueError) as exc_info:
-            compiler.compile_groups(groups, output_dir)
+            groups = compiler.discover_groups(bundles)
 
         error_msg = str(exc_info.value)
         assert "collision" in error_msg.lower()
