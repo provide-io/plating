@@ -42,10 +42,20 @@ class PlatingBundle:
         return any(template.exists() for template in [template_file, pyvider_template, main_template])
 
     def has_examples(self) -> bool:
-        """Check if bundle has example files."""
+        """Check if bundle has example files (flat .tf or grouped)."""
         if not self.examples_dir.exists():
             return False
-        return any(self.examples_dir.glob("*.tf"))
+
+        # Check for flat .tf files
+        if any(self.examples_dir.glob("*.tf")):
+            return True
+
+        # Check for grouped examples (subdirectories with main.tf)
+        for subdir in self.examples_dir.iterdir():
+            if subdir.is_dir() and (subdir / "main.tf").exists():
+                return True
+
+        return False
 
     def load_main_template(self) -> str | None:
         """Load the main template file for this component."""
@@ -74,16 +84,34 @@ class PlatingBundle:
         return None
 
     def load_examples(self) -> dict[str, str]:
-        """Load all example files as a dictionary."""
+        """Load all example files - both flat .tf and grouped subdirs.
+
+        Returns:
+            Dictionary mapping example name to content:
+            - Flat .tf files: key is filename stem (e.g., "basic.tf" -> "basic")
+            - Grouped examples: key is subdirectory name (e.g., "full_stack/main.tf" -> "full_stack")
+        """
         examples: dict[str, str] = {}
         if not self.examples_dir.exists():
             return examples
 
+        # Load flat .tf files (backward compatible)
         for example_file in self.examples_dir.glob("*.tf"):
             try:
                 examples[example_file.stem] = example_file.read_text(encoding="utf-8")
             except Exception:
                 continue
+
+        # Load grouped examples (subdirectories with main.tf)
+        for subdir in self.examples_dir.iterdir():
+            if subdir.is_dir():
+                main_tf = subdir / "main.tf"
+                if main_tf.exists():
+                    try:
+                        examples[subdir.name] = main_tf.read_text(encoding="utf-8")
+                    except Exception:
+                        continue
+
         return examples
 
     def load_partials(self) -> dict[str, str]:
@@ -113,4 +141,41 @@ class PlatingBundle:
                     fixtures[str(rel_path)] = fixture_file.read_text(encoding="utf-8")
                 except Exception:
                     continue
+        return fixtures
+
+    def get_example_groups(self) -> list[str]:
+        """Get names of example groups (subdirectories with main.tf).
+
+        Returns:
+            List of group names (subdirectory names)
+        """
+        if not self.examples_dir.exists():
+            return []
+
+        group_names = []
+        for subdir in self.examples_dir.iterdir():
+            if subdir.is_dir() and (subdir / "main.tf").exists():
+                group_names.append(subdir.name)
+
+        return group_names
+
+    def load_group_fixtures(self, group_name: str) -> dict[str, Path]:
+        """Load fixture files from a specific example group.
+
+        Args:
+            group_name: Name of the example group
+
+        Returns:
+            Dictionary mapping relative path to source Path object
+        """
+        group_fixtures_dir = self.examples_dir / group_name / "fixtures"
+        if not group_fixtures_dir.exists():
+            return {}
+
+        fixtures = {}
+        for file_path in group_fixtures_dir.rglob("*"):
+            if file_path.is_file():
+                rel_path = file_path.relative_to(group_fixtures_dir)
+                fixtures[str(rel_path)] = file_path
+
         return fixtures
