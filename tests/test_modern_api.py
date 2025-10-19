@@ -46,7 +46,7 @@ class TestModernAPI:
 
         # Test output subdirs
         assert ComponentType.RESOURCE.output_subdir == "resources"
-        assert ComponentType.DATA_SOURCE.output_subdir == "data_sources"
+        assert ComponentType.DATA_SOURCE.output_subdir == "data-sources"
         assert ComponentType.FUNCTION.output_subdir == "functions"
 
     def test_plating_context(self):
@@ -287,7 +287,7 @@ Test resource for unit testing.
             assert len(result.output_files) >= 1
 
             # Check that files were actually created
-            expected_file = output_dir / "resource" / "test_resource.md"
+            expected_file = output_dir / "resources" / "test_resource.md"
             assert expected_file.exists()
             content = expected_file.read_text()
             assert "test_resource" in content
@@ -307,7 +307,7 @@ Test resource for unit testing.
 
         # Create test markdown file in the correct subdirectory structure
         # The validate method looks for files in component_type subdirectories
-        resource_dir = docs_dir / "resource"  # ComponentType.RESOURCE.value = "resource"
+        resource_dir = docs_dir / "resources"  # ComponentType.RESOURCE.output_subdir = "resources"
         resource_dir.mkdir(parents=True, exist_ok=True)
         test_file = resource_dir / "test.md"
         test_file.write_text("# Test Header\n\nSome content.\n")
