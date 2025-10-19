@@ -116,9 +116,9 @@ def adorn_command(component_type: tuple[str, ...], provider_name: str | None, pa
 )
 @click.option(
     "--grouped-examples-dir",
-    type=str,
-    default="integration",
-    help="Subdirectory within examples-dir for grouped/cross-component examples (default: integration).",
+    type=click.Path(path_type=Path),
+    default=Path("examples/integration"),
+    help="Directory for grouped/cross-component examples (default: examples/integration).",
 )
 def plate_command(
     output_dir: Path,
@@ -130,7 +130,7 @@ def plate_command(
     validate: bool,
     generate_examples: bool,
     examples_dir: Path,
-    grouped_examples_dir: str,
+    grouped_examples_dir: Path,
 ) -> None:
     """Generate documentation from plating bundles."""
 
@@ -175,11 +175,10 @@ def plate_command(
                     compiler = ExampleCompiler(
                         provider_name=provider_name or "pyvider",
                         provider_version="0.0.5",
-                        grouped_examples_subdir=grouped_examples_dir,
                     )
 
                     compilation_result = compiler.compile_examples(
-                        bundles_with_examples, examples_dir, types
+                        bundles_with_examples, examples_dir, types, grouped_examples_dir
                     )
 
                     total_examples = (

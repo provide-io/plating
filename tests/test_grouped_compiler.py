@@ -45,15 +45,13 @@ class TestGroupedExampleCompiler:
 
         assert compiler.provider_name == "testprovider"
         assert compiler.provider_version == "1.0.0"
-        assert compiler.grouped_subdir == "integration"  # Default
 
-    def test_compiler_custom_subdir(self):
-        """Test compiler with custom grouped subdirectory."""
-        compiler = GroupedExampleCompiler(
-            provider_name="testprovider", grouped_subdir="scenarios"
-        )
+    def test_compiler_default_initialization(self):
+        """Test compiler initialization with defaults."""
+        compiler = GroupedExampleCompiler(provider_name="testprovider")
 
-        assert compiler.grouped_subdir == "scenarios"
+        assert compiler.provider_name == "testprovider"
+        assert compiler.provider_version == "0.0.5"
 
     def test_discover_groups_single_component(self, tmp_path):
         """Test discovering example groups from a single component."""
@@ -168,7 +166,7 @@ class TestGroupedExampleCompiler:
         output_dir = tmp_path / "output"
         compiler.compile_groups(groups, output_dir)
 
-        provider_tf = output_dir / "integration" / "full_stack" / "provider.tf"
+        provider_tf = output_dir / "full_stack" / "provider.tf"
         assert provider_tf.exists()
 
         content = provider_tf.read_text()
@@ -203,7 +201,7 @@ class TestGroupedExampleCompiler:
         output_dir = tmp_path / "output"
         compiler.compile_groups(groups, output_dir)
 
-        group_dir = output_dir / "integration" / "full_stack"
+        group_dir = output_dir / "full_stack"
         assert (group_dir / "network.tf").exists()
         assert (group_dir / "database.tf").exists()
 
@@ -234,7 +232,7 @@ class TestGroupedExampleCompiler:
         output_dir = tmp_path / "output"
         compiler.compile_groups(groups, output_dir)
 
-        output_fixtures = output_dir / "integration" / "full_stack" / "fixtures"
+        output_fixtures = output_dir / "full_stack" / "fixtures"
         assert (output_fixtures / "config.json").exists()
         assert (output_fixtures / "nested" / "data.txt").exists()
 
@@ -257,7 +255,7 @@ class TestGroupedExampleCompiler:
         output_dir = tmp_path / "output"
         compiler.compile_groups(groups, output_dir)
 
-        readme = output_dir / "integration" / "full_stack" / "README.md"
+        readme = output_dir / "full_stack" / "README.md"
         assert readme.exists()
 
         content = readme.read_text()
@@ -266,8 +264,8 @@ class TestGroupedExampleCompiler:
         assert "terraform plan" in content
         assert "terraform apply" in content
 
-    def test_compile_with_custom_grouped_subdir(self, tmp_path):
-        """Test compilation with custom grouped examples subdirectory."""
+    def test_compile_with_custom_output_dir(self, tmp_path):
+        """Test compilation with custom output directory for grouped examples."""
         plating_dir = tmp_path / "network.plating"
         (plating_dir / "examples" / "full_stack").mkdir(parents=True)
         (plating_dir / "examples" / "full_stack" / "main.tf").write_text(
@@ -276,15 +274,16 @@ class TestGroupedExampleCompiler:
 
         bundle = PlatingBundle(name="network", plating_dir=plating_dir, component_type="resource")
 
-        compiler = GroupedExampleCompiler(provider_name="test", grouped_subdir="scenarios")
+        compiler = GroupedExampleCompiler(provider_name="test")
         groups = compiler.discover_groups([bundle])
 
-        output_dir = tmp_path / "output"
-        compiler.compile_groups(groups, output_dir)
+        # Use a completely custom path
+        custom_output_dir = tmp_path / "custom_scenarios"
+        compiler.compile_groups(groups, custom_output_dir)
 
-        # Should create in "scenarios" not "integration"
-        assert (output_dir / "scenarios" / "full_stack").exists()
-        assert not (output_dir / "integration" / "full_stack").exists()
+        # Should create in custom path
+        assert (custom_output_dir / "full_stack").exists()
+        assert (custom_output_dir / "full_stack" / "provider.tf").exists()
 
     def test_compile_detects_tf_filename_collision(self, tmp_path):
         """Test that discovery fails on .tf filename collision."""
