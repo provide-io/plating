@@ -6,6 +6,7 @@ from attrs import define, field
 from provide.foundation import logger
 
 from plating.bundles import PlatingBundle
+from plating.compiler import GroupedExampleCompiler, SingleExampleCompiler
 from plating.types import ComponentType
 
 #
@@ -19,17 +20,36 @@ class CompilationResult:
     """Result of example compilation process."""
 
     examples_generated: int = field(default=0)
+    grouped_examples_generated: int = field(default=0)
     output_files: list[Path] = field(factory=list)
     errors: list[str] = field(factory=list)
-    provider_config_path: Path | None = field(default=None)
 
 
 class ExampleCompiler:
-    """Compiles executable Terraform examples from plating bundles."""
+    """Orchestrates compilation of both single-component and grouped examples."""
 
-    def __init__(self, provider_name: str, provider_version: str = "0.0.5") -> None:
+    def __init__(
+        self,
+        provider_name: str,
+        provider_version: str = "0.0.5",
+        grouped_examples_subdir: str = "integration",
+    ) -> None:
+        """Initialize the example compiler.
+
+        Args:
+            provider_name: Name of the Terraform provider
+            provider_version: Version of the provider
+            grouped_examples_subdir: Subdirectory name for grouped examples (default: "integration")
+        """
         self.provider_name = provider_name
         self.provider_version = provider_version
+        self.grouped_examples_subdir = grouped_examples_subdir
+
+        # Initialize both compilers
+        self.single_compiler = SingleExampleCompiler(provider_name, provider_version)
+        self.grouped_compiler = GroupedExampleCompiler(
+            provider_name, provider_version, grouped_examples_subdir
+        )
 
     def compile_examples(
         self,
@@ -37,183 +57,52 @@ class ExampleCompiler:
         output_dir: Path,
         component_types: list[ComponentType] | None = None,
     ) -> CompilationResult:
-        """Compile executable examples from plating bundles.
+        """Compile both single-component and grouped examples.
 
         Args:
             bundles: List of plating bundles to compile examples from
-            output_dir: Base directory for generated examples (docs/examples)
+            output_dir: Base directory for generated examples (e.g., "examples")
             component_types: Filter to specific component types
 
         Returns:
             CompilationResult with generated files and statistics
         """
         result = CompilationResult()
-        examples_dir = output_dir / "examples"
-        examples_dir.mkdir(parents=True, exist_ok=True)
 
-        # Group bundles by component type
-        bundles_by_type: dict[ComponentType, list[PlatingBundle]] = {}
-        for bundle in bundles:
-            # Convert string component_type to ComponentType enum
-            bundle_type = (
-                ComponentType(bundle.component_type)
-                if isinstance(bundle.component_type, str)
-                else bundle.component_type
-            )
+        # Compile single-component examples
+        try:
+            single_result = self.single_compiler.compile_examples(bundles, output_dir, component_types)
+            result.examples_generated = single_result.examples_generated
+            result.output_files.extend(single_result.output_files)
+            result.errors.extend(single_result.errors)
+        except Exception as e:
+            error_msg = f"Failed to compile single-component examples: {e}"
+            result.errors.append(error_msg)
+            logger.error(error_msg)
 
-            if component_types and bundle_type not in component_types:
-                continue
+        # Compile grouped (cross-component) examples
+        try:
+            groups = self.grouped_compiler.discover_groups(bundles)
+            if groups:
+                grouped_count = self.grouped_compiler.compile_groups(groups, output_dir)
+                result.grouped_examples_generated = grouped_count
+        except ValueError as e:
+            # Collision errors should be surfaced to the user
+            error_msg = str(e)
+            result.errors.append(error_msg)
+            logger.error(error_msg)
+        except Exception as e:
+            error_msg = f"Failed to compile grouped examples: {e}"
+            result.errors.append(error_msg)
+            logger.error(error_msg)
 
-            if bundle_type not in bundles_by_type:
-                bundles_by_type[bundle_type] = []
-            bundles_by_type[bundle_type].append(bundle)
-
-        # Generate examples for each component type
-        for component_type, type_bundles in bundles_by_type.items():
-            type_dir = examples_dir / component_type.value
-            type_dir.mkdir(parents=True, exist_ok=True)
-
-            for bundle in type_bundles:
-                try:
-                    self._compile_component_examples(bundle, type_dir, result)
-                except Exception as e:
-                    error_msg = f"Failed to compile examples for {bundle.name}: {e}"
-                    result.errors.append(error_msg)
-                    logger.error(error_msg)
-
-        logger.info(f"Generated {result.examples_generated} executable examples")
-        return result
-
-    def _compile_component_examples(
-        self, bundle: PlatingBundle, type_dir: Path, result: CompilationResult
-    ) -> None:
-        """Compile examples for a specific component."""
-        if not bundle.has_examples():
-            return
-
-        component_dir = type_dir / bundle.name
-        component_dir.mkdir(parents=True, exist_ok=True)
-
-        examples = bundle.load_examples()
-        if not examples:
-            return
-
-        # Generate individual example directories
-        for example_name, example_content in examples.items():
-            self._generate_individual_example(bundle, component_dir, example_name, example_content, result)
-
-    def _generate_individual_example(
-        self,
-        bundle: PlatingBundle,
-        component_dir: Path,
-        example_name: str,
-        example_content: str,
-        result: CompilationResult,
-    ) -> None:
-        """Generate a single executable example."""
-        example_dir = component_dir / example_name
-        example_dir.mkdir(parents=True, exist_ok=True)
-
-        # Generate main.tf with provider config + example
-        main_tf_content = self._build_complete_example(example_content)
-        main_tf_path = example_dir / "main.tf"
-        main_tf_path.write_text(main_tf_content, encoding="utf-8")
-        result.output_files.append(main_tf_path)
-
-        # Generate README.md
-        readme_content = self._generate_example_readme(bundle, example_name, example_content)
-        readme_path = example_dir / "README.md"
-        readme_path.write_text(readme_content, encoding="utf-8")
-        result.output_files.append(readme_path)
-
-        result.examples_generated += 1
-
-    def _build_complete_example(self, example_content: str) -> str:
-        """Build a complete Terraform configuration with provider block."""
-        provider_config = self._generate_provider_config()
-
-        # Add some spacing and comments
-        complete_content = f"""{provider_config}
-
-# Generated by Plating - Executable Example
-{example_content}
-"""
-        return complete_content
-
-    def _generate_provider_config(self) -> str:
-        """Generate provider configuration block."""
-        return f'''terraform {{
-  required_providers {{
-    {self.provider_name} = {{
-      source  = "local/providers/{self.provider_name}"
-      version = ">= {self.provider_version}"
-    }}
-  }}
-}}
-
-provider "{self.provider_name}" {{
-  # Provider configuration
-  # Add your configuration options here
-}}'''
-
-    def _generate_example_readme(self, bundle: PlatingBundle, example_name: str, content: str) -> str:
-        """Generate README for an individual example."""
-        bundle_type = (
-            ComponentType(bundle.component_type)
-            if isinstance(bundle.component_type, str)
-            else bundle.component_type
+        total_examples = result.examples_generated + result.grouped_examples_generated
+        logger.info(
+            f"Generated {result.examples_generated} single-component and "
+            f"{result.grouped_examples_generated} grouped examples (total: {total_examples})"
         )
-        return f"""# {bundle_type.value.replace("_", " ").title()}: {bundle.name} - {example_name} Example
 
-This directory contains a complete, executable Terraform example demonstrating the `{bundle.name}` {bundle_type.value.replace("_", " ")}.
-
-## What This Example Does
-
-{self._extract_description_from_content(content)}
-
-## How to Run
-
-1. Initialize Terraform:
-   ```bash
-   terraform init
-   ```
-
-2. Review the planned changes:
-   ```bash
-   terraform plan
-   ```
-
-3. Apply the configuration:
-   ```bash
-   terraform apply
-   ```
-
-4. When you're done, clean up:
-   ```bash
-   terraform destroy
-   ```
-
-## Files
-
-- `main.tf` - Complete Terraform configuration
-- `README.md` - This documentation
-
-## Requirements
-
-- Terraform >= 1.0
-- {self.provider_name} provider >= {self.provider_version}
-
-Generated by [Plating](https://github.com/provide-io/plating) - Terraform Provider Documentation Generator
-"""
-
-    def _extract_description_from_content(self, content: str) -> str:
-        """Extract a description from the first comment in the content."""
-        lines = content.split("\n")
-        for line in lines:
-            line = line.strip()
-            if line.startswith("#") and not line.startswith("##"):
-                return line[1:].strip()
-        return "Demonstrates the basic usage of this component."
+        return result
 
 
 # 🍲⚡📁🏗️
