@@ -32,37 +32,35 @@ class ExampleCompiler:
         self,
         provider_name: str,
         provider_version: str = "0.0.5",
-        grouped_examples_subdir: str = "integration",
     ) -> None:
         """Initialize the example compiler.
 
         Args:
             provider_name: Name of the Terraform provider
             provider_version: Version of the provider
-            grouped_examples_subdir: Subdirectory name for grouped examples (default: "integration")
         """
         self.provider_name = provider_name
         self.provider_version = provider_version
-        self.grouped_examples_subdir = grouped_examples_subdir
 
         # Initialize both compilers
         self.single_compiler = SingleExampleCompiler(provider_name, provider_version)
-        self.grouped_compiler = GroupedExampleCompiler(
-            provider_name, provider_version, grouped_examples_subdir
-        )
+        self.grouped_compiler = GroupedExampleCompiler(provider_name, provider_version)
 
     def compile_examples(
         self,
         bundles: list[PlatingBundle],
         output_dir: Path,
         component_types: list[ComponentType] | None = None,
+        grouped_output_dir: Path | None = None,
     ) -> CompilationResult:
         """Compile both single-component and grouped examples.
 
         Args:
             bundles: List of plating bundles to compile examples from
-            output_dir: Base directory for generated examples (e.g., "examples")
+            output_dir: Base directory for single-component examples (e.g., "examples")
             component_types: Filter to specific component types
+            grouped_output_dir: Directory for grouped examples (e.g., "examples/integration")
+                               If None, uses output_dir / "integration"
 
         Returns:
             CompilationResult with generated files and statistics
@@ -84,7 +82,9 @@ class ExampleCompiler:
         try:
             groups = self.grouped_compiler.discover_groups(bundles)
             if groups:
-                grouped_count = self.grouped_compiler.compile_groups(groups, output_dir)
+                # Use provided grouped_output_dir or default to output_dir/integration
+                final_grouped_dir = grouped_output_dir if grouped_output_dir else output_dir / "integration"
+                grouped_count = self.grouped_compiler.compile_groups(groups, final_grouped_dir)
                 result.grouped_examples_generated = grouped_count
         except ValueError as e:
             # Collision errors should be surfaced to the user

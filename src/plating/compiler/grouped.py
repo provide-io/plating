@@ -36,18 +36,16 @@ class GroupedExampleCompiler:
     """Compiles grouped (cross-component) examples from plating bundles."""
 
     def __init__(
-        self, provider_name: str, provider_version: str = "0.0.5", grouped_subdir: str = "integration"
+        self, provider_name: str, provider_version: str = "0.0.5"
     ) -> None:
         """Initialize the grouped example compiler.
 
         Args:
             provider_name: Name of the Terraform provider
             provider_version: Version of the provider
-            grouped_subdir: Subdirectory name for grouped examples (default: "integration")
         """
         self.provider_name = provider_name
         self.provider_version = provider_version
-        self.grouped_subdir = grouped_subdir
 
     def discover_groups(self, bundles: list[PlatingBundle]) -> dict[str, ExampleGroup]:
         """Discover all example groups across bundles.
@@ -106,17 +104,16 @@ class GroupedExampleCompiler:
 
         Args:
             groups: Dictionary of example groups to compile
-            output_dir: Base output directory (e.g., "examples")
+            output_dir: Output directory for grouped examples (e.g., "examples/integration")
 
         Returns:
             Number of groups compiled
         """
-        grouped_dir = output_dir / self.grouped_subdir
-        grouped_dir.mkdir(parents=True, exist_ok=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         count = 0
         for group in groups.values():
-            group_dir = grouped_dir / group.name
+            group_dir = output_dir / group.name
             group_dir.mkdir(parents=True, exist_ok=True)
 
             # Generate provider.tf
