@@ -108,6 +108,18 @@ def adorn_command(component_type: tuple[str, ...], provider_name: str | None, pa
     is_flag=True,
     help="Generate executable example files alongside documentation.",
 )
+@click.option(
+    "--examples-dir",
+    type=click.Path(path_type=Path),
+    default=Path("examples"),
+    help="Output directory for compiled examples (default: examples).",
+)
+@click.option(
+    "--grouped-examples-dir",
+    type=click.Path(path_type=Path),
+    default=Path("examples/integration"),
+    help="Directory for grouped/cross-component examples (default: examples/integration).",
+)
 def plate_command(
     output_dir: Path,
     component_type: tuple[str, ...],
@@ -117,6 +129,8 @@ def plate_command(
     project_root: Path | None,
     validate: bool,
     generate_examples: bool,
+    examples_dir: Path,
+    grouped_examples_dir: Path,
 ) -> None:
     """Generate documentation from plating bundles."""
 
@@ -151,9 +165,6 @@ def plate_command(
 
                 pout("📁 Generating executable examples...")
 
-                # Get the same output directory that was used for docs
-                docs_output_dir = final_output_dir or Path("docs")
-
                 # Get all bundles with examples
                 bundles_with_examples = []
                 for component_type_enum in types or list(ComponentType):
@@ -162,15 +173,23 @@ def plate_command(
 
                 if bundles_with_examples:
                     compiler = ExampleCompiler(
-                        provider_name=provider_name or "pyvider", provider_version="0.0.5"
+                        provider_name=provider_name or "pyvider",
+                        provider_version="0.0.5",
                     )
 
                     compilation_result = compiler.compile_examples(
-                        bundles_with_examples, docs_output_dir, types
+                        bundles_with_examples, examples_dir, types, grouped_examples_dir
                     )
 
-                    if compilation_result.examples_generated > 0:
-                        pout(f"✅ Generated {compilation_result.examples_generated} executable examples")
+                    total_examples = (
+                        compilation_result.examples_generated + compilation_result.grouped_examples_generated
+                    )
+                    if total_examples > 0:
+                        pout(
+                            f"✅ Generated {compilation_result.examples_generated} single-component "
+                            f"and {compilation_result.grouped_examples_generated} grouped examples "
+                            f"(total: {total_examples})"
+                        )
                         pout("📂 Example files:")
                         for example_file in compilation_result.output_files[:5]:  # Show first 5
                             pout(f"  • {example_file}")
