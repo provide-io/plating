@@ -218,3 +218,140 @@ class TestPlatingBundle:
         bundle2 = PlatingBundle(name="test2", plating_dir=Path("/tmp/test.plating"), component_type="resource")
 
         assert bundle1 != bundle2
+
+    def test_load_examples_with_grouped_examples(self, tmp_path):
+        """Test loading both flat and grouped examples."""
+        plating_dir = tmp_path / "test.plating"
+        examples_dir = plating_dir / "examples"
+
+        # Create flat example
+        examples_dir.mkdir(parents=True)
+        (examples_dir / "basic.tf").write_text('resource "test" "basic" {}')
+
+        # Create grouped example
+        grouped_dir = examples_dir / "full_stack"
+        grouped_dir.mkdir(parents=True)
+        (grouped_dir / "main.tf").write_text('resource "test" "grouped" {}')
+
+        bundle = PlatingBundle(name="test", plating_dir=plating_dir, component_type="resource")
+
+        examples = bundle.load_examples()
+        assert len(examples) == 2
+        assert "basic" in examples
+        assert "full_stack" in examples
+        assert 'resource "test" "basic"' in examples["basic"]
+        assert 'resource "test" "grouped"' in examples["full_stack"]
+
+    def test_has_examples_with_grouped_examples(self, tmp_path):
+        """Test has_examples returns True for grouped examples."""
+        plating_dir = tmp_path / "test.plating"
+        examples_dir = plating_dir / "examples"
+        grouped_dir = examples_dir / "full_stack"
+        grouped_dir.mkdir(parents=True)
+        (grouped_dir / "main.tf").write_text('resource "test" "grouped" {}')
+
+        bundle = PlatingBundle(name="test", plating_dir=plating_dir, component_type="resource")
+
+        assert bundle.has_examples() is True
+
+    def test_get_example_groups(self, tmp_path):
+        """Test get_example_groups returns list of group names."""
+        plating_dir = tmp_path / "test.plating"
+        examples_dir = plating_dir / "examples"
+
+        # Create multiple grouped examples
+        for group_name in ["full_stack", "minimal", "advanced"]:
+            group_dir = examples_dir / group_name
+            group_dir.mkdir(parents=True)
+            (group_dir / "main.tf").write_text(f'resource "test" "{group_name}" {{}}')
+
+        # Create flat example (should be ignored by get_example_groups)
+        (examples_dir / "basic.tf").write_text('resource "test" "basic" {}')
+
+        bundle = PlatingBundle(name="test", plating_dir=plating_dir, component_type="resource")
+
+        groups = bundle.get_example_groups()
+        assert len(groups) == 3
+        assert "full_stack" in groups
+        assert "minimal" in groups
+        assert "advanced" in groups
+        assert "basic" not in groups  # Flat examples not included
+
+    def test_get_example_groups_empty(self, tmp_path):
+        """Test get_example_groups returns empty list when no groups exist."""
+        plating_dir = tmp_path / "test.plating"
+        bundle = PlatingBundle(name="test", plating_dir=plating_dir, component_type="resource")
+
+        groups = bundle.get_example_groups()
+        assert groups == []
+
+    def test_get_example_groups_ignores_dirs_without_main_tf(self, tmp_path):
+        """Test that get_example_groups ignores directories without main.tf."""
+        plating_dir = tmp_path / "test.plating"
+        examples_dir = plating_dir / "examples"
+
+        # Create directory without main.tf
+        (examples_dir / "incomplete").mkdir(parents=True)
+        (examples_dir / "incomplete" / "README.md").write_text("No main.tf here")
+
+        # Create valid grouped example
+        (examples_dir / "valid").mkdir(parents=True)
+        (examples_dir / "valid" / "main.tf").write_text('resource "test" {}')
+
+        bundle = PlatingBundle(name="test", plating_dir=plating_dir, component_type="resource")
+
+        groups = bundle.get_example_groups()
+        assert len(groups) == 1
+        assert "valid" in groups
+        assert "incomplete" not in groups
+
+    def test_load_group_fixtures(self, tmp_path):
+        """Test load_group_fixtures loads fixtures from grouped example."""
+        plating_dir = tmp_path / "test.plating"
+        examples_dir = plating_dir / "examples"
+        full_stack_dir = examples_dir / "full_stack"
+        fixtures_dir = full_stack_dir / "fixtures"
+        fixtures_dir.mkdir(parents=True)
+
+        # Create fixture files
+        (full_stack_dir / "main.tf").write_text('resource "test" {}')
+        (fixtures_dir / "config.json").write_text('{"key": "value"}')
+        (fixtures_dir / "data.txt").write_text("test data")
+
+        # Create nested fixture
+        nested_dir = fixtures_dir / "nested"
+        nested_dir.mkdir()
+        (nested_dir / "secret.yaml").write_text("password: secret")
+
+        bundle = PlatingBundle(name="test", plating_dir=plating_dir, component_type="resource")
+
+        fixtures = bundle.load_group_fixtures("full_stack")
+        assert len(fixtures) == 3
+        assert "config.json" in fixtures
+        assert "data.txt" in fixtures
+        assert "nested/secret.yaml" in fixtures
+
+        # Check that paths are Path objects
+        assert isinstance(fixtures["config.json"], Path)
+        assert fixtures["config.json"].exists()
+
+    def test_load_group_fixtures_empty(self, tmp_path):
+        """Test load_group_fixtures returns empty dict when no fixtures exist."""
+        plating_dir = tmp_path / "test.plating"
+        examples_dir = plating_dir / "examples"
+        full_stack_dir = examples_dir / "full_stack"
+        full_stack_dir.mkdir(parents=True)
+        (full_stack_dir / "main.tf").write_text('resource "test" {}')
+
+        bundle = PlatingBundle(name="test", plating_dir=plating_dir, component_type="resource")
+
+        fixtures = bundle.load_group_fixtures("full_stack")
+        assert fixtures == {}
+
+    def test_load_group_fixtures_nonexistent_group(self, tmp_path):
+        """Test load_group_fixtures returns empty dict for nonexistent group."""
+        plating_dir = tmp_path / "test.plating"
+        bundle = PlatingBundle(name="test", plating_dir=plating_dir, component_type="resource")
+
+        fixtures = bundle.load_group_fixtures("nonexistent")
+        assert fixtures == {}
