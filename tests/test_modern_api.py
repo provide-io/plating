@@ -4,7 +4,7 @@
 """Tests for the modern async API."""
 
 from pathlib import Path
-from unittest.mock import Mock, patch
+from provide.testkit.mocking import Mock, patch
 
 from provide.foundation import perr, pout  # Foundation I/O helpers
 import pytest

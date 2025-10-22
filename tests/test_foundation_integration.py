@@ -5,7 +5,7 @@
 
 from pathlib import Path
 import tempfile
-from unittest.mock import Mock, patch
+from provide.testkit.mocking import Mock, patch
 
 from plating.markdown_validator import MarkdownValidator, get_markdown_validator, reset_markdown_validator
 from plating.registry import PlatingRegistry, get_plating_registry, reset_plating_registry
