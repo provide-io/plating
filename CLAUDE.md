@@ -28,17 +28,17 @@ uv pip install -e ".[dev]"
 
 ### Running Tests
 ```bash
-pytest tests                  # Run all tests
-pytest tests/test_cli.py      # Run specific test file
-pytest -k test_scaffold       # Run tests matching pattern
-pytest -xvs                   # Stop on first failure, verbose output
+uv run pytest tests                  # Run all tests
+uv run pytest tests/test_cli.py      # Run specific test file
+uv run pytest -k test_scaffold       # Run tests matching pattern
+uv run pytest -xvs                   # Stop on first failure, verbose output
 ```
 
 ### Code Quality
 ```bash
-ruff format src/plating tests    # Format code
-ruff check src/plating tests     # Check linting
-mypy src/plating                 # Type checking
+uv run ruff format src/plating tests    # Format code
+uv run ruff check src/plating tests     # Check linting
+uv run mypy src/plating                 # Type checking
 ```
 
 ## Architecture
