@@ -2,7 +2,7 @@
 Comprehensive tests for the adorner module.
 """
 
-from unittest.mock import AsyncMock, Mock, patch
+from provide.testkit.mocking import AsyncMock, Mock, patch
 
 import pytest
 

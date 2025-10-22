@@ -4,7 +4,7 @@
 """Centralized test configuration and fixtures using provide-testkit."""
 
 from pathlib import Path
-from unittest.mock import ANY, AsyncMock, MagicMock, Mock, PropertyMock, call, patch
+from provide.testkit.mocking import ANY, AsyncMock, MagicMock, Mock, PropertyMock, call, patch
 
 import pytest
 
