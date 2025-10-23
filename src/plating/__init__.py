@@ -3,16 +3,16 @@
 #
 """Modern async documentation generation with full foundation integration.
 
-A clean, type-safe API for generating high-quality documentation with
-multi-domain support via foundation patterns.
+A clean, type-safe API for generating high-quality Terraform/OpenTofu
+provider documentation with foundation patterns.
 
 Key Features:
 - Type-safe async-first API
 - Full foundation integration (retry, metrics, circuit breakers)
-- Registry-based component discovery with multi-domain support
+- Registry-based component discovery
 - Integrated markdown validation with configurable rules
 - Context-aware template rendering with Jinja2
-- Extensible beyond Terraform to any domain (Kubernetes, CloudFormation, API docs, etc.)
+- Support for resources, data sources, functions, and provider docs
 
 Example Usage:
     ```python
@@ -71,8 +71,6 @@ CLI Usage:
 
 from plating._version import __version__
 
-# Old PlatingAPI removed - use Plating class directly
-
 # Template engine
 from plating.templating.engine import AsyncTemplateEngine, template_engine
 
@@ -90,9 +88,6 @@ from plating.decorators import (
 from plating.discovery import PlatingDiscovery as ModularPlatingDiscovery
 from plating.templating.metadata import TemplateMetadataExtractor
 from plating.generation import DocumentationAdorner, DocumentationPlater, TemplateRenderer
-
-# from plating.markdown_validator import MarkdownValidator, get_markdown_validator, reset_markdown_validator
-# Core async API
 from plating.plating import Plating, plating
 
 # Registry and validation
@@ -110,44 +105,39 @@ from plating.types import (
 )
 
 __all__ = [
-    "AdornResult",
-    "ArgumentInfo",
-    # Template engine
-    "AsyncTemplateEngine",
-    # Type-safe structures
-    "ComponentType",
-    "DocumentationAdorner",
-    "DocumentationPlater",
-    # New modular components
-    "FunctionPlatingBundle",
-    "MarkdownValidator",
-    "ModularPlatingBundle",
-    "ModularPlatingDiscovery",
-    "PlateResult",
     # Core API
     "Plating",
-    "PlatingContext",
-    # Registry and validation
-    "PlatingRegistry",
-    "SchemaInfo",
-    "TemplateMetadataExtractor",
-    "TemplateRenderer",
-    "ValidationResult",
-    # Version
-    "__version__",
-    "get_markdown_validator",
-    "get_plating_registry",
     "plating",
-    "plating_metrics",
-    "reset_markdown_validator",
-    "reset_plating_registry",
+    # Type-safe data structures
+    "AdornResult",
+    "ArgumentInfo",
+    "ComponentType",
+    "PlateResult",
+    "PlatingContext",
+    "SchemaInfo",
+    "ValidationResult",
+    # Template engine
+    "AsyncTemplateEngine",
     "template_engine",
+    # Modular components
+    "FunctionPlatingBundle",
+    "ModularPlatingBundle",
+    "ModularPlatingDiscovery",
+    "TemplateMetadataExtractor",
+    # Generation system
+    "DocumentationAdorner",
+    "DocumentationPlater",
+    "TemplateRenderer",
+    # Registry
+    "PlatingRegistry",
+    "get_plating_registry",
+    "reset_plating_registry",
+    # Foundation decorators
+    "plating_metrics",
     "with_circuit_breaker",
     "with_metrics",
-    # Foundation decorators
     "with_retry",
     "with_timing",
+    # Version
+    "__version__",
 ]
-
-
-# 🚀✨🎯🍽️
