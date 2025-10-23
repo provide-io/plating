@@ -19,6 +19,7 @@ Example Usage:
     import asyncio
     from pathlib import Path
     from plating import Plating, ComponentType, PlatingContext
+    from provide.foundation import pout
 
     async def main():
         # Initialize with foundation context
@@ -32,7 +33,7 @@ Example Usage:
 
         # Create missing templates
         adorn_result = await api.adorn(component_types=[ComponentType.RESOURCE])
-        print(f"Created {adorn_result.templates_generated} templates")
+        pout(f"✅ Created {adorn_result.templates_generated} templates")
 
         # Generate docs with validation
         plate_result = await api.plate(
@@ -43,11 +44,11 @@ Example Usage:
         )
 
         if plate_result.success:
-            print(f"Generated {len(plate_result.output_files)} files")
+            pout(f"✅ Generated {len(plate_result.output_files)} files")
 
         # Validate existing documentation
         validation_result = await api.validate()
-        print(f"Validation: {validation_result.passed}/{validation_result.total} passed")
+        pout(f"📊 Validation: {validation_result.passed}/{validation_result.total} passed")
 
     # Run the async main
     asyncio.run(main())

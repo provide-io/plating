@@ -161,13 +161,21 @@ class TemplateError(PlatingError):
         super().__init__(f"Template error in '{template_path}': {reason}")
 
     def to_user_message(self) -> str:
-        """Convert to user-friendly message with location context."""
+        """Convert to user-friendly message with location context and actionable guidance."""
         parts = [f"Template error in '{self.template_path}'"]
         if self.line_number:
             parts.append(f" at line {self.line_number}")
         parts.append(f": {self.reason}")
         if self.context:
             parts.append(f"\n  {self.context}")
+
+        parts.append("\n\n💡 How to fix:")
+        parts.append(f"\n  • Check template syntax at: {self.template_path}")
+        if self.line_number:
+            parts.append(f"\n  • Look at line {self.line_number} for syntax errors")
+        parts.append("\n  • Verify all template variables are defined in context")
+        parts.append("\n  • Check for typos in function names (schema, example, include)")
+        parts.append("\n  • Ensure Jinja2 syntax is correct: {{ }}, {% %}, {# #}")
         return "".join(parts)
 
     def to_dict(self) -> dict[str, Any]:
@@ -191,11 +199,17 @@ class DiscoveryError(PlatingError):
         super().__init__(f"Discovery error for package '{package_name}': {reason}")
 
     def to_user_message(self) -> str:
-        """Convert to user-friendly message."""
+        """Convert to user-friendly message with actionable guidance."""
         msg = f"Could not discover components in package '{self.package_name}': {self.reason}"
         if self.search_paths:
             paths_str = "\n  ".join(str(p) for p in self.search_paths)
             msg += f"\nSearched paths:\n  {paths_str}"
+
+        msg += "\n\n💡 How to fix:"
+        msg += f"\n  • Verify '{self.package_name}' is installed: uv pip list | grep {self.package_name}"
+        msg += "\n  • Check package has entry points defined in pyproject.toml"
+        msg += "\n  • Ensure components are in the correct directory structure"
+        msg += f"\n  • Try running: python -m {self.package_name} --help"
         return msg
 
     def to_dict(self) -> dict[str, Any]:
@@ -218,10 +232,19 @@ class ConfigurationError(PlatingError):
         super().__init__(f"Configuration error for '{config_key}': {reason}")
 
     def to_user_message(self) -> str:
-        """Convert to user-friendly message."""
+        """Convert to user-friendly message with actionable guidance."""
         msg = f"Configuration error for '{self.config_key}': {self.reason}"
         if self.config_file:
             msg += f"\nConfiguration file: {self.config_file}"
+
+        msg += "\n\n💡 How to fix:"
+        msg += f"\n  • Check configuration in pyproject.toml or plating.toml"
+        msg += f"\n  • Verify '{self.config_key}' has a valid value"
+        msg += "\n  • Example configuration:"
+        msg += "\n    [tool.plating]"
+        msg += f"\n    {self.config_key} = \"value\""
+        if self.config_file:
+            msg += f"\n  • Review settings in: {self.config_file}"
         return msg
 
     def to_dict(self) -> dict[str, Any]:
@@ -251,13 +274,21 @@ class ValidationError(PlatingError):
         super().__init__(f"Validation '{validation_name}' failed: {reason}")
 
     def to_user_message(self) -> str:
-        """Convert to user-friendly message."""
+        """Convert to user-friendly message with actionable guidance."""
         msg = f"Validation '{self.validation_name}' failed: {self.reason}"
         if self.file_path:
             msg += f"\nFile: {self.file_path}"
         if self.failures:
             failures_str = "\n  • ".join(self.failures)
             msg += f"\nFailures:\n  • {failures_str}"
+
+        msg += "\n\n💡 How to fix:"
+        if self.file_path:
+            msg += f"\n  • Review file: {self.file_path}"
+        msg += "\n  • Check markdown syntax and frontmatter format"
+        msg += "\n  • Ensure all required fields are present"
+        msg += "\n  • Verify links are valid and formatted correctly"
+        msg += "\n  • Run: plating validate --output-dir docs for detailed errors"
         return msg
 
     def to_dict(self) -> dict[str, Any]:
@@ -282,10 +313,24 @@ class FileSystemError(PlatingError):
         super().__init__(f"File system error during {operation} on '{path}': {reason}")
 
     def to_user_message(self) -> str:
-        """Convert to user-friendly message."""
+        """Convert to user-friendly message with actionable guidance."""
         msg = f"Failed to {self.operation} file '{self.path}': {self.reason}"
         if self.caused_by:
             msg += f"\nCaused by: {type(self.caused_by).__name__}: {self.caused_by}"
+
+        msg += "\n\n💡 How to fix:"
+        if "permission" in self.reason.lower():
+            msg += f"\n  • Check file permissions: ls -la {self.path}"
+            msg += f"\n  • Try with elevated permissions if appropriate: sudo chown $USER {self.path}"
+            msg += "\n  • Ensure directory is writable: chmod u+w $(dirname {0})".format(self.path)
+        elif "not found" in self.reason.lower() or "no such file" in self.reason.lower():
+            msg += f"\n  • Verify path exists: ls -la $(dirname {self.path})"
+            msg += f"\n  • Check for typos in path: {self.path}"
+            msg += "\n  • Ensure parent directories exist"
+        else:
+            msg += f"\n  • Check path is accessible: ls -la {self.path}"
+            msg += "\n  • Verify disk space: df -h"
+            msg += "\n  • Check for file locks or processes using the file"
         return msg
 
     def to_dict(self) -> dict[str, Any]:

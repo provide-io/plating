@@ -6,9 +6,7 @@
 from pathlib import Path
 import subprocess
 
-from rich.console import Console
-
-console = Console()
+from provide.foundation import perr, pout
 
 
 class ErrorReporter:
@@ -19,44 +17,44 @@ class ErrorReporter:
         cmd: list[str], error: subprocess.CalledProcessError, context: str = ""
     ) -> None:
         """Report subprocess execution errors consistently."""
-        console.print(f"[red]Error executing command: {' '.join(cmd)}[/red]")
+        perr(f"❌ Error executing command: {' '.join(cmd)}")
         if context:
-            console.print(f"[yellow]Context: {context}[/yellow]")
+            pout(f"📍 Context: {context}")
         if error.stderr:
-            console.print(f"[red]Error output:[/red]\n{error.stderr}")
+            perr(f"Error output:\n{error.stderr}")
         if error.returncode:
-            console.print(f"[red]Exit code: {error.returncode}[/red]")
+            perr(f"Exit code: {error.returncode}")
 
     @staticmethod
     def report_file_error(path: Path, operation: str, error: Exception) -> None:
         """Report file operation errors consistently."""
-        console.print(f"[red]File operation failed: {operation}[/red]")
-        console.print(f"[yellow]Path: {path}[/yellow]")
-        console.print(f"[red]Error: {error}[/red]")
+        perr(f"❌ File operation failed: {operation}")
+        pout(f"📁 Path: {path}")
+        perr(f"Error: {error}")
 
     @staticmethod
     def report_validation_error(component: str, errors: list[str], warnings: list[str] | None = None) -> None:
         """Report validation errors and warnings consistently."""
-        console.print(f"[red]Validation failed for {component}[/red]")
+        perr(f"❌ Validation failed for {component}")
         for error in errors:
-            console.print(f"  [red]✗[/red] {error}")
+            perr(f"  ✗ {error}")
         if warnings:
             for warning in warnings:
-                console.print(f"  [yellow]⚠[/yellow] {warning}")
+                pout(f"  ⚠️  {warning}")
 
     @staticmethod
     def report_warning(message: str, details: str | None = None) -> None:
         """Report warnings consistently."""
-        console.print(f"[yellow]Warning: {message}[/yellow]")
+        pout(f"⚠️  {message}")
         if details:
-            console.print(f"[dim]{details}[/dim]")
+            pout(f"  {details}")
 
     @staticmethod
     def report_success(message: str, details: str | None = None) -> None:
         """Report success messages consistently."""
-        console.print(f"[green]✓ {message}[/green]")
+        pout(f"✅ {message}")
         if details:
-            console.print(f"[dim]{details}[/dim]")
+            pout(f"  {details}")
 
 
 def handle_subprocess_execution(
