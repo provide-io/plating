@@ -50,17 +50,88 @@ def auto_detect_package_name() -> str | None:
         return None
 
 
-def get_package_name(provided_name: str | None) -> str:
+def auto_detect_provider_name() -> str | None:
+    """Auto-detect provider name from package name or pyproject.toml.
+
+    Returns:
+        Provider name if found, None otherwise
+    """
+    try:
+        # First, check if there's explicit config in pyproject.toml
+        pyproject_path = Path.cwd() / "pyproject.toml"
+        if pyproject_path.exists():
+            try:
+                import tomllib
+            except ImportError:
+                try:
+                    import tomli as tomllib  # type: ignore[import-not-found,no-redef]
+                except ImportError:
+                    pass
+                else:
+                    with open(pyproject_path, "rb") as f:
+                        pyproject = tomllib.load(f)
+                    if "tool" in pyproject and "plating" in pyproject["tool"]:
+                        if "provider_name" in pyproject["tool"]["plating"]:
+                            return pyproject["tool"]["plating"]["provider_name"]
+            else:
+                with open(pyproject_path, "rb") as f:
+                    pyproject = tomllib.load(f)
+                if "tool" in pyproject and "plating" in pyproject["tool"]:
+                    if "provider_name" in pyproject["tool"]["plating"]:
+                        return pyproject["tool"]["plating"]["provider_name"]
+
+        # Try to extract from package name pattern
+        package_name = auto_detect_package_name()
+        if package_name:
+            # Handle terraform-provider-{name} pattern
+            if package_name.startswith("terraform-provider-"):
+                return package_name.replace("terraform-provider-", "")
+            # Handle {name}-provider pattern
+            if package_name.endswith("-provider"):
+                return package_name.replace("-provider", "")
+
+        return None
+    except Exception as e:
+        logger.debug(f"Failed to auto-detect provider name: {e}")
+        return None
+
+
+def get_provider_name(provided_name: str | None) -> str:
+    """Get provider name from CLI arg or auto-detect.
+
+    Args:
+        provided_name: Provider name from CLI argument (may be None)
+
+    Returns:
+        Provider name to use
+
+    Raises:
+        click.UsageError: If no provider name provided and auto-detection fails
+    """
+    if provided_name:
+        return provided_name
+
+    detected = auto_detect_provider_name()
+    if detected:
+        pout(f"🏷️  Auto-detected provider: {detected}")
+        return detected
+
+    raise click.UsageError(
+        "Could not auto-detect provider name. Please provide --provider-name or add [tool.plating] provider_name to pyproject.toml"
+    )
+
+
+def get_package_name(provided_name: str | None) -> str | None:
     """Get package name from CLI arg or auto-detect from current directory.
 
     Args:
         provided_name: Package name from CLI argument (may be None)
 
     Returns:
-        Package name to use
+        Package name to use, or None to discover from all packages
 
     Raises:
-        click.UsageError: If no package name provided and auto-detection fails
+        click.UsageError: Never - returns None to enable global discovery
     """
     if provided_name:
         return provided_name
@@ -68,11 +139,9 @@ def get_package_name(provided_name: str | None) -> str:
     detected = auto_detect_package_name()
     if detected:
         pout(f"📦 Auto-detected package: {detected}")
-        return detected
 
-    raise click.UsageError(
-        "Could not auto-detect package name. Please provide --package-name or run from a directory with pyproject.toml"
-    )
+    # Return None to enable global component discovery from all packages
+    return None
 
 
 @click.group()
