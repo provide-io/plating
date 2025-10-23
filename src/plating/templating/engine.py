@@ -1,21 +1,19 @@
 from __future__ import annotations
 
-#
-# plating/templating/engine.py
-#
-"""Modern async template engine with foundation integration."""
-
 import asyncio
 from typing import TYPE_CHECKING
 
-from jinja2 import DictLoader, Environment, select_autoescape
+from jinja2 import DictLoader, Environment, TemplateError as Jinja2TemplateError, select_autoescape
 from provide.foundation import logger
 
 from plating.decorators import plating_metrics, with_metrics, with_timing
+from plating.errors import FileSystemError, TemplateError
 from plating.types import PlatingContext
 
 if TYPE_CHECKING:
     from plating.plating import PlatingBundle
+
+"""Modern async template engine with foundation integration and error handling."""
 
 
 class AsyncTemplateEngine:
@@ -55,42 +53,85 @@ class AsyncTemplateEngine:
 
         Returns:
             Rendered template string
+
+        Raises:
+            TemplateError: If template rendering fails
+            FileSystemError: If template loading fails
         """
-        # Load template and partials concurrently
-        template_task = asyncio.create_task(self._load_template(bundle))
-        partials_task = asyncio.create_task(self._load_partials(bundle))
+        try:
+            # Load template and partials concurrently
+            template_task = asyncio.create_task(self._load_template(bundle))
+            partials_task = asyncio.create_task(self._load_partials(bundle))
 
-        template_content, partials = await asyncio.gather(template_task, partials_task)
+            template_content, partials = await asyncio.gather(template_task, partials_task)
 
-        if not template_content:
-            logger.debug(f"No template found for {bundle.name}, skipping")
-            return ""
+            if not template_content:
+                logger.debug(f"No template found for {bundle.name}, skipping")
+                return ""
 
-        # Prepare templates dict
-        templates = {"main.tmpl": template_content}
-        templates.update(partials)
+            # Prepare templates dict
+            templates = {"main.tmpl": template_content}
+            templates.update(partials)
 
-        # Create Jinja environment
-        env = self._get_jinja_env(templates)
+            # Create Jinja environment
+            env = self._get_jinja_env(templates)
 
-        # Convert context to dict
-        context_dict = context.to_dict()
+            # Convert context to dict
+            context_dict = context.to_dict()
 
-        # Override template functions with context-aware implementations
-        env.globals["example"] = lambda key: self._format_example_with_context(key, context.examples)
+            # Override template functions with context-aware implementations
+            env.globals["example"] = lambda key: self._format_example_with_context(key, context.examples)
 
-        # Override schema function to return actual schema
-        if context.schema:
-            env.globals["schema"] = lambda: context.schema.to_markdown()
-        else:
-            env.globals["schema"] = lambda: ""
+            # Override schema function to return actual schema
+            if context.schema:
+                env.globals["schema"] = lambda: context.schema.to_markdown()
+            else:
+                env.globals["schema"] = lambda: ""
 
-        # Render template asynchronously
-        template = env.get_template("main.tmpl")
+            # Render template asynchronously
+            template = env.get_template("main.tmpl")
 
-        async with plating_metrics.track_operation("template_render", bundle=bundle.name):
-            return await template.render_async(**context_dict)
+            async with plating_metrics.track_operation("template_render", bundle=bundle.name):
+                return await template.render_async(**context_dict)
 
+        except Jinja2TemplateError as e:
+            # Extract line number if available
+            line_number = getattr(e, "lineno", None)
+            error_msg = str(e)
+
+            logger.error(
+                "Template rendering failed",
+                bundle=bundle.name,
+                error=error_msg,
+                line_number=line_number,
+                **context.to_dict(),
+            )
+
+            raise TemplateError(
+                template_path=bundle.plating_dir / "docs" / f"{bundle.name}.tmpl.md",
+                reason=error_msg,
+                line_number=line_number,
+                context=getattr(e, "source", None),
+            ) from e
+
+        except (OSError, IOError) as e:
+            logger.error("File system error during template rendering", bundle=bundle.name, error=str(e))
+            raise FileSystemError(
+                path=bundle.plating_dir,
+                operation="read template",
+                reason=str(e),
+                caused_by=e,
+            ) from e
+
+        except Exception as e:
+            logger.exception("Unexpected error during template rendering", bundle=bundle.name)
+            raise TemplateError(
+                template_path=bundle.plating_dir / "docs" / f"{bundle.name}.tmpl.md",
+                reason=f"Unexpected error: {type(e).__name__}: {e}",
+            ) from e
+
+    @with_timing
+    @with_metrics("template_render_batch")
     async def render_batch(self, items: list[tuple[PlatingBundle, PlatingContext]]) -> list[str]:
         """Render multiple templates in parallel.
 
@@ -99,6 +140,10 @@ class AsyncTemplateEngine:
 
         Returns:
             List of rendered template strings
+
+        Raises:
+            TemplateError: If any template rendering fails
+            FileSystemError: If any template loading fails
         """
         tasks = [asyncio.create_task(self.render(bundle, context)) for bundle, context in items]
 
@@ -106,30 +151,72 @@ class AsyncTemplateEngine:
             return await asyncio.gather(*tasks)
 
     async def _load_template(self, bundle: PlatingBundle) -> str:
-        """Load main template from bundle."""
+        """Load main template from bundle.
+
+        Args:
+            bundle: PlatingBundle to load template from
+
+        Returns:
+            Template content as string
+
+        Raises:
+            FileSystemError: If template file cannot be read
+        """
         cache_key = f"{bundle.plating_dir}:{bundle.name}:main"
         if cache_key in self._template_cache:
             return self._template_cache[cache_key]
 
-        # Run in thread pool since file I/O is blocking
-        template_content = await asyncio.get_event_loop().run_in_executor(None, bundle.load_main_template)
+        try:
+            # Run in thread pool since file I/O is blocking
+            template_content = await asyncio.get_event_loop().run_in_executor(
+                None, bundle.load_main_template
+            )
 
-        self._template_cache[cache_key] = template_content
-        return template_content
+            self._template_cache[cache_key] = template_content
+            return template_content
+
+        except (OSError, IOError, FileNotFoundError) as e:
+            logger.error("Failed to load template", bundle=bundle.name, error=str(e))
+            raise FileSystemError(
+                path=bundle.plating_dir / "docs" / f"{bundle.name}.tmpl.md",
+                operation="read",
+                reason=str(e),
+                caused_by=e,
+            ) from e
 
     async def _load_partials(self, bundle: PlatingBundle) -> dict[str, str]:
-        """Load partial templates from bundle."""
+        """Load partial templates from bundle.
+
+        Args:
+            bundle: PlatingBundle to load partials from
+
+        Returns:
+            Dictionary of partial name to content
+
+        Raises:
+            FileSystemError: If partial files cannot be read
+        """
         import json
 
         cache_key = f"{bundle.plating_dir}:{bundle.name}:partials"
         if cache_key in self._template_cache:
             return json.loads(self._template_cache[cache_key])
 
-        # Run in thread pool since file I/O is blocking
-        partials = await asyncio.get_event_loop().run_in_executor(None, bundle.load_partials)
+        try:
+            # Run in thread pool since file I/O is blocking
+            partials = await asyncio.get_event_loop().run_in_executor(None, bundle.load_partials)
 
-        self._template_cache[cache_key] = json.dumps(partials)
-        return partials
+            self._template_cache[cache_key] = json.dumps(partials)
+            return partials
+
+        except (OSError, IOError) as e:
+            logger.error("Failed to load partials", bundle=bundle.name, error=str(e))
+            raise FileSystemError(
+                path=bundle.plating_dir / "docs" / "_partials",
+                operation="read",
+                reason=str(e),
+                caused_by=e,
+            ) from e
 
     def _format_example(self, example_code: str) -> str:
         """Format example code for display."""

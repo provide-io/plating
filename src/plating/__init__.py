@@ -87,7 +87,7 @@ from plating.decorators import (
 )
 from plating.discovery import PlatingDiscovery as ModularPlatingDiscovery
 from plating.templating.metadata import TemplateMetadataExtractor
-from plating.generation import DocumentationAdorner, DocumentationPlater, TemplateRenderer
+from plating.generation import DocumentationAdorner, DocumentationPlater
 from plating.plating import Plating, plating
 
 # Registry and validation
@@ -127,7 +127,6 @@ __all__ = [
     # Generation system
     "DocumentationAdorner",
     "DocumentationPlater",
-    "TemplateRenderer",
     # Registry
     "PlatingRegistry",
     "get_plating_registry",
