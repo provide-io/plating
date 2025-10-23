@@ -64,16 +64,20 @@ class SchemaProcessor:
         pout("🔍 Discovering components via foundation hub...")
 
         try:
-            # Use foundation's discovery with pyvider components entry point
             self.hub.discover_components("pyvider.components")
+            pout("   ✅ Component discovery complete")
         except Exception as e:
             raise SchemaError(self.generator.provider_name, f"Component discovery failed: {e}") from e
 
         # Get components by dimension from foundation registry
+        pout("📦 Extracting component schemas...")
         providers = self._get_components_by_dimension("provider")
         resources = self._get_components_by_dimension("resource")
         data_sources = self._get_components_by_dimension("data_source")
         functions = self._get_components_by_dimension("function")
+
+        total_components = len(providers) + len(resources) + len(data_sources) + len(functions)
+        pout(f"   Found {len(resources)} resources, {len(data_sources)} data sources, {len(functions)} functions")
 
         provider_schema = {
             "provider_schemas": {
@@ -85,6 +89,7 @@ class SchemaProcessor:
                 }
             }
         }
+        pout(f"✅ Extracted schemas for {total_components} components")
         return provider_schema
 
     def _get_components_by_dimension(self, dimension: str) -> dict[str, Any]:
