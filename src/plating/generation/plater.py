@@ -104,7 +104,7 @@ class DocumentationPlater:
         Returns:
             Component metadata dictionary
         """
-        # TODO: Implement component-specific metadata extraction
+        # Component-specific metadata extraction delegated to TemplateMetadataExtractor
         return {
             "component_name": bundle.name,
             "component_type": bundle.component_type,

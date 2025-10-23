@@ -304,4 +304,3 @@ def plating(context: PlatingContext | None = None) -> Plating:
     return _global_api
 
 
-# 🍲🚀⚡✨

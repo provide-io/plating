@@ -12,7 +12,7 @@ maintainers = [
     { name = "provide.io", email = "code@provide.io" },
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
@@ -23,11 +23,11 @@ classifiers = [
 ]
 dependencies = [
     "jinja2>=3.1.6,<4.0.0",
-    "rich>=14.0.0",
-    "pyvider-cty>=0.0.1000",
-    "provide-foundation[all]>=0.0.1000",
-    "pymarkdownlnt>=0.9.32",
-    "mkdocs-material>=9.6.20",
+    "rich>=14.0.0,<15.0.0",
+    "pyvider-cty>=0.0.1000,<1.0.0",
+    "provide-foundation[all]>=0.0.1000,<1.0.0",
+    "pymarkdownlnt>=0.9.32,<1.0.0",
+    "mkdocs-material>=9.6.20,<10.0.0",
 ]
 
 [dependency-groups]

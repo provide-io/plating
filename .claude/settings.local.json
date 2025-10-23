@@ -29,7 +29,10 @@
       "Bash(uv pip:*)",
       "Bash(xargs -I {} find {} -type f)",
       "Bash(git mv:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(for file in src/plating/cli.py src/plating/plating.py src/plating/errors.py src/plating/decorators.py src/plating/models.py)",
+      "Bash(do sed -i '' '$d' \"$file\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": [],

@@ -20,13 +20,13 @@ from plating.config.defaults import (
     DEFAULT_RESOURCES_DIR,
     DEFAULT_TEST_PARALLEL,
     DEFAULT_TEST_TIMEOUT,
-    ENV_GARNISH_OUTPUT_DIR,
-    ENV_GARNISH_TEST_PARALLEL,
-    ENV_GARNISH_TEST_TIMEOUT,
-    ENV_GARNISH_TF_BINARY,
     ENV_PLATING_EXAMPLE_PLACEHOLDER,
     ENV_PLATING_FALLBACK_ARGUMENTS,
     ENV_PLATING_FALLBACK_SIGNATURE,
+    ENV_PLATING_OUTPUT_DIR,
+    ENV_PLATING_TEST_PARALLEL,
+    ENV_PLATING_TEST_TIMEOUT,
+    ENV_PLATING_TF_BINARY,
     ENV_TF_PLUGIN_CACHE_DIR,
 )
 
@@ -56,7 +56,7 @@ class PlatingConfig(RuntimeConfig):
     terraform_binary: str | None = field(
         default=None,
         description="Path to terraform/tofu binary",
-        env_var=ENV_GARNISH_TF_BINARY,
+        env_var=ENV_PLATING_TF_BINARY,
     )
     plugin_cache_dir: Path | None = field(
         default=None,
@@ -68,19 +68,19 @@ class PlatingConfig(RuntimeConfig):
     test_timeout: int = field(
         default=DEFAULT_TEST_TIMEOUT,
         description="Timeout for test execution in seconds",
-        env_var=ENV_GARNISH_TEST_TIMEOUT,
+        env_var=ENV_PLATING_TEST_TIMEOUT,
     )
     test_parallel: int = field(
         default=DEFAULT_TEST_PARALLEL,
         description="Number of parallel test executions",
-        env_var=ENV_GARNISH_TEST_PARALLEL,
+        env_var=ENV_PLATING_TEST_PARALLEL,
     )
 
     # Output configuration
     output_dir: Path = field(
         factory=lambda: Path(DEFAULT_OUTPUT_DIR),
         description="Default output directory for documentation",
-        env_var=ENV_GARNISH_OUTPUT_DIR,
+        env_var=ENV_PLATING_OUTPUT_DIR,
     )
 
     # Component directories
