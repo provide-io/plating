@@ -28,7 +28,8 @@
       "Bash(python:*)",
       "Bash(uv pip:*)",
       "Bash(xargs -I {} find {} -type f)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": [],
