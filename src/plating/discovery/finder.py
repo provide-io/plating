@@ -42,70 +42,69 @@ class PlatingDiscovery:
     def _discover_from_all_packages(self, component_type: str | None = None) -> list[PlatingBundle]:
         """Discover .plating bundles from all installed packages.
 
-        This searches all installed packages by iterating through distributions and
-        discovering their top-level modules and common submodules.
+        Searches site-packages and other Python paths for .plating directories.
+        Much simpler than trying to map distribution names to import names.
         """
         all_bundles: list[PlatingBundle] = []
-        searched_paths: set[Path] = set()  # Avoid searching same path multiple times
+        searched_paths: set[Path] = set()
 
-        try:
-            for dist in importlib.metadata.distributions():
-                try:
-                    top_level = dist.read_text('top_level.txt')
-                    if top_level:
-                        # Process each top-level module
-                        for module_name in top_level.strip().split('\n'):
-                            if module_name:
-                                module_name = module_name.strip()
+        # Get all site-packages and source directories
+        import sys
+        search_roots = set()
 
-                                # Search the top-level module
-                                bundles = self._discover_from_package_with_dedup(
-                                    module_name, component_type, searched_paths
+        for path_str in sys.path:
+            path = Path(path_str)
+            if path.exists() and path.is_dir():
+                # Add site-packages, dist-packages, and src directories
+                search_roots.add(path)
+
+        # Search each root for .plating directories
+        for root in search_roots:
+            try:
+                for plating_dir in root.rglob("*.plating"):
+                    if not plating_dir.is_dir() or plating_dir.name.startswith("."):
+                        continue
+
+                    # Skip if we've seen this directory
+                    if plating_dir in searched_paths:
+                        continue
+                    searched_paths.add(plating_dir)
+
+                    # Determine component type and create bundles
+                    bundle_component_type = self._determine_component_type(plating_dir)
+                    if component_type and bundle_component_type != component_type:
+                        continue
+
+                    # Process the bundle (same logic as single-package discovery)
+                    sub_component_bundles = self._discover_sub_components(plating_dir, bundle_component_type)
+                    if sub_component_bundles:
+                        all_bundles.extend(sub_component_bundles)
+                    else:
+                        if bundle_component_type == "function":
+                            function_bundles = self._discover_function_templates(plating_dir)
+                            if function_bundles:
+                                all_bundles.extend(function_bundles)
+                            else:
+                                component_name = plating_dir.name.replace(".plating", "")
+                                bundle = PlatingBundle(
+                                    name=component_name,
+                                    plating_dir=plating_dir,
+                                    component_type=bundle_component_type
                                 )
-                                all_bundles.extend(bundles)
-
-                                # Also search common submodules (e.g., pyvider.components, pyvider.resources)
-                                for submodule in ['components', 'resources', 'data_sources', 'functions']:
-                                    full_name = f"{module_name}.{submodule}"
-                                    bundles = self._discover_from_package_with_dedup(
-                                        full_name, component_type, searched_paths
-                                    )
-                                    all_bundles.extend(bundles)
-                except Exception:
-                    # Fallback: try the distribution name directly
-                    bundles = self._discover_from_package_with_dedup(
-                        dist.name, component_type, searched_paths
-                    )
-                    all_bundles.extend(bundles)
-        except Exception:
-            pass
+                                all_bundles.append(bundle)
+                        else:
+                            component_name = plating_dir.name.replace(".plating", "")
+                            bundle = PlatingBundle(
+                                name=component_name,
+                                plating_dir=plating_dir,
+                                component_type=bundle_component_type
+                            )
+                            all_bundles.append(bundle)
+            except Exception:
+                # Skip directories that cause errors
+                continue
 
         return all_bundles
-
-    def _discover_from_package_with_dedup(
-        self,
-        package_name: str,
-        component_type: str | None,
-        searched_paths: set[Path]
-    ) -> list[PlatingBundle]:
-        """Discover from a package, avoiding duplicate path searches."""
-        try:
-            spec = importlib.util.find_spec(package_name)
-            if not spec or not spec.origin:
-                return []
-
-            package_path = Path(spec.origin).parent
-
-            # Skip if we've already searched this path
-            if package_path in searched_paths:
-                return []
-
-            searched_paths.add(package_path)
-
-            # Now do the actual discovery
-            return self._discover_from_package(package_name, component_type)
-        except (ModuleNotFoundError, ValueError, AttributeError):
-            return []
 
     def _discover_from_package(
         self, package_name: str, component_type: str | None = None
