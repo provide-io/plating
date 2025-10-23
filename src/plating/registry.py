@@ -80,9 +80,21 @@ class PlatingRegistry(Registry):
         try:
             bundles = self._retry_executor.execute_sync(self._discovery.discover_bundles)
 
+            # Track seen components to avoid duplicate registration during global discovery
+            seen_components: set[tuple[str, str]] = set()  # (name, dimension)
+
             logger.info(f"Discovered {len(bundles)} plating bundles")
 
             for bundle in bundles:
+                component_key = (bundle.name, bundle.component_type)
+
+                # Skip if we've already seen this component (deduplication for global discovery)
+                if component_key in seen_components:
+                    logger.debug(f"Skipping duplicate {bundle.component_type}/{bundle.name}")
+                    continue
+
+                seen_components.add(component_key)
+
                 entry = PlatingRegistryEntry(bundle, dimension=bundle.component_type)
                 self.register(
                     name=bundle.name,
