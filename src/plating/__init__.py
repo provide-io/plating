@@ -72,9 +72,6 @@ CLI Usage:
 
 from plating._version import __version__
 
-# Template engine
-from plating.templating.engine import AsyncTemplateEngine, template_engine
-
 # New modular components
 from plating.bundles import FunctionPlatingBundle, PlatingBundle as ModularPlatingBundle
 
@@ -87,12 +84,15 @@ from plating.decorators import (
     with_timing,
 )
 from plating.discovery import PlatingDiscovery as ModularPlatingDiscovery
-from plating.templating.metadata import TemplateMetadataExtractor
 from plating.generation import DocumentationAdorner, DocumentationPlater
 from plating.plating import Plating, plating
 
 # Registry and validation
 from plating.registry import PlatingRegistry, get_plating_registry, reset_plating_registry
+
+# Template engine
+from plating.templating.engine import AsyncTemplateEngine, template_engine
+from plating.templating.metadata import TemplateMetadataExtractor
 
 # Type-safe data structures
 from plating.types import (

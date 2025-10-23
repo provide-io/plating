@@ -148,7 +148,7 @@ class SchemaProcessor:
         tf_binary = config.terraform_binary or "terraform"
 
         # Build the provider binary with retry
-        pout(f"Building provider in {self.generator.provider_dir}")
+        pout(f"🔨 Building provider in {self.generator.provider_dir}")
         try:
             self.retry_executor.execute_sync(
                 run,
@@ -156,6 +156,7 @@ class SchemaProcessor:
                 cwd=self.generator.provider_dir,
                 capture_output=True,
             )
+            pout("   ✅ Provider build complete")
         except ProcessError as e:
             logger.error(
                 "Provider build failed",

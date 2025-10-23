@@ -114,7 +114,7 @@ class AsyncTemplateEngine:
                 context=getattr(e, "source", None),
             ) from e
 
-        except (OSError, IOError) as e:
+        except OSError as e:
             logger.error("File system error during template rendering", bundle=bundle.name, error=str(e))
             raise FileSystemError(
                 path=bundle.plating_dir,
@@ -153,6 +153,10 @@ class AsyncTemplateEngine:
     async def _load_template(self, bundle: PlatingBundle) -> str:
         """Load main template from bundle.
 
+        Uses run_in_executor to wrap blocking file I/O operations in the async
+        event loop's thread pool. This prevents blocking the event loop while
+        maintaining async semantics.
+
         Args:
             bundle: PlatingBundle to load template from
 
@@ -167,7 +171,7 @@ class AsyncTemplateEngine:
             return self._template_cache[cache_key]
 
         try:
-            # Run in thread pool since file I/O is blocking
+            # Wrap blocking file I/O in executor to avoid blocking event loop
             template_content = await asyncio.get_event_loop().run_in_executor(
                 None, bundle.load_main_template
             )
@@ -175,7 +179,7 @@ class AsyncTemplateEngine:
             self._template_cache[cache_key] = template_content
             return template_content
 
-        except (OSError, IOError, FileNotFoundError) as e:
+        except (OSError, FileNotFoundError) as e:
             logger.error("Failed to load template", bundle=bundle.name, error=str(e))
             raise FileSystemError(
                 path=bundle.plating_dir / "docs" / f"{bundle.name}.tmpl.md",
@@ -186,6 +190,10 @@ class AsyncTemplateEngine:
 
     async def _load_partials(self, bundle: PlatingBundle) -> dict[str, str]:
         """Load partial templates from bundle.
+
+        Uses run_in_executor to wrap blocking file I/O operations in the async
+        event loop's thread pool. This prevents blocking the event loop while
+        maintaining async semantics.
 
         Args:
             bundle: PlatingBundle to load partials from
@@ -203,13 +211,13 @@ class AsyncTemplateEngine:
             return json.loads(self._template_cache[cache_key])
 
         try:
-            # Run in thread pool since file I/O is blocking
+            # Wrap blocking file I/O in executor to avoid blocking event loop
             partials = await asyncio.get_event_loop().run_in_executor(None, bundle.load_partials)
 
             self._template_cache[cache_key] = json.dumps(partials)
             return partials
 
-        except (OSError, IOError) as e:
+        except OSError as e:
             logger.error("Failed to load partials", bundle=bundle.name, error=str(e))
             raise FileSystemError(
                 path=bundle.plating_dir / "docs" / "_partials",

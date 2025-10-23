@@ -5,7 +5,7 @@ from pathlib import Path
 import time
 from typing import Any
 
-from provide.foundation import logger
+from provide.foundation import logger, pout
 from provide.foundation.resilience import BackoffStrategy, RetryPolicy
 
 from plating.core.doc_generator import generate_provider_index, generate_template, render_component_docs
@@ -84,6 +84,8 @@ class Plating:
                 path=output_dir, operation="create directory", reason=str(e), caused_by=e
             ) from e
 
+        pout(f"🎨 Starting adorn for {len(component_types)} component type(s)")
+
         start_time = time.monotonic()
         templates_generated = 0
         errors = []
@@ -91,7 +93,9 @@ class Plating:
         for component_type in component_types:
             components = self.registry.get_components(component_type)
             logger.info(f"Found {len(components)} {component_type.value} components to adorn")
+            pout(f"📦 Processing {len(components)} {component_type.value}(s)...")
 
+            generated_for_type = 0
             for component in components:
                 try:
                     # Skip generating stub templates if source templates already exist
@@ -115,28 +119,37 @@ class Plating:
                         try:
                             generate_template(component, template_file)
                             templates_generated += 1
+                            generated_for_type += 1
                             logger.info(
                                 f"Generated stub template for {component.name} (no source template found)"
                             )
-                        except (OSError, IOError) as e:
+                        except OSError as e:
                             raise FileSystemError(
                                 path=template_file, operation="write", reason=str(e), caused_by=e
                             ) from e
 
                 except FileSystemError:
-                    # Re-raise filesystem errors as-is
                     raise
                 except Exception as e:
                     error_msg = f"Failed to adorn {component.name}: {e}"
                     logger.error(error_msg, component=component.name, error=str(e))
                     errors.append(error_msg)
-                    # Continue processing other components
 
-        time.monotonic() - start_time  # End timing
+            if generated_for_type > 0:
+                pout(f"   ✅ Generated {generated_for_type} template(s)")
+            else:
+                pout(f"   ℹ️  All {component_type.value}s already have templates")
+
+        duration = time.monotonic() - start_time
+        if templates_generated > 0:
+            pout(f"\n✅ Adorning complete: {templates_generated} template(s) in {duration:.2f}s")
+        else:
+            pout("\nℹ️  No new templates needed")
+
         return AdornResult(
             components_processed=sum(len(self.registry.get_components(ct)) for ct in component_types),
             templates_generated=templates_generated,
-            examples_created=0,  # Not tracking examples in adorn
+            examples_created=0,
             errors=errors,
         )
 
@@ -197,6 +210,9 @@ class Plating:
         if not component_types:
             component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
 
+        pout(f"🍽️  Plating documentation to: {final_output_dir}")
+        pout(f"📦 Processing {len(component_types)} component type(s)")
+
         start_time = time.monotonic()
         result = PlateResult(duration_seconds=0.0, files_generated=0, errors=[], output_files=[])
 
@@ -206,11 +222,13 @@ class Plating:
         for component_type in component_types:
             components = self.registry.get_components_with_templates(component_type)
             logger.info(f"Generating docs for {len(components)} {component_type.value} components")
+            pout(f"📄 Rendering {len(components)} {component_type.value}(s)...")
 
             # Track unique bundle directories
             for component in components:
                 processed_bundles.add(str(component.plating_dir))
 
+            files_before = result.files_generated
             await render_component_docs(
                 components,
                 component_type,
@@ -220,8 +238,12 @@ class Plating:
                 self.context,
                 self._provider_schema or {},
             )
+            files_for_type = result.files_generated - files_before
+            if files_for_type > 0:
+                pout(f"   ✅ Generated {files_for_type} file(s)")
 
         # Generate provider index page
+        pout("📝 Generating provider index...")
         generate_provider_index(
             final_output_dir, force, result, self.context, self._provider_schema or {}, self.registry
         )
@@ -229,6 +251,8 @@ class Plating:
         # Update result with tracking info
         result.bundles_processed = len(processed_bundles)
         result.duration_seconds = time.monotonic() - start_time
+
+        pout(f"\n✅ Plating complete: {result.files_generated} file(s) in {result.duration_seconds:.2f}s")
 
         # Validate if requested (disabled due to markdown validator dependency)
         # if validate_markdown and result.output_files:

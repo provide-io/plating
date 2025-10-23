@@ -10,9 +10,7 @@ from typing import Any
 try:
     from provide.foundation.errors import FoundationError
 except ImportError:
-    # Fallback if foundation is not available
-    class FoundationError(Exception):  # type: ignore[misc]
-        pass
+    FoundationError = Exception
 
 
 class PlatingError(FoundationError):
@@ -238,7 +236,7 @@ class ConfigurationError(PlatingError):
             msg += f"\nConfiguration file: {self.config_file}"
 
         msg += "\n\n💡 How to fix:"
-        msg += f"\n  • Check configuration in pyproject.toml or plating.toml"
+        msg += "\n  • Check configuration in pyproject.toml or plating.toml"
         msg += f"\n  • Verify '{self.config_key}' has a valid value"
         msg += "\n  • Example configuration:"
         msg += "\n    [tool.plating]"
@@ -322,7 +320,7 @@ class FileSystemError(PlatingError):
         if "permission" in self.reason.lower():
             msg += f"\n  • Check file permissions: ls -la {self.path}"
             msg += f"\n  • Try with elevated permissions if appropriate: sudo chown $USER {self.path}"
-            msg += "\n  • Ensure directory is writable: chmod u+w $(dirname {0})".format(self.path)
+            msg += f"\n  • Ensure directory is writable: chmod u+w $(dirname {self.path})"
         elif "not found" in self.reason.lower() or "no such file" in self.reason.lower():
             msg += f"\n  • Verify path exists: ls -la $(dirname {self.path})"
             msg += f"\n  • Check for typos in path: {self.path}"

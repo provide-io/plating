@@ -5,8 +5,8 @@
 """Modern CLI interface using the async Plating API with error handling."""
 
 import asyncio
-import sys
 from pathlib import Path
+import sys
 
 import click
 from provide.foundation import logger, perr, pout
