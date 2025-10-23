@@ -122,26 +122,17 @@ def get_provider_name(provided_name: str | None) -> str:
 
 
 def get_package_name(provided_name: str | None) -> str | None:
-    """Get package name from CLI arg or auto-detect from current directory.
+    """Get package name from CLI arg, or None for global discovery.
 
     Args:
         provided_name: Package name from CLI argument (may be None)
 
     Returns:
-        Package name to use, or None to discover from all packages
-
-    Raises:
-        click.UsageError: Never - returns None to enable global discovery
+        Package name to filter to (if provided), or None to search all packages
     """
-    if provided_name:
-        return provided_name
-
-    detected = auto_detect_package_name()
-    if detected:
-        pout(f"📦 Auto-detected package: {detected}")
-
-    # Return None to enable global component discovery from all packages
-    return None
+    # If provided explicitly, use it as a filter
+    # If not provided, return None to enable global discovery from ALL packages
+    return provided_name
 
 
 @click.group()
@@ -165,7 +156,7 @@ def main() -> None:
 @click.option(
     "--package-name",
     type=str,
-    help="Package to search for components (omit to search all packages).",
+    help="Filter to specific package (default: search all installed packages).",
 )
 def adorn_command(component_type: tuple[str, ...], provider_name: str | None, package_name: str | None) -> None:
     """Create missing documentation templates and examples."""
@@ -175,8 +166,10 @@ def adorn_command(component_type: tuple[str, ...], provider_name: str | None, pa
             actual_provider_name = get_provider_name(provider_name)
             actual_package_name = get_package_name(package_name)
 
-            if actual_package_name is None:
-                pout("🌍 Discovering components from ALL installed packages")
+            if actual_package_name:
+                pout(f"🔍 Filtering to package: {actual_package_name}")
+            else:
+                pout("🌍 Discovering from ALL installed packages")
 
             context = PlatingContext(provider_name=actual_provider_name)
             api = Plating(context, actual_package_name)
@@ -237,7 +230,7 @@ def adorn_command(component_type: tuple[str, ...], provider_name: str | None, pa
 @click.option(
     "--package-name",
     type=str,
-    help="Package to search for components (omit to search all packages).",
+    help="Filter to specific package (default: search all installed packages).",
 )
 @click.option(
     "--force",
@@ -290,8 +283,10 @@ def plate_command(
             actual_provider_name = get_provider_name(provider_name)
             actual_package_name = get_package_name(package_name)
 
-            if actual_package_name is None:
-                pout("🌍 Discovering components from ALL installed packages")
+            if actual_package_name:
+                pout(f"🔍 Filtering to package: {actual_package_name}")
+            else:
+                pout("🌍 Discovering from ALL installed packages")
 
             context = PlatingContext(provider_name=actual_provider_name)
             api = Plating(context, actual_package_name)
@@ -410,7 +405,7 @@ def plate_command(
 @click.option(
     "--package-name",
     type=str,
-    help="Package to search for components (omit to search all packages).",
+    help="Filter to specific package (default: search all installed packages).",
 )
 def validate_command(
     output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str | None
@@ -467,7 +462,7 @@ def validate_command(
 @click.option(
     "--package-name",
     type=str,
-    help="Package to search for components (omit to search all packages).",
+    help="Filter to specific package (default: search all installed packages).",
 )
 def info_command(provider_name: str | None, package_name: str | None) -> None:
     """Show registry information and statistics."""
@@ -505,7 +500,7 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
 @click.option(
     "--package-name",
     type=str,
-    help="Package to search for components (omit to search all packages).",
+    help="Filter to specific package (default: search all installed packages).",
 )
 def stats_command(package_name: str | None) -> None:
     """Show registry statistics."""
