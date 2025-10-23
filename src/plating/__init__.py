@@ -74,7 +74,7 @@ from plating._version import __version__
 # Old PlatingAPI removed - use Plating class directly
 
 # Template engine
-from plating.async_template_engine import AsyncTemplateEngine, template_engine
+from plating.templating.engine import AsyncTemplateEngine, template_engine
 
 # New modular components
 from plating.bundles import FunctionPlatingBundle, PlatingBundle as ModularPlatingBundle
@@ -87,7 +87,8 @@ from plating.decorators import (
     with_retry,
     with_timing,
 )
-from plating.discovery import PlatingDiscovery as ModularPlatingDiscovery, TemplateMetadataExtractor
+from plating.discovery import PlatingDiscovery as ModularPlatingDiscovery
+from plating.templating.metadata import TemplateMetadataExtractor
 from plating.generation import DocumentationAdorner, DocumentationPlater, TemplateRenderer
 
 # from plating.markdown_validator import MarkdownValidator, get_markdown_validator, reset_markdown_validator

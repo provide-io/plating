@@ -10,7 +10,7 @@ from provide.foundation.resilience import BackoffStrategy, RetryPolicy, SyncCirc
 
 from plating.core.doc_generator import generate_provider_index, generate_template, render_component_docs
 from plating.core.project_utils import find_project_root, get_output_directory
-from plating.core.schema_helpers import extract_provider_schema
+from plating.schema.helpers import extract_provider_schema
 from plating.decorators import with_metrics, with_retry, with_timing
 
 # from plating.markdown_validator import get_markdown_validator

@@ -4,8 +4,9 @@ from pathlib import Path
 from typing import Any
 
 from plating.bundles import FunctionPlatingBundle, PlatingBundle
-from plating.discovery import PlatingDiscovery, TemplateMetadataExtractor
+from plating.discovery import PlatingDiscovery
 from plating.generation.adorner import DocumentationAdorner
+from plating.templating.metadata import TemplateMetadataExtractor
 from plating.generation.renderer import TemplateRenderer
 
 #

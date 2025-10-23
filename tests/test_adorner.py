@@ -8,7 +8,7 @@ import pytest
 
 from plating.adorner import PlatingAdorner, adorn_components, adorn_missing_components
 from plating.adorner.finder import ComponentFinder
-from plating.adorner.templates import TemplateGenerator
+from plating.templating.generator import TemplateGenerator
 
 
 class TestPlatingAdorner:

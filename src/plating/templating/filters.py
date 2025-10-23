@@ -1,5 +1,5 @@
 #
-# plating/template_filters.py
+# plating/templating/filters.py
 #
 """Custom Jinja2 filters for documentation generation."""
 

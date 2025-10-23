@@ -5,9 +5,9 @@ from typing import Any
 
 from provide.foundation import logger
 
-from plating.async_template_engine import template_engine
 from plating.bundles import PlatingBundle
-from plating.core.schema_helpers import get_component_schema
+from plating.schema.helpers import get_component_schema
+from plating.templating.engine import template_engine
 from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingContext, SchemaInfo
 
 #
@@ -50,7 +50,7 @@ async def render_component_docs(
             signature = None
             arguments = None
             if component_type == ComponentType.FUNCTION:
-                from plating.discovery.templates import TemplateMetadataExtractor
+                from plating.templating.metadata import TemplateMetadataExtractor
 
                 extractor = TemplateMetadataExtractor()
                 metadata = extractor.extract_function_metadata(component.name, component_type.value)

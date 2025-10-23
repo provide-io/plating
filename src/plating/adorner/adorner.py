@@ -10,8 +10,8 @@ from provide.foundation import logger, perr, pout
 from provide.foundation.hub import Hub
 
 from plating.adorner.finder import ComponentFinder
-from plating.adorner.templates import TemplateGenerator
 from plating.discovery import PlatingDiscovery
+from plating.templating.generator import TemplateGenerator
 from plating.errors import AdorningError, handle_error
 
 

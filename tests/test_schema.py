@@ -7,7 +7,7 @@ from provide.testkit.mocking import Mock, patch
 
 import pytest
 
-from plating.schema import SchemaProcessor
+from plating.schema.processor import SchemaProcessor
 
 
 class TestSchemaProcessor:

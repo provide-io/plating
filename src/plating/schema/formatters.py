@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 #
-# plating/schema_utils/formatters.py
+# plating/schema/formatters.py
 #
 """Schema formatting and conversion utilities."""
 

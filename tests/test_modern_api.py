@@ -172,7 +172,7 @@ class TestModernAPI:
 
         # Mock the template generator and file operations
         with (
-            patch("plating.adorner.templates.TemplateGenerator") as mock_template_gen,
+            patch("plating.templating.generator.TemplateGenerator") as mock_template_gen,
             patch("pathlib.Path.mkdir") as mock_mkdir,
             patch("pathlib.Path.write_text") as mock_write_text,
         ):
