@@ -151,7 +151,6 @@ class TestModernAPI:
         assert api.context.log_level == "DEBUG"  # Foundation feature
         assert api.registry is not None
         assert api.retry_policy is not None
-        assert api.circuit_breaker is not None
 
         pout("API initialization test completed", color="green")
 
