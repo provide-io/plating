@@ -26,13 +26,13 @@ class Plating:
     """Modern async API for all plating operations with foundation integration."""
 
     def __init__(
-        self, context: PlatingContext, package_name: str
+        self, context: PlatingContext, package_name: str | None = None
     ) -> None:
         """Initialize plating API with foundation context.
 
         Args:
             context: PlatingContext with configuration (required)
-            package_name: Package to search for plating bundles (required)
+            package_name: Package to search for plating bundles, or None to search all packages
         """
         self.context = context
         self.package_name = package_name

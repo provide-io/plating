@@ -41,11 +41,11 @@ class PlatingRegistryEntry(RegistryEntry):
 class PlatingRegistry(Registry):
     """Component registry using foundation Registry pattern with ComponentSet support."""
 
-    def __init__(self, package_name: str) -> None:
+    def __init__(self, package_name: str | None = None) -> None:
         """Initialize registry with package discovery.
 
         Args:
-            package_name: Package to search for plating bundles
+            package_name: Package to search for plating bundles, or None to search all packages
         """
         super().__init__()
         self.package_name = package_name
@@ -66,7 +66,8 @@ class PlatingRegistry(Registry):
             # Auto-discover on initialization
             self._discover_and_register()
         except Exception as e:
-            logger.error(f"Failed to initialize discovery for {package_name}: {e}")
+            scope = package_name if package_name else "all packages"
+            logger.error(f"Failed to initialize discovery for {scope}: {e}")
             # Set discovery to None so we can still create the registry
             self._discovery = None
 
@@ -213,11 +214,11 @@ class PlatingRegistry(Registry):
 _global_registry = None
 
 
-def get_plating_registry(package_name: str) -> PlatingRegistry:
+def get_plating_registry(package_name: str | None = None) -> PlatingRegistry:
     """Get or create the global plating registry.
 
     Args:
-        package_name: Package to search for components
+        package_name: Package to search for components, or None to search all packages
 
     Returns:
         PlatingRegistry instance

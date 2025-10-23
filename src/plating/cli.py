@@ -160,23 +160,25 @@ def main() -> None:
 @click.option(
     "--provider-name",
     type=str,
-    help="Provider name for context.",
+    help="Provider name (auto-detected from package name if not provided).",
 )
 @click.option(
     "--package-name",
     type=str,
-    help="Package to search for components (auto-detected from pyproject.toml if not provided).",
+    help="Package to search for components (omit to search all packages).",
 )
 def adorn_command(component_type: tuple[str, ...], provider_name: str | None, package_name: str | None) -> None:
     """Create missing documentation templates and examples."""
 
     async def run() -> int:
         try:
-            if not provider_name:
-                raise click.UsageError("--provider-name is required")
-
+            actual_provider_name = get_provider_name(provider_name)
             actual_package_name = get_package_name(package_name)
-            context = PlatingContext(provider_name=provider_name)
+
+            if actual_package_name is None:
+                pout("🌍 Discovering components from ALL installed packages")
+
+            context = PlatingContext(provider_name=actual_provider_name)
             api = Plating(context, actual_package_name)
 
             # Convert string types to ComponentType enums
@@ -230,12 +232,12 @@ def adorn_command(component_type: tuple[str, ...], provider_name: str | None, pa
 @click.option(
     "--provider-name",
     type=str,
-    help="Provider name for context.",
+    help="Provider name (auto-detected from package name if not provided).",
 )
 @click.option(
     "--package-name",
     type=str,
-    help="Package to search for components (auto-detected from pyproject.toml if not provided).",
+    help="Package to search for components (omit to search all packages).",
 )
 @click.option(
     "--force",
@@ -285,11 +287,13 @@ def plate_command(
 
     async def run() -> int:
         try:
-            if not provider_name:
-                raise click.UsageError("--provider-name is required")
-
+            actual_provider_name = get_provider_name(provider_name)
             actual_package_name = get_package_name(package_name)
-            context = PlatingContext(provider_name=provider_name)
+
+            if actual_package_name is None:
+                pout("🌍 Discovering components from ALL installed packages")
+
+            context = PlatingContext(provider_name=actual_provider_name)
             api = Plating(context, actual_package_name)
 
             # Convert string types to ComponentType enums
@@ -401,12 +405,12 @@ def plate_command(
 @click.option(
     "--provider-name",
     type=str,
-    help="Provider name for context.",
+    help="Provider name (auto-detected from package name if not provided).",
 )
 @click.option(
     "--package-name",
     type=str,
-    help="Package to search for components (auto-detected from pyproject.toml if not provided).",
+    help="Package to search for components (omit to search all packages).",
 )
 def validate_command(
     output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str | None
@@ -414,11 +418,13 @@ def validate_command(
     """Validate generated documentation."""
 
     async def run() -> None:
-        if not provider_name:
-            raise click.UsageError("--provider-name is required")
-
+        actual_provider_name = get_provider_name(provider_name)
         actual_package_name = get_package_name(package_name)
-        context = PlatingContext(provider_name=provider_name)
+
+        if actual_package_name is None:
+            pout("🌍 Discovering components from ALL installed packages")
+
+        context = PlatingContext(provider_name=actual_provider_name)
         api = Plating(context, actual_package_name)
 
         # Convert string types to ComponentType enums
@@ -456,22 +462,24 @@ def validate_command(
 @click.option(
     "--provider-name",
     type=str,
-    help="Provider name for context.",
+    help="Provider name (auto-detected from package name if not provided).",
 )
 @click.option(
     "--package-name",
     type=str,
-    help="Package to search for components (auto-detected from pyproject.toml if not provided).",
+    help="Package to search for components (omit to search all packages).",
 )
 def info_command(provider_name: str | None, package_name: str | None) -> None:
     """Show registry information and statistics."""
 
     async def run() -> None:
-        if not provider_name:
-            raise click.UsageError("--provider-name is required")
-
+        actual_provider_name = get_provider_name(provider_name)
         actual_package_name = get_package_name(package_name)
-        context = PlatingContext(provider_name=provider_name)
+
+        if actual_package_name is None:
+            pout("🌍 Discovering components from ALL installed packages")
+
+        context = PlatingContext(provider_name=actual_provider_name)
         api = Plating(context, actual_package_name)
 
         stats = api.get_registry_stats()
@@ -497,13 +505,16 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
 @click.option(
     "--package-name",
     type=str,
-    help="Package to search for components (auto-detected from pyproject.toml if not provided).",
+    help="Package to search for components (omit to search all packages).",
 )
 def stats_command(package_name: str | None) -> None:
     """Show registry statistics."""
 
     async def run() -> None:
         actual_package_name = get_package_name(package_name)
+
+        if actual_package_name is None:
+            pout("🌍 Discovering components from ALL installed packages")
 
         # Stats command doesn't need provider context
         context = PlatingContext(provider_name="")

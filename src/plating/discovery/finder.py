@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.metadata
 import importlib.util
 from pathlib import Path
 
@@ -14,18 +15,57 @@ from plating.bundles import FunctionPlatingBundle, PlatingBundle
 class PlatingDiscovery:
     """Discovers .plating bundles from installed packages."""
 
-    def __init__(self, package_name: str) -> None:
+    def __init__(self, package_name: str | None = None) -> None:
+        """Initialize discovery.
+
+        Args:
+            package_name: Specific package to search, or None to search all packages
+        """
         self.package_name = package_name
 
     def discover_bundles(self, component_type: str | None = None) -> list[PlatingBundle]:
-        """Discover all .plating bundles from the installed package."""
+        """Discover all .plating bundles from installed package(s).
+
+        Args:
+            component_type: Optional filter for specific component type
+
+        Returns:
+            List of discovered PlatingBundle objects
+        """
+        if self.package_name:
+            # Single package discovery
+            return self._discover_from_package(self.package_name, component_type)
+        else:
+            # Global discovery from all installed packages
+            return self._discover_from_all_packages(component_type)
+
+    def _discover_from_all_packages(self, component_type: str | None = None) -> list[PlatingBundle]:
+        """Discover .plating bundles from all installed packages."""
+        all_bundles: list[PlatingBundle] = []
+
+        # Get all installed packages
+        try:
+            for dist in importlib.metadata.distributions():
+                package_name = dist.name
+                bundles = self._discover_from_package(package_name, component_type)
+                all_bundles.extend(bundles)
+        except Exception:
+            # Fall back to empty list if discovery fails
+            pass
+
+        return all_bundles
+
+    def _discover_from_package(
+        self, package_name: str, component_type: str | None = None
+    ) -> list[PlatingBundle]:
+        """Discover .plating bundles from a specific package."""
         bundles: list[PlatingBundle] = []
 
         try:
-            spec = importlib.util.find_spec(self.package_name)
+            spec = importlib.util.find_spec(package_name)
             if not spec or not spec.origin:
                 return bundles
-        except (ModuleNotFoundError, ValueError):
+        except (ModuleNotFoundError, ValueError, AttributeError):
             return bundles
 
         package_path = Path(spec.origin).parent
