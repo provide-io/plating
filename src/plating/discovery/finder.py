@@ -46,9 +46,21 @@ class PlatingDiscovery:
         # Get all installed packages
         try:
             for dist in importlib.metadata.distributions():
-                package_name = dist.name
-                bundles = self._discover_from_package(package_name, component_type)
-                all_bundles.extend(bundles)
+                # Try to get the top-level module names for this distribution
+                # Distribution name (e.g., 'pyvider-components') != import name (e.g., 'pyvider.components')
+                try:
+                    top_level = dist.read_text('top_level.txt')
+                    if top_level:
+                        # Process each top-level module
+                        for module_name in top_level.strip().split('\n'):
+                            if module_name:
+                                bundles = self._discover_from_package(module_name.strip(), component_type)
+                                all_bundles.extend(bundles)
+                except Exception:
+                    # Fallback: try the distribution name directly
+                    package_name = dist.name
+                    bundles = self._discover_from_package(package_name, component_type)
+                    all_bundles.extend(bundles)
         except Exception:
             # Fall back to empty list if discovery fails
             pass
