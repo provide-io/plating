@@ -40,21 +40,17 @@ class Plating:
 
         # Foundation patterns
         self.registry = get_plating_registry(package_name)
-        # self.validator = get_markdown_validator()
 
         # Schema processing
         self._provider_schema: dict[str, Any] | None = None
 
-        # Resilience patterns
+        # Resilience patterns for file I/O and network operations
         self.retry_policy = RetryPolicy(
             max_attempts=3,
             backoff=BackoffStrategy.EXPONENTIAL,
             base_delay=0.5,
             max_delay=10.0,
-            retryable_errors=(IOError, OSError, Exception),
-        )
-        self.circuit_breaker = SyncCircuitBreaker(
-            failure_threshold=3, recovery_timeout=30.0, expected_exception=(Exception,)
+            retryable_errors=(IOError, OSError, TimeoutError, ConnectionError),
         )
 
     @with_timing

@@ -13,82 +13,39 @@ from provide.foundation import CLIContext
 
 
 class ComponentType(Enum):
-    """Type-safe component types."""
+    """Type-safe component types for Terraform/OpenTofu providers.
 
+    Supported types:
+    - RESOURCE: Terraform resources
+    - DATA_SOURCE: Terraform data sources
+    - FUNCTION: Provider-defined functions
+    - PROVIDER: Provider configuration
+    """
+
+    # Terraform/OpenTofu component types
     RESOURCE = "resource"
     DATA_SOURCE = "data_source"
     FUNCTION = "function"
     PROVIDER = "provider"
 
-    # Multi-domain support
-    K8S_RESOURCE = "k8s_resource"
-    K8S_OPERATOR = "k8s_operator"
-    K8S_CRD = "k8s_crd"
-
-    CF_RESOURCE = "cf_resource"
-    CF_STACK = "cf_stack"
-    CF_MACRO = "cf_macro"
-
-    API_ENDPOINT = "api_endpoint"
-    API_SCHEMA = "api_schema"
-    API_CLIENT = "api_client"
-
-    GUIDE = "guide"
-    TUTORIAL = "tutorial"
-    REFERENCE = "reference"
-
     @property
     def display_name(self) -> str:
         """Get the formatted display name."""
         return {
-            # Terraform
             self.RESOURCE: "Resource",
             self.DATA_SOURCE: "Data Source",
             self.FUNCTION: "Function",
             self.PROVIDER: "Provider",
-            # Kubernetes
-            self.K8S_RESOURCE: "Kubernetes Resource",
-            self.K8S_OPERATOR: "Kubernetes Operator",
-            self.K8S_CRD: "Custom Resource Definition",
-            # CloudFormation
-            self.CF_RESOURCE: "CloudFormation Resource",
-            self.CF_STACK: "CloudFormation Stack",
-            self.CF_MACRO: "CloudFormation Macro",
-            # API
-            self.API_ENDPOINT: "API Endpoint",
-            self.API_SCHEMA: "API Schema",
-            self.API_CLIENT: "API Client",
-            # Documentation
-            self.GUIDE: "Guide",
-            self.TUTORIAL: "Tutorial",
-            self.REFERENCE: "Reference",
         }[self]
 
     @property
     def output_subdir(self) -> str:
-        """Get the output subdirectory name."""
+        """Get the output subdirectory name for Terraform Registry structure."""
         return {
-            # Terraform
             self.RESOURCE: "resources",
             self.DATA_SOURCE: "data-sources",
             self.FUNCTION: "functions",
             self.PROVIDER: "providers",
-            # Kubernetes
-            self.K8S_RESOURCE: "k8s_resources",
-            self.K8S_OPERATOR: "k8s_operators",
-            self.K8S_CRD: "k8s_crds",
-            # CloudFormation
-            self.CF_RESOURCE: "cf_resources",
-            self.CF_STACK: "cf_stacks",
-            self.CF_MACRO: "cf_macros",
-            # API
-            self.API_ENDPOINT: "api_endpoints",
-            self.API_SCHEMA: "api_schemas",
-            self.API_CLIENT: "api_clients",
-            # Documentation
-            self.GUIDE: "guides",
-            self.TUTORIAL: "tutorials",
-            self.REFERENCE: "reference",
         }[self]
 
 
@@ -479,5 +436,3 @@ class SetOperationResult:
 
 # Alias for backward compatibility and shorter imports
 PlatingContext = PlatingCLIContext
-
-# 🍲🏷️✨⚡
