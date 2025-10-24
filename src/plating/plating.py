@@ -10,7 +10,7 @@ from provide.foundation.resilience import BackoffStrategy, RetryPolicy, SyncCirc
 
 from plating.core.doc_generator import generate_provider_index, generate_template, render_component_docs
 from plating.core.project_utils import find_project_root, get_output_directory
-from plating.core.schema_helpers import extract_provider_schema
+from plating.schema.helpers import extract_provider_schema
 from plating.decorators import with_metrics, with_retry, with_timing
 
 # from plating.markdown_validator import get_markdown_validator
@@ -40,21 +40,17 @@ class Plating:
 
         # Foundation patterns
         self.registry = get_plating_registry(package_name)
-        # self.validator = get_markdown_validator()
 
         # Schema processing
         self._provider_schema: dict[str, Any] | None = None
 
-        # Resilience patterns
+        # Resilience patterns for file I/O and network operations
         self.retry_policy = RetryPolicy(
             max_attempts=3,
             backoff=BackoffStrategy.EXPONENTIAL,
             base_delay=0.5,
             max_delay=10.0,
-            retryable_errors=(IOError, OSError, Exception),
-        )
-        self.circuit_breaker = SyncCircuitBreaker(
-            failure_threshold=3, recovery_timeout=30.0, expected_exception=(Exception,)
+            retryable_errors=(IOError, OSError, TimeoutError, ConnectionError),
         )
 
     @with_timing
@@ -308,4 +304,3 @@ def plating(context: PlatingContext | None = None) -> Plating:
     return _global_api
 
 
-# 🍲🚀⚡✨

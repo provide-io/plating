@@ -1,5 +1,5 @@
 #
-# plating/adorner/templates.py
+# plating/templating/generator.py
 #
 """Template generation for adorned components."""
 
