@@ -240,7 +240,7 @@ class ConfigurationError(PlatingError):
         msg += f"\n  • Verify '{self.config_key}' has a valid value"
         msg += "\n  • Example configuration:"
         msg += "\n    [tool.plating]"
-        msg += f"\n    {self.config_key} = \"value\""
+        msg += f'\n    {self.config_key} = "value"'
         if self.config_file:
             msg += f"\n  • Review settings in: {self.config_file}"
         return msg
@@ -382,5 +382,3 @@ def handle_error(error: Exception, logger: Any = None, reraise: bool = False) ->
         raise
 
     return error_msg
-
-

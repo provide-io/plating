@@ -70,5 +70,3 @@ class FunctionInfo:
     import_docs: str = ""
     colocated_notes: str = ""
     migration: str = ""
-
-

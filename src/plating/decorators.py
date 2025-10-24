@@ -252,5 +252,3 @@ class PlatingMetrics:
 
 # Global metrics instance
 plating_metrics = PlatingMetrics()
-
-

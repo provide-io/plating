@@ -232,7 +232,9 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     function_components = registry.get_components_with_templates(ComponentType.FUNCTION)
     if function_components:
         for component in sorted(function_components, key=lambda c: c.name):
-            index_content += f"- [`{component.name}`](./{ComponentType.FUNCTION.output_subdir}/{component.name}.md)\n"
+            index_content += (
+                f"- [`{component.name}`](./{ComponentType.FUNCTION.output_subdir}/{component.name}.md)\n"
+            )
     else:
         index_content += "No functions available.\n"
 

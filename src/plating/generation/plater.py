@@ -71,10 +71,7 @@ class DocumentationPlater:
         context_dict = self.adorner.adorn_function_template(template_content, bundle.name, metadata)
 
         # Create PlatingContext for async rendering
-        context = PlatingContext(
-            provider_name=context_dict.get("provider_name", "unknown"),
-            **context_dict
-        )
+        context = PlatingContext(provider_name=context_dict.get("provider_name", "unknown"), **context_dict)
         rendered_content = await self.renderer.render(bundle, context)
 
         output_file = output_dir / f"{bundle.name}.md"
@@ -100,10 +97,7 @@ class DocumentationPlater:
         context_dict = self.adorner.adorn_resource_template(template_content, bundle.name, metadata)
 
         # Create PlatingContext for async rendering
-        context = PlatingContext(
-            provider_name=context_dict.get("provider_name", "unknown"),
-            **context_dict
-        )
+        context = PlatingContext(provider_name=context_dict.get("provider_name", "unknown"), **context_dict)
         rendered_content = await self.renderer.render(bundle, context)
 
         output_file = output_dir / f"{bundle.name}.md"

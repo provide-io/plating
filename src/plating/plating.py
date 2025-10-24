@@ -25,9 +25,7 @@ from plating.types import AdornResult, ComponentType, PlateResult, PlatingContex
 class Plating:
     """Modern async API for all plating operations with foundation integration."""
 
-    def __init__(
-        self, context: PlatingContext, package_name: str | None = None
-    ) -> None:
+    def __init__(self, context: PlatingContext, package_name: str | None = None) -> None:
         """Initialize plating API with foundation context.
 
         Args:
@@ -360,5 +358,3 @@ def plating(context: PlatingContext | None = None) -> Plating:
     if _global_api is None:
         _global_api = Plating(context)
     return _global_api
-
-

@@ -35,9 +35,7 @@ class ExampleGroup:
 class GroupedExampleCompiler:
     """Compiles grouped (cross-component) examples from plating bundles."""
 
-    def __init__(
-        self, provider_name: str, provider_version: str = "0.0.5"
-    ) -> None:
+    def __init__(self, provider_name: str, provider_version: str = "0.0.5") -> None:
         """Initialize the grouped example compiler.
 
         Args:
