@@ -34,3 +34,6 @@ helpers/bin/
 *.pspf
 *.psp
 target/
+
+# Synced theme files (source: provide-foundry/shared-theme/)
+docs/.shared-theme/
