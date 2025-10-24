@@ -41,11 +41,11 @@ class PlatingRegistryEntry(RegistryEntry):
 class PlatingRegistry(Registry):
     """Component registry using foundation Registry pattern with ComponentSet support."""
 
-    def __init__(self, package_name: str) -> None:
+    def __init__(self, package_name: str | None = None) -> None:
         """Initialize registry with package discovery.
 
         Args:
-            package_name: Package to search for plating bundles
+            package_name: Package to search for plating bundles, or None to search all packages
         """
         super().__init__()
         self.package_name = package_name
@@ -66,7 +66,8 @@ class PlatingRegistry(Registry):
             # Auto-discover on initialization
             self._discover_and_register()
         except Exception as e:
-            logger.error(f"Failed to initialize discovery for {package_name}: {e}")
+            scope = package_name if package_name else "all packages"
+            logger.error(f"Failed to initialize discovery for {scope}: {e}")
             # Set discovery to None so we can still create the registry
             self._discovery = None
 
@@ -79,9 +80,21 @@ class PlatingRegistry(Registry):
         try:
             bundles = self._retry_executor.execute_sync(self._discovery.discover_bundles)
 
+            # Track seen components to avoid duplicate registration during global discovery
+            seen_components: set[tuple[str, str]] = set()  # (name, dimension)
+
             logger.info(f"Discovered {len(bundles)} plating bundles")
 
             for bundle in bundles:
+                component_key = (bundle.name, bundle.component_type)
+
+                # Skip if we've already seen this component (deduplication for global discovery)
+                if component_key in seen_components:
+                    logger.debug(f"Skipping duplicate {bundle.component_type}/{bundle.name}")
+                    continue
+
+                seen_components.add(component_key)
+
                 entry = PlatingRegistryEntry(bundle, dimension=bundle.component_type)
                 self.register(
                     name=bundle.name,
@@ -213,11 +226,11 @@ class PlatingRegistry(Registry):
 _global_registry = None
 
 
-def get_plating_registry(package_name: str) -> PlatingRegistry:
+def get_plating_registry(package_name: str | None = None) -> PlatingRegistry:
     """Get or create the global plating registry.
 
     Args:
-        package_name: Package to search for components
+        package_name: Package to search for components, or None to search all packages
 
     Returns:
         PlatingRegistry instance

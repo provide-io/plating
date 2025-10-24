@@ -2,16 +2,137 @@
 #
 # plating/cli.py
 #
-"""Modern CLI interface using the async Plating API."""
+"""Modern CLI interface using the async Plating API with error handling."""
 
 import asyncio
 from pathlib import Path
+import sys
 
 import click
-from provide.foundation import perr, pout
+from provide.foundation import logger, perr, pout
 
+from plating.errors import PlatingError
 from plating.plating import Plating
 from plating.types import ComponentType, PlatingContext
+
+
+def auto_detect_package_name() -> str | None:
+    """Auto-detect package name from pyproject.toml in current directory.
+
+    Returns:
+        Package name if found, None otherwise
+    """
+    try:
+        pyproject_path = Path.cwd() / "pyproject.toml"
+        if not pyproject_path.exists():
+            return None
+
+        # Try tomllib (Python 3.11+) first, fall back to tomli
+        try:
+            import tomllib
+        except ImportError:
+            try:
+                import tomli as tomllib  # type: ignore[import-not-found,no-redef]
+            except ImportError:
+                logger.debug("Neither tomllib nor tomli available for parsing pyproject.toml")
+                return None
+
+        with open(pyproject_path, "rb") as f:
+            pyproject = tomllib.load(f)
+
+        # Try to get package name from [project] section
+        if "project" in pyproject and "name" in pyproject["project"]:
+            return pyproject["project"]["name"]
+
+        return None
+    except Exception as e:
+        logger.debug(f"Failed to auto-detect package name: {e}")
+        return None
+
+
+def auto_detect_provider_name() -> str | None:
+    """Auto-detect provider name from package name or pyproject.toml.
+
+    Returns:
+        Provider name if found, None otherwise
+    """
+    try:
+        # First, check if there's explicit config in pyproject.toml
+        pyproject_path = Path.cwd() / "pyproject.toml"
+        if pyproject_path.exists():
+            try:
+                import tomllib
+            except ImportError:
+                try:
+                    import tomli as tomllib  # type: ignore[import-not-found,no-redef]
+                except ImportError:
+                    pass
+                else:
+                    with open(pyproject_path, "rb") as f:
+                        pyproject = tomllib.load(f)
+                    if "tool" in pyproject and "plating" in pyproject["tool"]:
+                        if "provider_name" in pyproject["tool"]["plating"]:
+                            return pyproject["tool"]["plating"]["provider_name"]
+            else:
+                with open(pyproject_path, "rb") as f:
+                    pyproject = tomllib.load(f)
+                if "tool" in pyproject and "plating" in pyproject["tool"]:
+                    if "provider_name" in pyproject["tool"]["plating"]:
+                        return pyproject["tool"]["plating"]["provider_name"]
+
+        # Try to extract from package name pattern
+        package_name = auto_detect_package_name()
+        if package_name:
+            # Handle terraform-provider-{name} pattern
+            if package_name.startswith("terraform-provider-"):
+                return package_name.replace("terraform-provider-", "")
+            # Handle {name}-provider pattern
+            if package_name.endswith("-provider"):
+                return package_name.replace("-provider", "")
+
+        return None
+    except Exception as e:
+        logger.debug(f"Failed to auto-detect provider name: {e}")
+        return None
+
+
+def get_provider_name(provided_name: str | None) -> str:
+    """Get provider name from CLI arg or auto-detect.
+
+    Args:
+        provided_name: Provider name from CLI argument (may be None)
+
+    Returns:
+        Provider name to use
+
+    Raises:
+        click.UsageError: If no provider name provided and auto-detection fails
+    """
+    if provided_name:
+        return provided_name
+
+    detected = auto_detect_provider_name()
+    if detected:
+        pout(f"🏷️  Auto-detected provider: {detected}")
+        return detected
+
+    raise click.UsageError(
+        "Could not auto-detect provider name. Please provide --provider-name or add [tool.plating] provider_name to pyproject.toml"
+    )
+
+
+def get_package_name(provided_name: str | None) -> str | None:
+    """Get package name from CLI arg, or None for global discovery.
+
+    Args:
+        provided_name: Package name from CLI argument (may be None)
+
+    Returns:
+        Package name to filter to (if provided), or None to search all packages
+    """
+    # If provided explicitly, use it as a filter
+    # If not provided, return None to enable global discovery from ALL packages
+    return provided_name
 
 
 @click.group()
@@ -30,38 +151,62 @@ def main() -> None:
 @click.option(
     "--provider-name",
     type=str,
-    help="Provider name for context.",
+    help="Provider name (auto-detected from package name if not provided).",
 )
 @click.option(
     "--package-name",
     type=str,
-    required=True,
-    help="Package to search for components.",
+    help="Filter to specific package (default: search all installed packages).",
 )
-def adorn_command(component_type: tuple[str, ...], provider_name: str | None, package_name: str) -> None:
+def adorn_command(component_type: tuple[str, ...], provider_name: str | None, package_name: str | None) -> None:
     """Create missing documentation templates and examples."""
 
-    async def run() -> None:
-        if not provider_name:
-            raise click.UsageError("--provider-name is required")
-        context = PlatingContext(provider_name=provider_name)
-        api = Plating(context, package_name)
+    async def run() -> int:
+        try:
+            actual_provider_name = get_provider_name(provider_name)
+            actual_package_name = get_package_name(package_name)
 
-        # Convert string types to ComponentType enums
-        types = [ComponentType(t) for t in component_type] if component_type else list(ComponentType)
+            if actual_package_name:
+                pout(f"🔍 Filtering to package: {actual_package_name}")
+            else:
+                pout("🌍 Discovering from ALL installed packages")
 
-        pout(f"🎨 Adorning {len(types)} component types...")
-        result = await api.adorn(component_types=types)
+            context = PlatingContext(provider_name=actual_provider_name)
+            api = Plating(context, actual_package_name)
 
-        if result.success:
-            pout(f"✅ Generated {result.templates_generated} templates")
-            pout(f"📦 Processed {result.components_processed} components")
-        else:
-            perr("❌ Adorn operation failed:")
-            for error in result.errors:
-                perr(f"  • {error}")
+            # Convert string types to ComponentType enums
+            types = [ComponentType(t) for t in component_type] if component_type else list(ComponentType)
 
-    asyncio.run(run())
+            pout(f"🎨 Adorning {len(types)} component types...")
+            result = await api.adorn(component_types=types)
+
+            if result.success:
+                pout(f"✅ Generated {result.templates_generated} templates")
+                pout(f"📦 Processed {result.components_processed} components")
+                return 0
+            else:
+                perr("❌ Adorn operation failed:")
+                for error in result.errors:
+                    perr(f"  • {error}")
+                return 1
+
+        except PlatingError as e:
+            # Structured logging for debugging
+            logger.error("Adorn command failed", error_details=e.to_dict())
+            # User-friendly error message
+            perr(f"\n❌ Error: {e.to_user_message()}\n")
+            return 1
+
+        except Exception as e:
+            # Unexpected errors
+            logger.exception("Unexpected error in adorn command")
+            perr(f"\n❌ Unexpected error: {type(e).__name__}: {e}\n")
+            perr("This is likely a bug. Please report it with the full error message.")
+            return 1
+
+    exit_code = asyncio.run(run())
+    if exit_code != 0:
+        sys.exit(exit_code)
 
 
 @main.command("plate")
@@ -80,13 +225,12 @@ def adorn_command(component_type: tuple[str, ...], provider_name: str | None, pa
 @click.option(
     "--provider-name",
     type=str,
-    help="Provider name for context.",
+    help="Provider name (auto-detected from package name if not provided).",
 )
 @click.option(
     "--package-name",
     type=str,
-    required=True,
-    help="Package to search for components.",
+    help="Filter to specific package (default: search all installed packages).",
 )
 @click.option(
     "--force",
@@ -124,7 +268,7 @@ def plate_command(
     output_dir: Path,
     component_type: tuple[str, ...],
     provider_name: str | None,
-    package_name: str,
+    package_name: str | None,
     force: bool,
     project_root: Path | None,
     validate: bool,
@@ -134,83 +278,110 @@ def plate_command(
 ) -> None:
     """Generate documentation from plating bundles."""
 
-    async def run() -> None:
-        if not provider_name:
-            raise click.UsageError("--provider-name is required")
-        context = PlatingContext(provider_name=provider_name)
-        api = Plating(context, package_name)
+    async def run() -> int:
+        try:
+            actual_provider_name = get_provider_name(provider_name)
+            actual_package_name = get_package_name(package_name)
 
-        # Convert string types to ComponentType enums
-        types = [ComponentType(t) for t in component_type] if component_type else None
+            if actual_package_name:
+                pout(f"🔍 Filtering to package: {actual_package_name}")
+            else:
+                pout("🌍 Discovering from ALL installed packages")
 
-        # Handle output_dir default behavior - if not specified, let the API auto-detect
-        final_output_dir = output_dir if output_dir != Path("docs") else None
+            context = PlatingContext(provider_name=actual_provider_name)
+            api = Plating(context, actual_package_name)
 
-        pout("🍽️ Plating documentation...")
-        result = await api.plate(final_output_dir, types, force, validate, project_root)
+            # Convert string types to ComponentType enums
+            types = [ComponentType(t) for t in component_type] if component_type else None
 
-        if result.success:
-            pout(f"✅ Generated {result.files_generated} files in {result.duration_seconds:.2f}s")
-            pout(f"📦 Processed {result.bundles_processed} bundles")
-            if result.output_files:
-                pout("📄 Generated files:")
-                for file in result.output_files[:10]:  # Show first 10
-                    pout(f"  • {file}")
-                if len(result.output_files) > 10:
-                    pout(f"  ... and {len(result.output_files) - 10} more")
+            # Handle output_dir default behavior - if not specified, let the API auto-detect
+            final_output_dir = output_dir if output_dir != Path("docs") else None
 
-            # Generate executable examples if requested
-            if generate_examples:
-                from plating.example_compiler import ExampleCompiler
+            pout("🍽️ Plating documentation...")
+            result = await api.plate(final_output_dir, types, force, validate, project_root)
 
-                pout("📁 Generating executable examples...")
+            if result.success:
+                pout(f"✅ Generated {result.files_generated} files in {result.duration_seconds:.2f}s")
+                pout(f"📦 Processed {result.bundles_processed} bundles")
+                if result.output_files:
+                    pout("📄 Generated files:")
+                    for file in result.output_files[:10]:  # Show first 10
+                        pout(f"  • {file}")
+                    if len(result.output_files) > 10:
+                        pout(f"  ... and {len(result.output_files) - 10} more")
 
-                # Get all bundles with examples
-                bundles_with_examples = []
-                for component_type_enum in types or list(ComponentType):
-                    bundles = api.registry.get_components_with_templates(component_type_enum)
-                    bundles_with_examples.extend([b for b in bundles if b.has_examples()])
+                # Generate executable examples if requested
+                if generate_examples:
+                    from plating.example_compiler import ExampleCompiler
 
-                if bundles_with_examples:
-                    compiler = ExampleCompiler(
-                        provider_name=provider_name or "pyvider",
-                        provider_version="0.0.5",
-                    )
+                    pout("📁 Generating executable examples...")
 
-                    compilation_result = compiler.compile_examples(
-                        bundles_with_examples, examples_dir, types, grouped_examples_dir
-                    )
+                    # Get all bundles with examples
+                    bundles_with_examples = []
+                    for component_type_enum in types or list(ComponentType):
+                        bundles = api.registry.get_components_with_templates(component_type_enum)
+                        bundles_with_examples.extend([b for b in bundles if b.has_examples()])
 
-                    total_examples = (
-                        compilation_result.examples_generated + compilation_result.grouped_examples_generated
-                    )
-                    if total_examples > 0:
-                        pout(
-                            f"✅ Generated {compilation_result.examples_generated} single-component "
-                            f"and {compilation_result.grouped_examples_generated} grouped examples "
-                            f"(total: {total_examples})"
+                    if bundles_with_examples:
+                        compiler = ExampleCompiler(
+                            provider_name=provider_name or "pyvider",
+                            provider_version="0.0.5",
                         )
-                        pout("📂 Example files:")
-                        for example_file in compilation_result.output_files[:5]:  # Show first 5
-                            pout(f"  • {example_file}")
-                        if len(compilation_result.output_files) > 5:
-                            pout(f"  ... and {len(compilation_result.output_files) - 5} more")
+
+                        compilation_result = compiler.compile_examples(
+                            bundles_with_examples, examples_dir, types, grouped_examples_dir
+                        )
+
+                        total_examples = (
+                            compilation_result.examples_generated
+                            + compilation_result.grouped_examples_generated
+                        )
+                        if total_examples > 0:
+                            pout(
+                                f"✅ Generated {compilation_result.examples_generated} single-component "
+                                f"and {compilation_result.grouped_examples_generated} grouped examples "
+                                f"(total: {total_examples})"
+                            )
+                            pout("📂 Example files:")
+                            for example_file in compilation_result.output_files[:5]:  # Show first 5
+                                pout(f"  • {example_file}")
+                            if len(compilation_result.output_files) > 5:
+                                pout(f"  ... and {len(compilation_result.output_files) - 5} more")
+                        else:
+                            pout("ℹ️  No examples found to compile")
+
+                        if compilation_result.errors:
+                            perr("⚠️ Some example compilation errors:")
+                            for error in compilation_result.errors:
+                                perr(f"  • {error}")
                     else:
-                        pout("ℹ️  No examples found to compile")
+                        pout("ℹ️  No components with examples found")
 
-                    if compilation_result.errors:
-                        perr("⚠️ Some example compilation errors:")
-                        for error in compilation_result.errors:
-                            perr(f"  • {error}")
-                else:
-                    pout("ℹ️  No components with examples found")
+                return 0
 
-        else:
-            perr("❌ Plate operation failed:")
-            for error in result.errors:
-                perr(f"  • {error}")
+            else:
+                perr("❌ Plate operation failed:")
+                for error in result.errors:
+                    perr(f"  • {error}")
+                return 1
 
-    asyncio.run(run())
+        except PlatingError as e:
+            # Structured logging for debugging
+            logger.error("Plate command failed", error_details=e.to_dict())
+            # User-friendly error message
+            perr(f"\n❌ Error: {e.to_user_message()}\n")
+            return 1
+
+        except Exception as e:
+            # Unexpected errors
+            logger.exception("Unexpected error in plate command")
+            perr(f"\n❌ Unexpected error: {type(e).__name__}: {e}\n")
+            perr("This is likely a bug. Please report it with the full error message.")
+            return 1
+
+    exit_code = asyncio.run(run())
+    if exit_code != 0:
+        sys.exit(exit_code)
 
 
 @main.command("validate")
@@ -229,24 +400,27 @@ def plate_command(
 @click.option(
     "--provider-name",
     type=str,
-    help="Provider name for context.",
+    help="Provider name (auto-detected from package name if not provided).",
 )
 @click.option(
     "--package-name",
     type=str,
-    required=True,
-    help="Package to search for components.",
+    help="Filter to specific package (default: search all installed packages).",
 )
 def validate_command(
-    output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str
+    output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str | None
 ) -> None:
     """Validate generated documentation."""
 
     async def run() -> None:
-        if not provider_name:
-            raise click.UsageError("--provider-name is required")
-        context = PlatingContext(provider_name=provider_name)
-        api = Plating(context, package_name)
+        actual_provider_name = get_provider_name(provider_name)
+        actual_package_name = get_package_name(package_name)
+
+        if actual_package_name is None:
+            pout("🌍 Discovering components from ALL installed packages")
+
+        context = PlatingContext(provider_name=actual_provider_name)
+        api = Plating(context, actual_package_name)
 
         # Convert string types to ComponentType enums
         types = [ComponentType(t) for t in component_type] if component_type else None
@@ -283,22 +457,25 @@ def validate_command(
 @click.option(
     "--provider-name",
     type=str,
-    help="Provider name for context.",
+    help="Provider name (auto-detected from package name if not provided).",
 )
 @click.option(
     "--package-name",
     type=str,
-    required=True,
-    help="Package to search for components.",
+    help="Filter to specific package (default: search all installed packages).",
 )
-def info_command(provider_name: str | None, package_name: str) -> None:
+def info_command(provider_name: str | None, package_name: str | None) -> None:
     """Show registry information and statistics."""
 
     async def run() -> None:
-        if not provider_name:
-            raise click.UsageError("--provider-name is required")
-        context = PlatingContext(provider_name=provider_name)
-        api = Plating(context, package_name)
+        actual_provider_name = get_provider_name(provider_name)
+        actual_package_name = get_package_name(package_name)
+
+        if actual_package_name is None:
+            pout("🌍 Discovering components from ALL installed packages")
+
+        context = PlatingContext(provider_name=actual_provider_name)
+        api = Plating(context, actual_package_name)
 
         stats = api.get_registry_stats()
 
@@ -312,7 +489,8 @@ def info_command(provider_name: str | None, package_name: str) -> None:
             with_examples = stats.get(f"{comp_type}_with_examples", 0)
 
             pout(
-                f"  • {comp_type}: {count} total, {with_templates} with templates, {with_examples} with examples"
+                f"  • {comp_type}: {count} total, {with_templates} with templates, "
+                f"{with_examples} with examples"
             )
 
     asyncio.run(run())
@@ -322,16 +500,20 @@ def info_command(provider_name: str | None, package_name: str) -> None:
 @click.option(
     "--package-name",
     type=str,
-    required=True,
-    help="Package to search for components.",
+    help="Filter to specific package (default: search all installed packages).",
 )
-def stats_command(package_name: str) -> None:
+def stats_command(package_name: str | None) -> None:
     """Show registry statistics."""
 
     async def run() -> None:
+        actual_package_name = get_package_name(package_name)
+
+        if actual_package_name is None:
+            pout("🌍 Discovering components from ALL installed packages")
+
         # Stats command doesn't need provider context
         context = PlatingContext(provider_name="")
-        api = Plating(context, package_name)
+        api = Plating(context, actual_package_name)
 
         stats = api.get_registry_stats()
 
@@ -346,7 +528,8 @@ def stats_command(package_name: str) -> None:
                 with_templates = stats.get(f"{comp_type}_with_templates", 0)
                 with_examples = stats.get(f"{comp_type}_with_examples", 0)
                 pout(
-                    f"   {comp_type}: {count} total, {with_templates} with templates, {with_examples} with examples"
+                    f"   {comp_type}: {count} total, {with_templates} with templates, "
+                    f"{with_examples} with examples"
                 )
 
     asyncio.run(run())

@@ -11,8 +11,8 @@ from provide.foundation.hub import Hub
 
 from plating.adorner.finder import ComponentFinder
 from plating.discovery import PlatingDiscovery
-from plating.templating.generator import TemplateGenerator
 from plating.errors import AdorningError, handle_error
+from plating.templating.generator import TemplateGenerator
 
 
 class PlatingAdorner:
@@ -37,31 +37,48 @@ class PlatingAdorner:
 
         Returns a dictionary with counts of adorned components by type.
         """
+        pout(f"🔍 Discovering components in package: {self.package_name}")
+
         # Discover all components via foundation hub
         try:
             self.hub.discover_components(self.package_name)
         except Exception as e:
             logger.error(f"Component discovery failed: {e}")
+            perr(f"❌ Component discovery failed: {e}")
             return {"resource": 0, "data_source": 0, "function": 0}
 
         # Find existing plating bundles
+        pout("📦 Finding existing .plating bundles...")
         existing_bundles = await asyncio.to_thread(self.plating_discovery.discover_bundles)
         existing_names = {bundle.name for bundle in existing_bundles}
+        pout(f"   Found {len(existing_bundles)} existing bundles")
 
         # Track adorning results
         adorned = {"resource": 0, "data_source": 0, "function": 0}
 
         # Filter by component types if specified
         target_types = component_types or ["resource", "data_source", "function"]
+        pout(f"🎨 Adorning component types: {', '.join(target_types)}")
 
         # Adorn missing components
         for component_type in target_types:
             components = self._get_components_by_dimension(component_type)
-            for name, component_class in components.items():
-                if name not in existing_names:
-                    success = await self._adorn_component(name, component_type, component_class)
+            missing = [name for name in components if name not in existing_names]
+
+            if missing:
+                pout(f"✨ Processing {len(missing)} missing {component_type}(s)...")
+                for name in missing:
+                    success = await self._adorn_component(name, component_type, components[name])
                     if success:
                         adorned[component_type] += 1
+            else:
+                pout(f"ℹ️  All {component_type}s already have .plating bundles")
+
+        total_adorned = sum(adorned.values())
+        if total_adorned > 0:
+            pout(f"\n✅ Successfully adorned {total_adorned} component(s)")
+        else:
+            pout("\nℹ️  No components needed adorning")
 
         return adorned
 
@@ -86,7 +103,7 @@ class PlatingAdorner:
             source_file = await self.component_finder.find_source(component_class)
             if not source_file:
                 logger.warning(f"Could not find source file for {name}")
-                pout(f"⚠️ Could not find source file for {name}")
+                pout(f"   ⚠️  Skipped {name} (source file not found)")
                 return False
 
             # Create .plating directory structure
@@ -114,15 +131,15 @@ class PlatingAdorner:
             await asyncio.to_thread(example_file.write_text, example_content)
 
             logger.info(f"Successfully adorned {component_type}: {name}")
-            pout(f"✅ Adorned {component_type}: {name}")
+            pout(f"   ✅ {name}")
             return True
 
         except AdorningError:
-            raise  # Re-raise our custom errors
+            raise
         except Exception as e:
             error = AdorningError(name, component_type, str(e))
             handle_error(error, logger)
-            perr(f"❌ Failed to adorn {name}: {e}")
+            perr(f"   ❌ {name}: {e}")
             return False
 
 
