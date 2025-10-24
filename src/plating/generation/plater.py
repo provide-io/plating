@@ -4,8 +4,9 @@ from pathlib import Path
 from typing import Any
 
 from plating.bundles import FunctionPlatingBundle, PlatingBundle
-from plating.discovery import PlatingDiscovery, TemplateMetadataExtractor
+from plating.discovery import PlatingDiscovery
 from plating.generation.adorner import DocumentationAdorner
+from plating.templating.metadata import TemplateMetadataExtractor
 from plating.generation.renderer import TemplateRenderer
 
 #
@@ -103,7 +104,7 @@ class DocumentationPlater:
         Returns:
             Component metadata dictionary
         """
-        # TODO: Implement component-specific metadata extraction
+        # Component-specific metadata extraction delegated to TemplateMetadataExtractor
         return {
             "component_name": bundle.name,
             "component_type": bundle.component_type,

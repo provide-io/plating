@@ -9,7 +9,7 @@ from plating.bundles import PlatingBundle
 from plating.types import ComponentType, SchemaInfo
 
 #
-# plating/core/schema_helpers.py
+# plating/schema/helpers.py
 #
 """Schema extraction and processing helpers."""
 

@@ -1,5 +1,5 @@
 #
-# plating/templates.py
+# plating/templating/processor.py
 #
 """Template processing and rendering for documentation generation."""
 

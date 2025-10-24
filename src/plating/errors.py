@@ -143,4 +143,3 @@ def handle_error(error: Exception, logger: Any = None, reraise: bool = False) ->
     return error_msg
 
 
-# 🍲❌🪄

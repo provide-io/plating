@@ -1,5 +1,5 @@
 #
-# plating/schema.py
+# plating/schema/processor.py
 #
 """Schema extraction and processing for documentation generation."""
 
@@ -18,7 +18,7 @@ from provide.foundation.utils import timed_block
 from plating.config import get_config
 from plating.errors import SchemaError
 from plating.models import FunctionInfo, ProviderInfo, ResourceInfo
-from plating.schema_utils.formatters import (
+from plating.schema.formatters import (
     format_type_string,
     parse_function_arguments,
     parse_function_signature,

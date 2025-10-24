@@ -72,4 +72,3 @@ class FunctionInfo:
     migration: str = ""
 
 
-# 🍲🥄📊🪄

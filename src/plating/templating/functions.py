@@ -1,5 +1,5 @@
 #
-# plating/template_functions.py
+# plating/templating/functions.py
 #
 """Custom Jinja2 template functions for .plating rendering."""
 

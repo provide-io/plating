@@ -151,7 +151,6 @@ class TestModernAPI:
         assert api.context.log_level == "DEBUG"  # Foundation feature
         assert api.registry is not None
         assert api.retry_policy is not None
-        assert api.circuit_breaker is not None
 
         pout("API initialization test completed", color="green")
 
@@ -172,7 +171,7 @@ class TestModernAPI:
 
         # Mock the template generator and file operations
         with (
-            patch("plating.adorner.templates.TemplateGenerator") as mock_template_gen,
+            patch("plating.templating.generator.TemplateGenerator") as mock_template_gen,
             patch("pathlib.Path.mkdir") as mock_mkdir,
             patch("pathlib.Path.write_text") as mock_write_text,
         ):

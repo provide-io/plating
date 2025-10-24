@@ -11,9 +11,9 @@ from plating.config.defaults import (
 )
 
 #
-# plating/discovery/templates.py
+# plating/templating/metadata.py
 #
-"""Template discovery and metadata extraction utilities."""
+"""Template metadata extraction utilities."""
 
 
 class TemplateMetadataExtractor:

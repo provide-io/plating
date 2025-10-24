@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 #
-# plating/async_template_engine.py
+# plating/templating/engine.py
 #
 """Modern async template engine with foundation integration."""
 
