@@ -18,15 +18,15 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.20">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
     
     
       
-        <title>Guide: Authoring Plating Bundles - Plating Documentation</title>
+        <title>Macro Rendering Error - Plating Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.e53b48f4.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -49,6 +49,10 @@
     
     
       <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../provide-foundry/shared-theme/stylesheets/provide-theme.css">
+    
+      <link rel="stylesheet" href="../../provide-foundry/shared-theme/stylesheets/termynal.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -76,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#guide-authoring-plating-bundles" class="md-skip">
+        <a href="#macro-rendering-error" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Guide: Authoring Plating Bundles
+              Macro Rendering Error
             
           </span>
         </div>
@@ -197,7 +201,7 @@
         <a href="https://github.com/provide-io/plating" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     provide-io/plating
@@ -292,7 +296,7 @@
       <a href="https://github.com/provide-io/plating" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     provide-io/plating
@@ -366,68 +370,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#step-1-scaffold-the-plating-bundle" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 1: Scaffold the Plating Bundle
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-2-populate-the-documentation-template" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 2: Populate the Documentation Template
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-write-meaningful-examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 3: Write Meaningful Examples
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-4-add-co-located-conformance-tests" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 4: Add Co-located Conformance Tests
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-5-run-component-specific-tests" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 5: Run Component-Specific Tests
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-6-render-and-verify-documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step 6: Render and Verify Documentation
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -445,50 +387,24 @@
   
 
 
-<h1 id="guide-authoring-plating-bundles">Guide: Authoring Plating Bundles<a class="headerlink" href="#guide-authoring-plating-bundles" title="Permanent link">&para;</a></h1>
-<p>This guide provides a practical walkthrough for developers on how to create and maintain documentation, examples, and tests for their components using the <code>.plating</code> system.</p>
-<h2 id="step-1-scaffold-the-plating-bundle">Step 1: Scaffold the Plating Bundle<a class="headerlink" href="#step-1-scaffold-the-plating-bundle" title="Permanent link">&para;</a></h2>
-<p>When you create a new component (e.g., a resource named <code>my_resource.py</code>), the first step is to scaffold its asset bundle.</p>
-<p>Run the <code>scaffold</code> command:
-<div class="highlight"><pre><span></span><code>soup<span class="w"> </span>plating<span class="w"> </span>scaffold
+<h1 id="macro-rendering-error"><em>Macro Rendering Error</em><a class="headerlink" href="#macro-rendering-error" title="Permanent link">&para;</a></h1>
+<p><em>File</em>: <code>04-authoring-garnish-bundles.md</code></p>
+<p><em>UndefinedError</em>: 'example' is undefined</p>
+<div class="highlight"><pre><span></span><code>Traceback (most recent call last):
+  File &quot;/Users/tim/code/gh/provide-io/plating/.venv/lib/python3.13/site-packages/mkdocs_macros/plugin.py&quot;, line 699, in render
+    return md_template.render(**page_variables)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File &quot;/Users/tim/code/gh/provide-io/plating/.venv/lib/python3.13/site-packages/jinja2/environment.py&quot;, line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File &quot;/Users/tim/code/gh/provide-io/plating/.venv/lib/python3.13/site-packages/jinja2/environment.py&quot;, line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File &quot;&lt;template&gt;&quot;, line 33, in top-level template code
+  File &quot;/Users/tim/code/gh/provide-io/plating/.venv/lib/python3.13/site-packages/jinja2/utils.py&quot;, line 92, in from_obj
+    if hasattr(obj, &quot;jinja_pass_arg&quot;):
+       ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: &#39;example&#39; is undefined
 </code></pre></div>
-This command will find <code>my_resource.py</code> and, seeing it has no assets, create the following structure:
-<div class="highlight"><pre><span></span><code>src/pyvider/components/resources/
-├── my_resource.py
-└── my_resource.plating/          # &lt;-- Created
-    ├── docs/
-    │   └── my_resource.tmpl.md     # &lt;-- Created
-    ├── examples/
-    │   └── example.tf              # &lt;-- Created
-    └── tests/
-        └── souptest_my_resource.py # &lt;-- Created
-</code></pre></div>
-The created files will contain standard boilerplate to get you started.</p>
-<h2 id="step-2-populate-the-documentation-template">Step 2: Populate the Documentation Template<a class="headerlink" href="#step-2-populate-the-documentation-template" title="Permanent link">&para;</a></h2>
-<p>Open the main template file, <code>my_resource.plating/docs/my_resource.tmpl.md</code>. This is where you write the primary documentation for your component.</p>
-<ul>
-<li><strong>Update the Frontmatter</strong>: Edit the <code>page_title</code> and <code>description</code> fields.</li>
-<li><strong>Write the Introduction</strong>: Add a clear, high-level description of what your component does.</li>
-<li><strong>Use Template Functions</strong>: The boilerplate will already contain <code>{{ example("example") }}</code> and <code>{{ schema() }}</code>. These are essential and should be kept.</li>
-</ul>
-<h2 id="step-3-write-meaningful-examples">Step 3: Write Meaningful Examples<a class="headerlink" href="#step-3-write-meaningful-examples" title="Permanent link">&para;</a></h2>
-<p>Open <code>my_resource.plating/examples/example.tf</code> and replace the placeholder content with a realistic, working example of your component. For components with multiple use cases, you can add more files (e.g., <code>advanced.tf</code>) and include them by name with <code>{{ example("advanced") }}</code>.</p>
-<h2 id="step-4-add-co-located-conformance-tests">Step 4: Add Co-located Conformance Tests<a class="headerlink" href="#step-4-add-co-located-conformance-tests" title="Permanent link">&para;</a></h2>
-<p>Open <code>my_resource.plating/tests/souptest_my_resource.py</code>. This is where you can write <code>souptest_</code> functions that are specific to this component. These tests will be discovered and run by the <code>soup plating test</code> command.</p>
-<p>This allows you to keep a component's conformance tests right next to its implementation, making them easier to find and maintain.</p>
-<h2 id="step-5-run-component-specific-tests">Step 5: Run Component-Specific Tests<a class="headerlink" href="#step-5-run-component-specific-tests" title="Permanent link">&para;</a></h2>
-<p>To run only the tests for your component and its related group, use the <code>soup plating test</code> command.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Run tests for a specific component</span>
-soup<span class="w"> </span>plating<span class="w"> </span><span class="nb">test</span><span class="w"> </span>my_resource
-
-<span class="c1"># Run all tests for all resources</span>
-soup<span class="w"> </span>plating<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--type<span class="w"> </span>resource
-</code></pre></div>
-<h2 id="step-6-render-and-verify-documentation">Step 6: Render and Verify Documentation<a class="headerlink" href="#step-6-render-and-verify-documentation" title="Permanent link">&para;</a></h2>
-<p>Once you have authored your documentation, run the <code>render</code> command to generate the final output.</p>
-<p><div class="highlight"><pre><span></span><code>soup<span class="w"> </span>plating<span class="w"> </span>render
-</code></pre></div>
-This will create the final Markdown file (e.g., <code>docs/resources/my_resource.md</code>). Always review the generated file to ensure it looks correct.</p>
 
 
 
@@ -555,6 +471,14 @@ This will create the final Markdown file (e.g., <code>docs/resources/my_resource
     
     
       <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../provide-foundry/shared-theme/javascripts/mermaid-init.js"></script>
+      
+        <script src="../../provide-foundry/shared-theme/javascripts/termynal.js"></script>
+      
+        <script src="../../provide-foundry/shared-theme/javascripts/custom.js"></script>
       
     
   </body>

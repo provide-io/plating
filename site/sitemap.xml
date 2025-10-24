@@ -2,66 +2,66 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://foundry.provide.io/plating/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/04-authoring-garnish-bundles/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/API/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/CHANGELOG/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/CONFIGURATION/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/STATUS/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/api/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/architecture/01-overview/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/architecture/02-conformance-testing-strategy/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/architecture/03-rpc-matrix-specification/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/architecture/04-garnish-asset-bundle-system/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/architecture/05-wire-protocol-details/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/architecture/06-polyglot-cli-strategy/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/architecture/07-stock-service-design/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/future/bundle-discovery-pattern/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
     <url>
          <loc>https://foundry.provide.io/plating/future/template-processing-pipeline/</loc>
-         <lastmod>2025-09-19</lastmod>
+         <lastmod>2025-10-24</lastmod>
     </url>
 </urlset>
