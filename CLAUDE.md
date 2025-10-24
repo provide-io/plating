@@ -52,17 +52,17 @@ uv run mypy src/plating                 # Type checking
 
 **Discovery System** (`plating.py:PlatingDiscovery`)
 - Searches installed packages for `.plating` directories
-- Uses `pyvider.hub` for component discovery (hard dependency)
+- Uses `provide.foundation.hub` for component discovery
 - Supports multi-component bundles (subdirectories within .plating)
 
-**Template Processing** (`async_renderer.py`, `templates.py`)
-- Async rendering pipeline using Jinja2
+**Template Processing** (`templating/engine.py`)
+- Async-only rendering pipeline using Jinja2
 - Custom template functions: `schema()`, `example()`, `include()`, `render()`
-- Processes provider schema from pyvider components
-- Two renderer implementations: async (primary) and sync (backward compatibility)
+- Processes provider schema from foundation hub component discovery
+- Uses `run_in_executor` for blocking file I/O operations
 
-**Schema Extraction** (`schema.py`)
-- Extracts provider schemas via pyvider.hub component discovery
+**Schema Extraction** (`schema/processor.py`)
+- Extracts provider schemas via foundation.hub component discovery
 - Converts component schemas to markdown documentation
 - Handles resources, data sources, and functions differently
 
@@ -77,20 +77,25 @@ uv run mypy src/plating                 # Type checking
 
 2. **Attrs for Data Classes**: Uses `@attrs.define` instead of dataclasses
 
-3. **Pyvider Integration**: 
-   - Depends on pyvider.hub for component discovery
-   - Uses pyvider.telemetry for logging
-   - Requires pyvider-cty and pyvider-hcl
+3. **Foundation Integration**:
+   - Uses `provide.foundation.hub` for component discovery
+   - Uses `provide.foundation` for logging (`pout`, `perr`, `logger`)
+   - Requires pyvider-cty for type handling
 
-4. **Async-First Design**: Primary renderer is async with sync adapter for compatibility
+4. **Async-Only Design**: All rendering and I/O operations are async
+   - Uses `asyncio.to_thread()` and `run_in_executor()` for blocking file operations
+   - No synchronous API - async is the only supported interface
 
 ## Important Dependencies
 
-- **pyvider.hub**: Component discovery (cannot be removed without major refactoring)
-- **pyvider.telemetry**: Logging system (kept from tofusoup)
+- **provide.foundation**: Core foundation services
+  - `foundation.hub`: Component discovery and registry
+  - `foundation` output functions: `pout`, `perr`, `logger`
+  - Resilience patterns: retry, circuit breaker, metrics
+- **pyvider-cty**: Type handling for Terraform/OpenTofu schemas
 - **attrs**: Data class definitions (design choice, not dataclasses)
-- **Jinja2**: Template engine
-- **rich**: Terminal UI output
+- **Jinja2**: Template engine for documentation rendering
+- **rich**: Terminal UI formatting (via foundation)
 
 ## Common Development Tasks
 

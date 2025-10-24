@@ -19,6 +19,7 @@ Example Usage:
     import asyncio
     from pathlib import Path
     from plating import Plating, ComponentType, PlatingContext
+    from provide.foundation import pout
 
     async def main():
         # Initialize with foundation context
@@ -32,7 +33,7 @@ Example Usage:
 
         # Create missing templates
         adorn_result = await api.adorn(component_types=[ComponentType.RESOURCE])
-        print(f"Created {adorn_result.templates_generated} templates")
+        pout(f"✅ Created {adorn_result.templates_generated} templates")
 
         # Generate docs with validation
         plate_result = await api.plate(
@@ -43,11 +44,11 @@ Example Usage:
         )
 
         if plate_result.success:
-            print(f"Generated {len(plate_result.output_files)} files")
+            pout(f"✅ Generated {len(plate_result.output_files)} files")
 
         # Validate existing documentation
         validation_result = await api.validate()
-        print(f"Validation: {validation_result.passed}/{validation_result.total} passed")
+        pout(f"📊 Validation: {validation_result.passed}/{validation_result.total} passed")
 
     # Run the async main
     asyncio.run(main())
@@ -71,9 +72,6 @@ CLI Usage:
 
 from plating._version import __version__
 
-# Template engine
-from plating.templating.engine import AsyncTemplateEngine, template_engine
-
 # New modular components
 from plating.bundles import FunctionPlatingBundle, PlatingBundle as ModularPlatingBundle
 
@@ -86,12 +84,15 @@ from plating.decorators import (
     with_timing,
 )
 from plating.discovery import PlatingDiscovery as ModularPlatingDiscovery
-from plating.templating.metadata import TemplateMetadataExtractor
-from plating.generation import DocumentationAdorner, DocumentationPlater, TemplateRenderer
+from plating.generation import DocumentationAdorner, DocumentationPlater
 from plating.plating import Plating, plating
 
 # Registry and validation
 from plating.registry import PlatingRegistry, get_plating_registry, reset_plating_registry
+
+# Template engine
+from plating.templating.engine import AsyncTemplateEngine, template_engine
+from plating.templating.metadata import TemplateMetadataExtractor
 
 # Type-safe data structures
 from plating.types import (
@@ -127,7 +128,6 @@ __all__ = [
     # Generation system
     "DocumentationAdorner",
     "DocumentationPlater",
-    "TemplateRenderer",
     # Registry
     "PlatingRegistry",
     "get_plating_registry",

@@ -241,7 +241,7 @@ provider "{self.provider_name}" {{
         components_list = "\n".join(component_items)
 
         # List files
-        file_items = [f"- `provider.tf` - Provider configuration"]
+        file_items = ["- `provider.tf` - Provider configuration"]
         for component_name in sorted(group.components.keys()):
             file_items.append(f"- `{component_name}.tf` - Component configuration")
         if group.fixtures:

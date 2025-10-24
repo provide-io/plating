@@ -5,16 +5,15 @@ from pathlib import Path
 import time
 from typing import Any
 
-from provide.foundation import logger
-from provide.foundation.resilience import BackoffStrategy, RetryPolicy, SyncCircuitBreaker
+from provide.foundation import logger, pout
+from provide.foundation.resilience import BackoffStrategy, RetryPolicy
 
 from plating.core.doc_generator import generate_provider_index, generate_template, render_component_docs
 from plating.core.project_utils import find_project_root, get_output_directory
-from plating.schema.helpers import extract_provider_schema
 from plating.decorators import with_metrics, with_retry, with_timing
-
-# from plating.markdown_validator import get_markdown_validator
+from plating.errors import FileSystemError
 from plating.registry import get_plating_registry
+from plating.schema.helpers import extract_provider_schema
 from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, ValidationResult
 
 #
@@ -27,13 +26,13 @@ class Plating:
     """Modern async API for all plating operations with foundation integration."""
 
     def __init__(
-        self, context: PlatingContext, package_name: str
+        self, context: PlatingContext, package_name: str | None = None
     ) -> None:
         """Initialize plating API with foundation context.
 
         Args:
             context: PlatingContext with configuration (required)
-            package_name: Package to search for plating bundles (required)
+            package_name: Package to search for plating bundles, or None to search all packages
         """
         self.context = context
         self.package_name = package_name
@@ -76,15 +75,27 @@ class Plating:
             component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
 
         output_dir = output_dir or Path(".plating")
-        output_dir.mkdir(exist_ok=True)
+
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+        except (PermissionError, OSError) as e:
+            logger.error("Failed to create adorn output directory", path=output_dir, error=str(e))
+            raise FileSystemError(
+                path=output_dir, operation="create directory", reason=str(e), caused_by=e
+            ) from e
+
+        pout(f"🎨 Starting adorn for {len(component_types)} component type(s)")
 
         start_time = time.monotonic()
         templates_generated = 0
+        errors = []
 
         for component_type in component_types:
             components = self.registry.get_components(component_type)
             logger.info(f"Found {len(components)} {component_type.value} components to adorn")
+            pout(f"📦 Processing {len(components)} {component_type.value}(s)...")
 
+            generated_for_type = 0
             for component in components:
                 try:
                     # Skip generating stub templates if source templates already exist
@@ -94,24 +105,52 @@ class Plating:
 
                     # Only generate stub templates for components that don't have source templates
                     template_dir = output_dir / component_type.output_subdir / component.name
-                    template_dir.mkdir(parents=True, exist_ok=True)
+
+                    try:
+                        template_dir.mkdir(parents=True, exist_ok=True)
+                    except (PermissionError, OSError) as e:
+                        raise FileSystemError(
+                            path=template_dir, operation="create directory", reason=str(e), caused_by=e
+                        ) from e
 
                     # Generate basic template only if it doesn't exist in source
                     template_file = template_dir / f"{component.name}.tmpl.md"
                     if not template_file.exists():
-                        generate_template(component, template_file)
-                        templates_generated += 1
-                        logger.info(f"Generated stub template for {component.name} (no source template found)")
+                        try:
+                            generate_template(component, template_file)
+                            templates_generated += 1
+                            generated_for_type += 1
+                            logger.info(
+                                f"Generated stub template for {component.name} (no source template found)"
+                            )
+                        except OSError as e:
+                            raise FileSystemError(
+                                path=template_file, operation="write", reason=str(e), caused_by=e
+                            ) from e
 
+                except FileSystemError:
+                    raise
                 except Exception as e:
-                    logger.error(f"Failed to adorn {component.name}: {e}")
+                    error_msg = f"Failed to adorn {component.name}: {e}"
+                    logger.error(error_msg, component=component.name, error=str(e))
+                    errors.append(error_msg)
 
-        time.monotonic() - start_time  # End timing
+            if generated_for_type > 0:
+                pout(f"   ✅ Generated {generated_for_type} template(s)")
+            else:
+                pout(f"   ℹ️  All {component_type.value}s already have templates")
+
+        duration = time.monotonic() - start_time
+        if templates_generated > 0:
+            pout(f"\n✅ Adorning complete: {templates_generated} template(s) in {duration:.2f}s")
+        else:
+            pout("\nℹ️  No new templates needed")
+
         return AdornResult(
             components_processed=sum(len(self.registry.get_components(ct)) for ct in component_types),
             templates_generated=templates_generated,
-            examples_created=0,  # Not tracking examples in adorn
-            errors=[],
+            examples_created=0,
+            errors=errors,
         )
 
     @with_timing
@@ -153,17 +192,26 @@ class Plating:
         # Validate and create output directory
         try:
             final_output_dir.mkdir(parents=True, exist_ok=True)
-        except PermissionError as e:
-            raise RuntimeError(f"Cannot create output directory {final_output_dir}: {e}") from e
-        except OSError as e:
-            raise RuntimeError(f"Failed to create output directory {final_output_dir}: {e}") from e
+        except (PermissionError, OSError) as e:
+            logger.error("Failed to create output directory", path=final_output_dir, error=str(e))
+            raise FileSystemError(
+                path=final_output_dir, operation="create directory", reason=str(e), caused_by=e
+            ) from e
 
         # Ensure we can write to the directory
         if not os.access(final_output_dir, os.W_OK):
-            raise RuntimeError(f"Output directory {final_output_dir} is not writable")
+            logger.error("Output directory is not writable", path=final_output_dir)
+            raise FileSystemError(
+                path=final_output_dir,
+                operation="write",
+                reason="Directory is not writable (check permissions)",
+            )
 
         if not component_types:
             component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
+
+        pout(f"🍽️  Plating documentation to: {final_output_dir}")
+        pout(f"📦 Processing {len(component_types)} component type(s)")
 
         start_time = time.monotonic()
         result = PlateResult(duration_seconds=0.0, files_generated=0, errors=[], output_files=[])
@@ -174,11 +222,13 @@ class Plating:
         for component_type in component_types:
             components = self.registry.get_components_with_templates(component_type)
             logger.info(f"Generating docs for {len(components)} {component_type.value} components")
+            pout(f"📄 Rendering {len(components)} {component_type.value}(s)...")
 
             # Track unique bundle directories
             for component in components:
                 processed_bundles.add(str(component.plating_dir))
 
+            files_before = result.files_generated
             await render_component_docs(
                 components,
                 component_type,
@@ -188,8 +238,12 @@ class Plating:
                 self.context,
                 self._provider_schema or {},
             )
+            files_for_type = result.files_generated - files_before
+            if files_for_type > 0:
+                pout(f"   ✅ Generated {files_for_type} file(s)")
 
         # Generate provider index page
+        pout("📝 Generating provider index...")
         generate_provider_index(
             final_output_dir, force, result, self.context, self._provider_schema or {}, self.registry
         )
@@ -198,6 +252,8 @@ class Plating:
         result.bundles_processed = len(processed_bundles)
         result.duration_seconds = time.monotonic() - start_time
 
+        pout(f"\n✅ Plating complete: {result.files_generated} file(s) in {result.duration_seconds:.2f}s")
+
         # Validate if requested (disabled due to markdown validator dependency)
         # if validate_markdown and result.output_files:
         #     validation_result = await self.validate(output_dir, component_types)
@@ -205,6 +261,8 @@ class Plating:
 
         return result
 
+    @with_timing
+    @with_metrics("validate")
     async def validate(
         self,
         output_dir: Path | None = None,
