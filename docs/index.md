@@ -15,6 +15,60 @@ Plating provides:
 
 ## Quick Start
 
+### Installation
+
+<div class="termy">
+
+```console
+$ pip install plating
+// Installing plating...
+Successfully installed plating
+
+$ plating --version
+plating, version 0.1.0
+```
+
+</div>
+
+### Scaffold a New Component
+
+<div class="termy">
+
+```console
+$ plating scaffold --component-type resource --name example_resource
+// Creating .plating directory structure...
+✓ Created example_resource.plating/
+✓ Created docs/ directory
+✓ Created examples/ directory
+// Resource scaffold complete!
+
+$ ls example_resource.plating/
+docs/  examples/  resource.md.j2
+```
+
+</div>
+
+### Generate Documentation
+
+<div class="termy">
+
+```console
+$ plating render --output-dir docs/
+// Discovering plating bundles...
+Found 3 components
+// Rendering documentation...
+---> 100%
+✓ Generated docs/resources/example_resource.md
+✓ Generated docs/data-sources/example_data.md
+✓ Generated docs/functions/example_function.md
+
+Documentation generated successfully!
+```
+
+</div>
+
+### Python API Usage
+
 ```python
 from plating import Template, Generator
 
