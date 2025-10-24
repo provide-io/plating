@@ -50,9 +50,9 @@
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../../../provide-foundry/shared-theme/stylesheets/provide-theme.css">
+      <link rel="stylesheet" href="../../.shared-theme/stylesheets/provide-theme.css">
     
-      <link rel="stylesheet" href="../../../provide-foundry/shared-theme/stylesheets/termynal.css">
+      <link rel="stylesheet" href="../../.shared-theme/stylesheets/termynal.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -391,18 +391,17 @@
 <p><em>File</em>: <code>architecture/04-garnish-asset-bundle-system.md</code></p>
 <p><em>UndefinedError</em>: 'schema' is undefined</p>
 <div class="highlight"><pre><span></span><code>Traceback (most recent call last):
-  File &quot;/Users/tim/code/gh/provide-io/plating/.venv/lib/python3.13/site-packages/mkdocs_macros/plugin.py&quot;, line 699, in render
+  File &quot;/Users/tim/code/gh/provide-io/provide-foundation/.venv/lib/python3.11/site-packages/mkdocs_macros/plugin.py&quot;, line 699, in render
     return md_template.render(**page_variables)
-           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
-  File &quot;/Users/tim/code/gh/provide-io/plating/.venv/lib/python3.13/site-packages/jinja2/environment.py&quot;, line 1295, in render
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/Users/tim/code/gh/provide-io/provide-foundation/.venv/lib/python3.11/site-packages/jinja2/environment.py&quot;, line 1295, in render
     self.environment.handle_exception()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File &quot;/Users/tim/code/gh/provide-io/plating/.venv/lib/python3.13/site-packages/jinja2/environment.py&quot;, line 942, in handle_exception
+  File &quot;/Users/tim/code/gh/provide-io/provide-foundation/.venv/lib/python3.11/site-packages/jinja2/environment.py&quot;, line 942, in handle_exception
     raise rewrite_traceback_stack(source=source)
   File &quot;&lt;template&gt;&quot;, line 84, in top-level template code
-  File &quot;/Users/tim/code/gh/provide-io/plating/.venv/lib/python3.13/site-packages/jinja2/utils.py&quot;, line 92, in from_obj
+  File &quot;/Users/tim/code/gh/provide-io/provide-foundation/.venv/lib/python3.11/site-packages/jinja2/utils.py&quot;, line 92, in from_obj
     if hasattr(obj, &quot;jinja_pass_arg&quot;):
-       ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 jinja2.exceptions.UndefinedError: &#39;schema&#39; is undefined
 </code></pre></div>
 
@@ -474,11 +473,11 @@ jinja2.exceptions.UndefinedError: &#39;schema&#39; is undefined
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       
-        <script src="../../../provide-foundry/shared-theme/javascripts/mermaid-init.js"></script>
+        <script src="../../.shared-theme/javascripts/mermaid-init.js"></script>
       
-        <script src="../../../provide-foundry/shared-theme/javascripts/termynal.js"></script>
+        <script src="../../.shared-theme/javascripts/termynal.js"></script>
       
-        <script src="../../../provide-foundry/shared-theme/javascripts/custom.js"></script>
+        <script src="../../.shared-theme/javascripts/custom.js"></script>
       
     
   </body>
