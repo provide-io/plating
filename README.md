@@ -41,8 +41,8 @@ uv self update
 
 ```bash
 # Clone the repository
-git clone https://github.com/provide-io/garnish.git
-cd garnish
+git clone https://github.com/provide-io/plating.git
+cd plating
 
 # Create virtual environment
 uv venv
@@ -135,16 +135,16 @@ Plating provides powerful template functions:
 - `{{ "{{ partial('name') }}" }}` - Include a partial template
 - `{{ "{{ anchor('text') }}" }}` - Create header anchors
 
-## 🧪 Testing
+## 🔍 Validation
 
-Test your examples with the built-in test runner:
+Validate your generated documentation:
 
 ```bash
-# Test all examples
-plating test
+# Validate all documentation
+plating validate
 
-# Test specific component types
-plating test --component-type resource
+# Validate in custom directory
+plating validate --output-dir ./documentation
 ```
 
 ## 🔧 Configuration
