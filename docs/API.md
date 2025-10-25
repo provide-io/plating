@@ -91,59 +91,6 @@ context = PlatingContext(
 
 All methods are async and should be awaited.
 
-### PlatingAdorner (Deprecated - Use Plating API)
-
-**⚠️ Note:** PlatingAdorner is an internal implementation detail. Use the main `Plating` API instead:
-
-```python
-# Recommended approach using Plating API
-from plating import Plating, PlatingContext
-from plating.types import ComponentType
-
-async def main():
-    context = PlatingContext(provider_name="my_provider")
-    api = Plating(context, package_name="pyvider.components")
-
-    # This replaces PlatingAdorner.adorn_missing()
-    result = await api.adorn(component_types=[ComponentType.RESOURCE])
-    print(f"Adorned {result.templates_generated} resources")
-```
-
-The PlatingAdorner class is used internally by the Plating API and should not be accessed directly.
-
-### PlatingDiscovery
-
-Discovers `.plating` bundles from installed packages.
-
-```python
-from plating.plating import PlatingDiscovery
-
-discovery = PlatingDiscovery(package_name="pyvider.components")
-bundles = discovery.discover_bundles(component_type="resource")
-```
-
-#### Methods
-
-- `discover_bundles(component_type: str | None = None) -> list[PlatingBundle]` - Discover all bundles
-
-### SchemaProcessor
-
-Handles schema extraction and processing for documentation generation.
-
-```python
-from plating.schema import SchemaProcessor
-
-processor = SchemaProcessor(provider_name="aws")
-schema = processor.extract_provider_schema()
-processor.parse_provider_schema()
-```
-
-#### Methods
-
-- `extract_provider_schema() -> dict[str, Any]` - Extract provider schema using Pyvider discovery
-- `parse_provider_schema() -> None` - Parse extracted schema into internal structures
-- `_parse_schema_to_markdown(schema: dict[str, Any]) -> str` - Convert schema to markdown
-
 ## Template Functions
 
 Plating provides custom Jinja2 template functions for documentation generation.
