@@ -50,6 +50,73 @@ def auto_detect_package_name() -> str | None:
         return None
 
 
+def _load_tomllib_module():
+    """Load tomllib or tomli module.
+
+    Returns:
+        tomllib module or None if not available
+    """
+    try:
+        import tomllib
+        return tomllib
+    except ImportError:
+        try:
+            import tomli as tomllib  # type: ignore[import-not-found,no-redef]
+            return tomllib
+        except ImportError:
+            return None
+
+
+def _get_provider_name_from_pyproject(pyproject_path: Path) -> str | None:
+    """Get provider name from pyproject.toml if configured.
+
+    Args:
+        pyproject_path: Path to pyproject.toml file
+
+    Returns:
+        Provider name if found, None otherwise
+    """
+    if not pyproject_path.exists():
+        return None
+
+    tomllib = _load_tomllib_module()
+    if tomllib is None:
+        return None
+
+    try:
+        with pyproject_path.open("rb") as f:
+            pyproject = tomllib.load(f)
+
+        # Check for [tool.plating] provider_name
+        if "tool" in pyproject and "plating" in pyproject["tool"]:
+            if "provider_name" in pyproject["tool"]["plating"]:
+                return pyproject["tool"]["plating"]["provider_name"]
+    except Exception as e:
+        logger.debug(f"Failed to read pyproject.toml: {e}")
+
+    return None
+
+
+def _extract_provider_from_package_name(package_name: str) -> str | None:
+    """Extract provider name from package name patterns.
+
+    Args:
+        package_name: Package name to parse
+
+    Returns:
+        Provider name if pattern matches, None otherwise
+    """
+    # Handle terraform-provider-{name} pattern
+    if package_name.startswith("terraform-provider-"):
+        return package_name.replace("terraform-provider-", "")
+
+    # Handle {name}-provider pattern
+    if package_name.endswith("-provider"):
+        return package_name.replace("-provider", "")
+
+    return None
+
+
 def auto_detect_provider_name() -> str | None:
     """Auto-detect provider name from package name or pyproject.toml.
 
@@ -59,36 +126,14 @@ def auto_detect_provider_name() -> str | None:
     try:
         # First, check if there's explicit config in pyproject.toml
         pyproject_path = Path.cwd() / "pyproject.toml"
-        if pyproject_path.exists():
-            try:
-                import tomllib
-            except ImportError:
-                try:
-                    import tomli as tomllib  # type: ignore[import-not-found,no-redef]
-                except ImportError:
-                    pass
-                else:
-                    with pyproject_path.open("rb") as f:
-                        pyproject = tomllib.load(f)
-                    if "tool" in pyproject and "plating" in pyproject["tool"]:
-                        if "provider_name" in pyproject["tool"]["plating"]:
-                            return pyproject["tool"]["plating"]["provider_name"]
-            else:
-                with pyproject_path.open("rb") as f:
-                    pyproject = tomllib.load(f)
-                if "tool" in pyproject and "plating" in pyproject["tool"]:
-                    if "provider_name" in pyproject["tool"]["plating"]:
-                        return pyproject["tool"]["plating"]["provider_name"]
+        provider_name = _get_provider_name_from_pyproject(pyproject_path)
+        if provider_name:
+            return provider_name
 
         # Try to extract from package name pattern
         package_name = auto_detect_package_name()
         if package_name:
-            # Handle terraform-provider-{name} pattern
-            if package_name.startswith("terraform-provider-"):
-                return package_name.replace("terraform-provider-", "")
-            # Handle {name}-provider pattern
-            if package_name.endswith("-provider"):
-                return package_name.replace("-provider", "")
+            return _extract_provider_from_package_name(package_name)
 
         return None
     except Exception as e:
