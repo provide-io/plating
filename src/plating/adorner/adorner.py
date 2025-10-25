@@ -116,7 +116,7 @@ class PlatingAdorner:
                 await asyncio.to_thread(docs_dir.mkdir, parents=True, exist_ok=True)
                 await asyncio.to_thread(examples_dir.mkdir, parents=True, exist_ok=True)
             except OSError as e:
-                raise AdorningError(name, component_type, f"Failed to create directories: {e}")
+                raise AdorningError(name, component_type, f"Failed to create directories: {e}") from e
 
             # Generate and write template
             template_content = await self.template_generator.generate_template(

@@ -5,12 +5,15 @@ Custom error types for plating with context and user-friendly messages.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Type
 
 try:
-    from provide.foundation.errors import FoundationError
+    from provide.foundation.errors import FoundationError as _BaseError
 except ImportError:
-    FoundationError = Exception
+    _BaseError = Exception
+
+# Type alias - base class for all plating errors
+FoundationError: Type[Exception] = _BaseError
 
 
 class PlatingError(FoundationError):
