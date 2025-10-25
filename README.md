@@ -39,7 +39,9 @@ uv self update
 
 ### Installation
 
-**Note:** Plating is currently in pre-release (v0.0.1000-0). Install from source for now:
+**Note:** Plating is currently in pre-release. Install from source for now.
+
+> **Version Info:** The version `0.0.1000-0` is a pre-release identifier indicating active development. Expect the API and features to evolve as the project matures.
 
 ```bash
 # Clone the repository

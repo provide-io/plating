@@ -59,24 +59,20 @@ async def plate(
     component_types: list[ComponentType] | None = None,
     force: bool = False,
     validate_markdown: bool = True,
-    project_root: Path | None = None,
-    generate_examples: bool = False,
-    examples_dir: Path | None = None,
-    grouped_examples_dir: Path | None = None
+    project_root: Path | None = None
 ) -> PlateResult
 ```
 
 **Parameters:**
-- `output_dir`: Output directory (default: auto-detected)
-- `component_types`: Component types to process
-- `force`: Overwrite existing files
-- `validate_markdown`: Run validation after generation
-- `project_root`: Project root directory
-- `generate_examples`: Generate standalone executable examples
-- `examples_dir`: Output directory for flat examples
-- `grouped_examples_dir`: Output directory for grouped examples
+- `output_dir`: Output directory for documentation (default: auto-detected from `docs/`, `documentation/`, or `doc/`)
+- `component_types`: Component types to process (if None, processes all types)
+- `force`: Overwrite existing documentation files
+- `validate_markdown`: Run markdown validation after generation (default: True)
+- `project_root`: Project root directory for auto-detection (if None, auto-detected from git or pyproject.toml)
 
-**Returns:** PlateResult with file paths and status
+**Returns:** PlateResult with file paths, generation statistics, and status
+
+**Note:** To generate executable examples, use the CLI with `--generate-examples` flag
 
 ##### validate()
 
@@ -91,21 +87,39 @@ async def validate(
 ```
 
 **Parameters:**
-- `output_dir`: Documentation directory
-- `component_types`: Component types to validate
-- `project_root`: Project root directory
+- `output_dir`: Documentation directory to validate (default: auto-detected from `docs/`, `documentation/`, or `doc/`)
+- `component_types`: Component types to validate (if None, validates all types)
+- `project_root`: Project root directory for auto-detection (if None, auto-detected from git or pyproject.toml)
 
-**Returns:** ValidationResult with validation details
+**Returns:** ValidationResult with validation status, passed/failed counts, and any lint errors found
 
 ##### get_registry_stats()
 
-Get registry statistics.
+Get registry statistics for discovered components.
 
 ```python
 def get_registry_stats() -> dict[str, Any]
 ```
 
-**Returns:** Dictionary with component statistics
+**Returns:** Dictionary with component statistics in the following format:
+```python
+{
+    "total_components": int,           # Total number of components
+    "component_types": [str],          # List of component types found
+    "resource": {
+        "total": int,                  # Total resources
+        "with_templates": int          # Resources with documentation templates
+    },
+    "data_source": {
+        "total": int,                  # Total data sources
+        "with_templates": int          # Data sources with documentation templates
+    },
+    "function": {
+        "total": int,                  # Total functions
+        "with_templates": int          # Functions with documentation templates
+    }
+}
+```
 
 **Note:** This is a synchronous method, not async.
 

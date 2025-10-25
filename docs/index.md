@@ -145,7 +145,7 @@ asyncio.run(main())
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
 
 ### API Documentation
-- **[Auto-generated API](api/index.md)** - Sphinx-generated API documentation
+- **[Auto-generated API](api/index.md)** - Auto-generated API documentation from source code
 
 ## Component Types Supported
 

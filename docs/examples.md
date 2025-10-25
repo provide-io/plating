@@ -70,9 +70,9 @@ async def generate_provider_docs():
     # Step 3: Generate statistics
     stats = api.get_registry_stats()  # Note: This is a sync method, not async
     pout(f"\n📈 Documentation Coverage:")
-    pout(f"   • Resources: {stats['resource']['total']} total, {stats['resource']['with_templates']} documented")
-    pout(f"   • Data Sources: {stats['data_source']['total']} total, {stats['data_source']['with_templates']} documented")
-    pout(f"   • Functions: {stats['function']['total']} total, {stats['function']['with_templates']} documented")
+    pout(f"   • Resources: {stats['resource']['total']} total, {stats['resource']['with_templates']} with docs")
+    pout(f"   • Data Sources: {stats['data_source']['total']} total, {stats['data_source']['with_templates']} with docs")
+    pout(f"   • Functions: {stats['function']['total']} total, {stats['function']['with_templates']} with docs")
 
     pout(f"\n✨ Documentation generation complete!")
     return True

@@ -66,8 +66,8 @@ plating plate [OPTIONS]
 - `--validate/--no-validate` - Run validation after generation (default: validate)
 - `--project-root PATH` - Project root directory (auto-detected if not specified)
 - `--generate-examples` - Generate executable examples
-- `--examples-dir PATH` - Output directory for flat examples
-- `--grouped-examples-dir PATH` - Output directory for grouped examples
+- `--examples-dir PATH` - Output directory for flat examples (default: `examples/`)
+- `--grouped-examples-dir PATH` - Output directory for grouped examples (default: `examples/integration/`)
 - `--verbose` - Enable verbose output
 - `--help` - Show help message
 
@@ -101,10 +101,11 @@ plating validate [OPTIONS]
 - `--provider-name TEXT` - Provider name (auto-detected if not specified)
 - `--package-name TEXT` - Package to search (searches all if not specified)
 - `--component-type [resource|data_source|function|provider]` - Component types to validate (repeatable)
-- `--output-dir PATH` - Documentation directory (default: auto-detected or `docs/`)
-- `--project-root PATH` - Project root directory (auto-detected if not specified)
+- `--output-dir PATH` - Documentation directory to validate (must exist)
 - `--verbose` - Enable verbose output
 - `--help` - Show help message
+
+**Note:** The `validate` command operates on already-generated documentation files. Unlike `plate`, it does not support `--project-root` (the output directory must be explicitly provided or will default to `docs/`)
 
 **Examples:**
 ```bash
@@ -236,13 +237,11 @@ plating plate --output-dir ./documentation
 ```
 
 2. **Auto-Detection Logic:**
-```python
-# Looks for existing directories in order:
-1. ./docs/          # If exists
-2. ./documentation/ # If exists
-3. ./doc/          # If exists
-4. ./docs/         # Created if none exist
-```
+   - Searches for existing documentation directories in order of preference:
+     1. `./docs/` - If the directory already exists
+     2. `./documentation/` - If the directory already exists
+     3. `./doc/` - If the directory already exists
+   - If no existing directory is found, creates and uses `./docs/`
 
 ### For `plating validate` Command
 
