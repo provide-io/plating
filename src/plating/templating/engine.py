@@ -172,9 +172,7 @@ class AsyncTemplateEngine:
 
         try:
             # Wrap blocking file I/O in executor to avoid blocking event loop
-            template_content = await asyncio.get_event_loop().run_in_executor(
-                None, bundle.load_main_template
-            )
+            template_content = await asyncio.get_event_loop().run_in_executor(None, bundle.load_main_template)
 
             self._template_cache[cache_key] = template_content
             return template_content
