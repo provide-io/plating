@@ -63,6 +63,7 @@ python_files = ["test_*.py", "*_test.py"]
 filterwarnings = [
     "ignore::RuntimeWarning:threading",
     "ignore:coroutine.*was never awaited:RuntimeWarning",
+    "ignore:Module already imported so cannot be rewritten.*:pytest.PytestAssertRewriteWarning",
 ]
 
 [tool.ruff]
