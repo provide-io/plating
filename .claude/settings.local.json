@@ -37,7 +37,8 @@
       "Bash(uv run mypy:*)",
       "Bash(uv run:*)",
       "Bash(git stash:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": [],
