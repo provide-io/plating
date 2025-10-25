@@ -176,14 +176,20 @@ plating adorn --component-type resource --component-type function
 Generate documentation from `.plating` bundles.
 
 ```bash
-# Generate to default directory (docs)
+# Generate to default directory (auto-detected)
 plating plate
 
 # Custom output directory
 plating plate --output-dir ./documentation
 
-# Clean output directory first
-plating plate --clean
+# Force overwrite existing files
+plating plate --force
+
+# Disable validation
+plating plate --no-validate
+
+# Generate executable examples alongside documentation
+plating plate --generate-examples --examples-dir examples/
 ```
 
 #### validate
