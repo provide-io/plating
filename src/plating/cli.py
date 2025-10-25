@@ -311,6 +311,90 @@ def adorn_command(
     default=Path("examples/integration"),
     help="Directory for grouped/cross-component examples (default: examples/integration).",
 )
+def _generate_examples_if_requested(
+    api: "Plating",
+    generate_examples: bool,
+    provider_name: str | None,
+    examples_dir: Path,
+    types: list["ComponentType"] | None,
+    grouped_examples_dir: Path,
+) -> None:
+    """Generate executable examples if requested.
+
+    Args:
+        api: Plating API instance
+        generate_examples: Whether to generate examples
+        provider_name: Provider name for examples
+        examples_dir: Directory for single-component examples
+        types: Component types to process
+        grouped_examples_dir: Directory for grouped examples
+    """
+    if not generate_examples:
+        return
+
+    from plating.example_compiler import ExampleCompiler
+
+    pout("📁 Generating executable examples...")
+
+    # Get all bundles with examples
+    bundles_with_examples = []
+    for component_type_enum in types or list(ComponentType):
+        bundles = api.registry.get_components_with_templates(component_type_enum)
+        bundles_with_examples.extend([b for b in bundles if b.has_examples()])
+
+    if not bundles_with_examples:
+        pout("ℹ️  No components with examples found")
+        return
+
+    compiler = ExampleCompiler(
+        provider_name=provider_name or "pyvider",
+        provider_version="0.0.5",
+    )
+
+    compilation_result = compiler.compile_examples(
+        bundles_with_examples, examples_dir, types, grouped_examples_dir
+    )
+
+    total_examples = (
+        compilation_result.examples_generated + compilation_result.grouped_examples_generated
+    )
+
+    if total_examples > 0:
+        pout(
+            f"✅ Generated {compilation_result.examples_generated} single-component "
+            f"and {compilation_result.grouped_examples_generated} grouped examples "
+            f"(total: {total_examples})"
+        )
+        pout("📂 Example files:")
+        for example_file in compilation_result.output_files[:5]:  # Show first 5
+            pout(f"  • {example_file}")
+        if len(compilation_result.output_files) > 5:
+            pout(f"  ... and {len(compilation_result.output_files) - 5} more")
+    else:
+        pout("ℹ️  No examples found to compile")
+
+    if compilation_result.errors:
+        perr("⚠️ Some example compilation errors:")
+        for error in compilation_result.errors:
+            perr(f"  • {error}")
+
+
+def _print_plate_success(result: "PlateResult") -> None:
+    """Print success message for plate operation.
+
+    Args:
+        result: Plate operation result
+    """
+    pout(f"✅ Generated {result.files_generated} files in {result.duration_seconds:.2f}s")
+    pout(f"📦 Processed {result.bundles_processed} bundles")
+    if result.output_files:
+        pout("📄 Generated files:")
+        for file in result.output_files[:10]:  # Show first 10
+            pout(f"  • {file}")
+        if len(result.output_files) > 10:
+            pout(f"  ... and {len(result.output_files) - 10} more")
+
+
 def plate_command(
     output_dir: Path,
     component_type: tuple[str, ...],
@@ -348,62 +432,10 @@ def plate_command(
             result = await api.plate(final_output_dir, types, force, validate, project_root)
 
             if result.success:
-                pout(f"✅ Generated {result.files_generated} files in {result.duration_seconds:.2f}s")
-                pout(f"📦 Processed {result.bundles_processed} bundles")
-                if result.output_files:
-                    pout("📄 Generated files:")
-                    for file in result.output_files[:10]:  # Show first 10
-                        pout(f"  • {file}")
-                    if len(result.output_files) > 10:
-                        pout(f"  ... and {len(result.output_files) - 10} more")
-
-                # Generate executable examples if requested
-                if generate_examples:
-                    from plating.example_compiler import ExampleCompiler
-
-                    pout("📁 Generating executable examples...")
-
-                    # Get all bundles with examples
-                    bundles_with_examples = []
-                    for component_type_enum in types or list(ComponentType):
-                        bundles = api.registry.get_components_with_templates(component_type_enum)
-                        bundles_with_examples.extend([b for b in bundles if b.has_examples()])
-
-                    if bundles_with_examples:
-                        compiler = ExampleCompiler(
-                            provider_name=provider_name or "pyvider",
-                            provider_version="0.0.5",
-                        )
-
-                        compilation_result = compiler.compile_examples(
-                            bundles_with_examples, examples_dir, types, grouped_examples_dir
-                        )
-
-                        total_examples = (
-                            compilation_result.examples_generated
-                            + compilation_result.grouped_examples_generated
-                        )
-                        if total_examples > 0:
-                            pout(
-                                f"✅ Generated {compilation_result.examples_generated} single-component "
-                                f"and {compilation_result.grouped_examples_generated} grouped examples "
-                                f"(total: {total_examples})"
-                            )
-                            pout("📂 Example files:")
-                            for example_file in compilation_result.output_files[:5]:  # Show first 5
-                                pout(f"  • {example_file}")
-                            if len(compilation_result.output_files) > 5:
-                                pout(f"  ... and {len(compilation_result.output_files) - 5} more")
-                        else:
-                            pout("ℹ️  No examples found to compile")
-
-                        if compilation_result.errors:
-                            perr("⚠️ Some example compilation errors:")
-                            for error in compilation_result.errors:
-                                perr(f"  • {error}")
-                    else:
-                        pout("ℹ️  No components with examples found")
-
+                _print_plate_success(result)
+                _generate_examples_if_requested(
+                    api, generate_examples, provider_name, examples_dir, types, grouped_examples_dir
+                )
                 return 0
 
             else:
