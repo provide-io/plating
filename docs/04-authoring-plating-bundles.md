@@ -2,25 +2,23 @@
 
 This guide provides a practical walkthrough for developers on how to create and maintain documentation, examples, and tests for their components using the `.plating` system.
 
-## Step 1: Scaffold the Plating Bundle
+## Step 1: Adorn Components with Templates
 
-When you create a new component (e.g., a resource named `my_resource.py`), the first step is to scaffold its asset bundle.
+When you create a new component (e.g., a resource named `my_resource.py`), the first step is to create its documentation bundle using the `adorn` command.
 
-Run the `scaffold` command:
+Run the `adorn` command:
 ```bash
-soup plating scaffold
+plating adorn --component-type resource
 ```
-This command will find `my_resource.py` and, seeing it has no assets, create the following structure:
+This command will find `my_resource.py` and, seeing it has no documentation template, create the following structure:
 ```
 src/pyvider/components/resources/
 ├── my_resource.py
 └── my_resource.plating/          # <-- Created
     ├── docs/
     │   └── my_resource.tmpl.md     # <-- Created
-    ├── examples/
-    │   └── example.tf              # <-- Created
-    └── tests/
-        └── souptest_my_resource.py # <-- Created
+    └── examples/
+        └── basic.tf                # <-- Created
 ```
 The created files will contain standard boilerplate to get you started.
 
@@ -34,31 +32,27 @@ Open the main template file, `my_resource.plating/docs/my_resource.tmpl.md`. Thi
 
 ## Step 3: Write Meaningful Examples
 
-Open `my_resource.plating/examples/example.tf` and replace the placeholder content with a realistic, working example of your component. For components with multiple use cases, you can add more files (e.g., `advanced.tf`) and include them by name with `{{ example("advanced") }}`.
+Open `my_resource.plating/examples/basic.tf` and replace the placeholder content with a realistic, working example of your component. For components with multiple use cases, you can add more files (e.g., `advanced.tf`) and include them by name with `{{ example("advanced") }}`.
 
-## Step 4: Add Co-located Conformance Tests
+## Step 4: Plate and Verify Documentation
 
-Open `my_resource.plating/tests/souptest_my_resource.py`. This is where you can write `souptest_` functions that are specific to this component. These tests will be discovered and run by the `soup plating test` command.
-
-This allows you to keep a component's conformance tests right next to its implementation, making them easier to find and maintain.
-
-## Step 5: Run Component-Specific Tests
-
-To run only the tests for your component and its related group, use the `soup plating test` command.
+Once you have authored your documentation template and examples, run the `plate` command to generate the final documentation.
 
 ```bash
-# Run tests for a specific component
-soup plating test my_resource
-
-# Run all tests for all resources
-soup plating test --type resource
-```
-
-## Step 6: Render and Verify Documentation
-
-Once you have authored your documentation, run the `render` command to generate the final output.
-
-```bash
-soup plating render
+plating plate --output-dir docs/
 ```
 This will create the final Markdown file (e.g., `docs/resources/my_resource.md`). Always review the generated file to ensure it looks correct.
+
+## Step 5: Validate Documentation
+
+After generating documentation, validate it for markdown quality:
+
+```bash
+plating validate --output-dir docs/
+```
+
+This will check your documentation for:
+- Markdown linting errors
+- Broken links
+- Formatting issues
+- Schema consistency
