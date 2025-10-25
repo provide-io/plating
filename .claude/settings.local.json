@@ -34,7 +34,8 @@
       "Bash(do sed -i '' '$d' \"$file\")",
       "Bash(done)",
       "Bash(uv run ruff check:*)",
-      "Bash(uv run mypy:*)"
+      "Bash(uv run mypy:*)",
+      "Bash(uv run:*)"
     ],
     "deny": [],
     "ask": [],
