@@ -214,3 +214,87 @@ def _format_required_status(attr_def: dict[str, Any]) -> str:
         return "No"
 
     return "No"
+
+
+def parse_function_signature(func_schema: dict[str, Any]) -> str:
+    """Parse function signature from schema.
+
+    Args:
+        func_schema: Function schema dictionary
+
+    Returns:
+        Formatted function signature string
+    """
+    if "signature" not in func_schema:
+        return ""
+
+    signature = func_schema["signature"]
+    params = []
+
+    # Handle parameters
+    if "parameters" in signature:
+        for param in signature["parameters"]:
+            param_name = param.get("name", "arg")
+            param_type = param.get("type", "any")
+            params.append(f"{param_name}: {param_type}")
+
+    # Handle variadic parameter
+    if "variadic_parameter" in signature:
+        variadic = signature["variadic_parameter"]
+        variadic_name = variadic.get("name", "args")
+        variadic_type = variadic.get("type", "any")
+        params.append(f"...{variadic_name}: {variadic_type}")
+
+    return_type = signature.get("return_type", "any")
+    param_str = ", ".join(params)
+    return f"({param_str}) -> {return_type}"
+
+
+def parse_function_arguments(func_schema: dict[str, Any]) -> str:
+    """Parse function arguments from schema.
+
+    Args:
+        func_schema: Function schema dictionary
+
+    Returns:
+        Formatted arguments list
+    """
+    if "signature" not in func_schema:
+        return ""
+
+    signature = func_schema["signature"]
+    lines = []
+
+    # Handle parameters
+    if "parameters" in signature:
+        for param in signature["parameters"]:
+            param_name = param.get("name", "arg")
+            param_type = param.get("type", "any")
+            description = param.get("description", "")
+            lines.append(f"- `{param_name}` ({param_type}) - {description}")
+
+    return "\n".join(lines)
+
+
+def parse_variadic_argument(func_schema: dict[str, Any]) -> str:
+    """Parse variadic argument from schema.
+
+    Args:
+        func_schema: Function schema dictionary
+
+    Returns:
+        Formatted variadic argument description
+    """
+    if "signature" not in func_schema:
+        return ""
+
+    signature = func_schema["signature"]
+    if "variadic_parameter" not in signature:
+        return ""
+
+    variadic = signature["variadic_parameter"]
+    variadic_name = variadic.get("name", "args")
+    variadic_type = variadic.get("type", "any")
+    description = variadic.get("description", "")
+
+    return f"- `...{variadic_name}` ({variadic_type}) - {description}"
