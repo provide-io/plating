@@ -37,7 +37,9 @@ uv self update
 
 ## 🚀 Getting Started
 
-### Development Setup
+### Installation
+
+**Note:** Plating is currently in pre-release (v0.0.1000-0). Install from source for now:
 
 ```bash
 # Clone the repository
@@ -56,13 +58,16 @@ source .venv/bin/activate  # On Linux/macOS
 uv sync
 ```
 
-### Installing as a Package
+**Coming soon to PyPI:**
+```bash
+# PyPI installation (not yet available)
+# uv add plating
+```
+
+### Quick Install from Git
 
 ```bash
-# Install from PyPI
-uv add plating
-
-# Or install from source
+# Install directly from GitHub
 uv add git+https://github.com/provide-io/plating.git
 ```
 

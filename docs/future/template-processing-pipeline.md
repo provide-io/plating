@@ -1,5 +1,10 @@
 # Template Processing Pipeline for Foundation
 
+> **Status:** 💡 Proposal
+> **Date:** 2025-01-25
+> **Implementation:** Not yet started
+> **Discussion:** This is a forward-looking proposal for extracting plating's template engine into foundation
+
 ## Overview
 
 Plating's async template rendering with Jinja2 integration and partials support could become a general-purpose template processing module in foundation.

@@ -29,30 +29,40 @@ bundle = PlatingBundle(
 - `load_examples() -> dict[str, str]` - Load all example files as dictionary
 - `load_partials() -> dict[str, str]` - Load partial files (starting with `_`)
 
-### PlatingPlater
+### Plating (Main API)
 
-Documentation plater using `.plating` bundles for rendering.
+The primary API for all plating operations. This is the recommended way to interact with plating.
 
 ```python
-from plating.plater import PlatingPlater
-from plating.schema import SchemaProcessor
+from plating import Plating, PlatingContext
+from plating.types import ComponentType
+from pathlib import Path
 
-# Initialize with bundles
-plater = PlatingPlater(bundles=[bundle])
+# Initialize plating API with context
+context = PlatingContext(provider_name="my_provider")
+api = Plating(context, package_name="pyvider.components")
 
-# Initialize with schema processor
-schema_processor = SchemaProcessor(provider_name="aws")
-plater = PlatingPlater(bundles=[bundle], schema_processor=schema_processor)
+# Adorn components with templates
+result = await api.adorn(component_types=[ComponentType.RESOURCE])
+print(f"Generated {result.templates_generated} templates")
 
-# Render documentation
-plater.plate(output_dir=Path("docs"))
+# Generate documentation
+result = await api.plate(output_dir=Path("docs"))
+print(f"Generated {result.files_generated} files")
+
+# Validate documentation
+result = await api.validate(output_dir=Path("docs"))
+print(f"Validated {result.total} files")
 ```
 
 #### Methods
 
-- `plate(output_dir: Path) -> None` - Render all bundles to output directory
-- `_get_schema_for_component(bundle: PlatingBundle) -> dict | None` - Get schema for bundle component
-- `_render_template(template_content: str, context: dict, partials: dict) -> str` - Render Jinja2 template
+- `adorn(output_dir, component_types, templates_only)` - Generate template structure for components
+- `plate(output_dir, component_types, force, validate_markdown, project_root)` - Generate documentation from plating bundles
+- `validate(output_dir, component_types, project_root)` - Validate generated documentation
+- `get_registry_stats()` - Get registry statistics for all components
+
+All methods are async and should be awaited.
 
 ### PlatingAdorner
 
@@ -61,19 +71,18 @@ Creates documentation templates and examples for components.
 ```python
 from plating.adorner import PlatingAdorner
 
-adorner = PlatingAdorner()
+adorner = PlatingAdorner(package_name="pyvider.components")
 
 # Adorn missing components
 results = await adorner.adorn_missing(component_types=["resource"])
-
-# Adorn specific component
-success = await adorner._adorn_component("my_resource", "resource", component_class)
+print(f"Adorned {results['resource']} resources")
 ```
 
 #### Methods
 
 - `adorn_missing(component_types: list[str] | None = None) -> dict[str, int]` - Adorn components with missing bundles
-- `_adorn_component(name: str, component_type: str, component_class: Any) -> bool` - Adorn single component
+
+**Note:** Internal methods (prefixed with `_`) are not part of the public API and should not be used directly.
 
 ### PlatingDiscovery
 

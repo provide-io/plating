@@ -33,13 +33,13 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
    uv venv
    source .venv/bin/activate  # Linux/macOS
    # or .venv\Scripts\activate  # Windows
-   uv sync --dev
+   uv sync
    ```
 
 3. **Verify installation:**
    ```bash
    python -m plating.cli --help
-   pytest tests/ -v
+   uv run pytest tests/ -v
 
    # Note: 2 tests may be skipped if optional dependencies are not installed
    # This is expected behavior and not a problem
@@ -53,13 +53,13 @@ We maintain high code quality standards with automated tools:
 
 ```bash
 # Format code
-ruff format src/plating tests
+uv run ruff format src/plating tests
 
 # Check linting
-ruff check src/plating tests
+uv run ruff check src/plating tests
 
 # Type checking
-mypy src/plating
+uv run mypy src/plating
 
 # Run all quality checks
 uv run pytest tests/
@@ -77,16 +77,16 @@ uv run pytest tests/
 
 ```bash
 # Run all tests
-pytest tests/
+uv run pytest tests/
 
 # Run specific test file
-pytest tests/test_cli.py
+uv run pytest tests/test_cli.py
 
 # Run with coverage
-pytest tests/ --cov=plating --cov-report=html
+uv run pytest tests/ --cov=plating --cov-report=html
 
 # Run tests matching pattern
-pytest -k test_adorn
+uv run pytest -k test_adorn
 ```
 
 ### Architecture Guidelines

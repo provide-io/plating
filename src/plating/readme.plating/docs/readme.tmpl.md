@@ -15,12 +15,20 @@ Plating is a powerful documentation system that brings culinary elegance to tech
 
 ## 📦 Installation
 
-```bash
-# Using pip
-pip install plating
+**Note:** Plating is currently in pre-release (v0.0.1000-0). Install from source:
 
-# Using uv (recommended)
-uv add plating
+```bash
+# Clone and install from source
+git clone https://github.com/provide-io/plating.git
+cd plating
+uv sync
+```
+
+**Coming soon to PyPI:**
+```bash
+# PyPI installation (not yet available)
+# uv add plating
+# pip install plating
 ```
 
 ## 🚀 Quick Start

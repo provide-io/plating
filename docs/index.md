@@ -17,11 +17,15 @@ Plating provides:
 
 ### Installation
 
+**Note:** Plating is currently in pre-release (v0.0.1000-0). Install from source:
+
 <div class="termy">
 
 ```console
-$ uv add plating
-// Installing plating...
+$ git clone https://github.com/provide-io/plating.git
+$ cd plating
+$ uv sync
+// Installing dependencies...
 Successfully installed plating
 
 $ plating --help
@@ -29,6 +33,8 @@ Plating - Modern async documentation generator
 ```
 
 </div>
+
+**Coming soon to PyPI:** `uv add plating`
 
 ### Adorn Components with Templates
 
@@ -90,17 +96,21 @@ $ plating validate --output-dir docs/
 ### Python API Usage
 
 ```python
-from plating import Plating, PlatingContext, ComponentType
+from plating import Plating, PlatingContext
+from plating.types import ComponentType
+from pathlib import Path
 
 # Initialize plating API
 context = PlatingContext(provider_name="my_provider")
-api = Plating(context)
+api = Plating(context, package_name="pyvider.components")
 
 # Adorn components with templates
 result = await api.adorn(component_types=[ComponentType.RESOURCE])
+print(f"Generated {result.templates_generated} templates")
 
 # Plate documentation
 result = await api.plate(output_dir=Path("docs"))
+print(f"Generated {result.files_generated} files")
 ```
 
 ## API Reference

@@ -6,8 +6,18 @@ This directory contains **proposals and ideas for future development** of the Pl
 
 ## Current Proposals
 
-- **bundle-discovery-pattern.md** - Proposal to extract Plating's bundle discovery logic into a generic foundation module for reuse across the provide ecosystem
-- **template-processing-pipeline.md** - Ideas for enhancing the template processing pipeline
+| Proposal | Status | Date | Description |
+|----------|--------|------|-------------|
+| **bundle-discovery-pattern.md** | 💡 Proposal | 2025-01-25 | Extract Plating's bundle discovery logic into a generic foundation module for reuse across the provide ecosystem |
+| **template-processing-pipeline.md** | 💡 Proposal | 2025-01-25 | Extract Plating's async template engine into a general-purpose foundation module |
+
+### Status Indicators
+
+- 💡 **Proposal** - Idea stage, not yet approved for implementation
+- 🚧 **In Progress** - Approved and actively being implemented
+- ✅ **Implemented** - Feature has been implemented and merged
+- ⏸️ **Deferred** - Good idea but not a priority right now
+- ❌ **Rejected** - Decided not to pursue this direction
 
 ## Contributing Proposals
 

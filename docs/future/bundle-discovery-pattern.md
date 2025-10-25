@@ -1,5 +1,10 @@
 # Bundle Discovery Pattern for Foundation
 
+> **Status:** 💡 Proposal
+> **Date:** 2025-01-25
+> **Implementation:** Not yet started
+> **Discussion:** This is a forward-looking proposal for extracting plating's bundle discovery into foundation
+
 ## Overview
 
 The `PlatingBundle` and `PlatingDiscovery` patterns from plating are generic and reusable for any packaged asset discovery. This could become a foundation module.

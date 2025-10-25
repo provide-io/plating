@@ -107,8 +107,8 @@ uv run mypy src/plating                 # Type checking
 ```bash
 # Test without installation
 python -m plating.cli --help
-python -m plating.cli scaffold --component-type resource
-python -m plating.cli render --output-dir docs
+python -m plating.cli adorn --component-type resource
+python -m plating.cli plate --output-dir docs
 ```
 
 ### Working with Sibling Packages
