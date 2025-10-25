@@ -563,13 +563,11 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
         pout(f"  • Component types: {', '.join(stats.get('component_types', []))}")
 
         for comp_type in stats.get("component_types", []):
-            count = stats.get(f"{comp_type}_count", 0)
-            with_templates = stats.get(f"{comp_type}_with_templates", 0)
-            with_examples = stats.get(f"{comp_type}_with_examples", 0)
+            count = stats.get(comp_type, {}).get('total', 0)
+            with_templates = stats.get(comp_type, {}).get('with_templates', 0)
 
             pout(
-                f"  • {comp_type}: {count} total, {with_templates} with templates, "
-                f"{with_examples} with examples"
+                f"  • {comp_type}: {count} total, {with_templates} with templates"
             )
 
     asyncio.run(run())
