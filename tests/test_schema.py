@@ -309,10 +309,11 @@ class TestSchemaProcessor:
 
         result = schema_processor._parse_schema_to_markdown(schema)
 
-        assert "## Arguments" in result
-        assert "`id` (String, Computed)" in result
-        assert "`name` (String, Required)" in result
-        assert "`tags` (String, Optional)" in result
+        # Check markdown table format
+        assert "| Argument | Type | Required | Description |" in result
+        assert "| `id` | String | No (Computed) | The ID |" in result
+        assert "| `name` | String | **Yes** | The name |" in result
+        assert "| `tags` | String | No | Tags |" in result
 
     def test_parse_schema_to_markdown_with_blocks(self, schema_processor):
         """Test _parse_schema_to_markdown with nested blocks."""
@@ -334,15 +335,15 @@ class TestSchemaProcessor:
 
         result = schema_processor._parse_schema_to_markdown(schema)
 
-        assert "## Blocks" in result
-        assert "### config" in result
-        assert "Configuration block" in result
-        assert "`enabled` (bool) (Optional)" in result
+        # Check for nested block header and table
+        assert "### config Block" in result
+        assert "| Argument | Type | Required | Description |" in result
+        assert "| `enabled` | Boolean | No | Enable feature |" in result
 
     def test_parse_schema_to_markdown_empty(self, schema_processor):
         """Test _parse_schema_to_markdown with empty schema."""
-        assert schema_processor._parse_schema_to_markdown({}) == ""
-        assert schema_processor._parse_schema_to_markdown({"block": {}}) == ""
+        assert schema_processor._parse_schema_to_markdown({}) == "No arguments available."
+        assert schema_processor._parse_schema_to_markdown({"block": {}}) == "No arguments available."
 
     def test_format_type_string_simple(self, schema_processor):
         """Test _format_type_string with simple types."""

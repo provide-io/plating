@@ -247,7 +247,7 @@ def parse_function_signature(func_schema: dict[str, Any]) -> str:
 
     return_type = signature.get("return_type", "any")
     param_str = ", ".join(params)
-    return f"({param_str}) -> {return_type}"
+    return f"function({param_str}) -> {return_type}"
 
 
 def parse_function_arguments(func_schema: dict[str, Any]) -> str:
@@ -297,4 +297,4 @@ def parse_variadic_argument(func_schema: dict[str, Any]) -> str:
     variadic_type = variadic.get("type", "any")
     description = variadic.get("description", "")
 
-    return f"- `...{variadic_name}` ({variadic_type}) - {description}"
+    return f"- `{variadic_name}` ({variadic_type}) - {description}"
