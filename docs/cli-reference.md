@@ -1,8 +1,181 @@
-# CLI Auto-Detection
+# CLI Reference
 
-Plating's CLI intelligently auto-detects configuration values to minimize required parameters. This guide explains how auto-detection works and when you need to provide explicit values.
+Complete command-line interface reference for Plating, including all commands, options, and auto-detection behavior.
 
-## Provider Name Auto-Detection
+## Commands Overview
+
+```bash
+plating [OPTIONS] COMMAND [ARGS]...
+
+Commands:
+  adorn     Create documentation templates for components
+  plate     Generate documentation from templates
+  validate  Validate generated documentation
+  info      Show provider and registry information
+  stats     Display registry statistics
+```
+
+## Command Reference
+
+### plating adorn
+
+Create documentation templates for components that don't have them.
+
+```bash
+plating adorn [OPTIONS]
+```
+
+**Options:**
+- `--provider-name TEXT` - Provider name (auto-detected if not specified)
+- `--package-name TEXT` - Package to search (searches all if not specified)
+- `--component-type [resource|data_source|function|provider]` - Component types to process (repeatable)
+- `--output-dir PATH` - Output directory for templates (default: `.plating`)
+- `--templates-only` - Only generate templates, skip discovery
+- `--verbose` - Enable verbose output
+- `--help` - Show help message
+
+**Examples:**
+```bash
+# Adorn all components
+plating adorn
+
+# Adorn only resources
+plating adorn --component-type resource
+
+# Adorn multiple types
+plating adorn --component-type resource --component-type data_source
+
+# Specify package
+plating adorn --package-name pyvider.aws
+```
+
+### plating plate
+
+Generate documentation from templates.
+
+```bash
+plating plate [OPTIONS]
+```
+
+**Options:**
+- `--provider-name TEXT` - Provider name (auto-detected if not specified)
+- `--package-name TEXT` - Package to search (searches all if not specified)
+- `--component-type [resource|data_source|function|provider]` - Component types to process (repeatable)
+- `--output-dir PATH` - Output directory (default: auto-detected or `docs/`)
+- `--force` - Overwrite existing files
+- `--validate/--no-validate` - Run validation after generation (default: validate)
+- `--project-root PATH` - Project root directory (auto-detected if not specified)
+- `--generate-examples` - Generate executable examples
+- `--examples-dir PATH` - Output directory for flat examples
+- `--grouped-examples-dir PATH` - Output directory for grouped examples
+- `--verbose` - Enable verbose output
+- `--help` - Show help message
+
+**Examples:**
+```bash
+# Generate all documentation
+plating plate
+
+# Generate with validation disabled
+plating plate --no-validate
+
+# Force overwrite existing files
+plating plate --force
+
+# Custom output directory
+plating plate --output-dir ./documentation
+
+# Generate executable examples
+plating plate --generate-examples
+```
+
+### plating validate
+
+Validate generated documentation.
+
+```bash
+plating validate [OPTIONS]
+```
+
+**Options:**
+- `--provider-name TEXT` - Provider name (auto-detected if not specified)
+- `--package-name TEXT` - Package to search (searches all if not specified)
+- `--component-type [resource|data_source|function|provider]` - Component types to validate (repeatable)
+- `--output-dir PATH` - Documentation directory (default: auto-detected or `docs/`)
+- `--project-root PATH` - Project root directory (auto-detected if not specified)
+- `--verbose` - Enable verbose output
+- `--help` - Show help message
+
+**Examples:**
+```bash
+# Validate all documentation
+plating validate
+
+# Validate specific directory
+plating validate --output-dir ./documentation
+
+# Validate only resources
+plating validate --component-type resource
+```
+
+### plating info
+
+Show provider and registry information.
+
+```bash
+plating info [OPTIONS]
+```
+
+**Options:**
+- `--provider-name TEXT` - Provider name (auto-detected if not specified)
+- `--package-name TEXT` - Package to search (searches all if not specified)
+- `--verbose` - Enable verbose output
+- `--help` - Show help message
+
+**Examples:**
+```bash
+# Show info for auto-detected provider
+plating info
+
+# Show info for specific provider
+plating info --provider-name aws --package-name pyvider.aws
+```
+
+### plating stats
+
+Display detailed registry statistics.
+
+```bash
+plating stats [OPTIONS]
+```
+
+**Options:**
+- `--package-name TEXT` - Package to search (searches all if not specified)
+- `--verbose` - Enable verbose output
+- `--help` - Show help message
+
+**Examples:**
+```bash
+# Show statistics for all packages
+plating stats
+
+# Show statistics for specific package
+plating stats --package-name pyvider.aws
+```
+
+## Global Options
+
+These options can be used with any command:
+
+- `--log-level [DEBUG|INFO|WARNING|ERROR]` - Set logging level
+- `--no-color` - Disable colored output
+- `--quiet` - Suppress non-error output
+- `--version` - Show version and exit
+- `--help` - Show help message
+
+## Auto-Detection Behavior
+
+### Provider Name Auto-Detection
 
 The CLI attempts to determine the provider name in this order:
 

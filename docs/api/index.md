@@ -7,8 +7,8 @@ This page contains the complete API reference for the Plating package, automatic
 For practical guides and usage examples, see:
 
 - **[Getting Started](../index.md)** - Installation and quick start guide
-- **[API Documentation](../API.md)** - Comprehensive API documentation with examples
-- **[Authoring Guide](../04-authoring-plating-bundles.md)** - Creating and maintaining plating bundles
+- **[API Reference](../api-reference.md)** - Comprehensive API documentation with examples
+- **[Authoring Guide](../authoring-bundles.md)** - Creating and maintaining plating bundles
 - **[CLAUDE.md](../../CLAUDE.md)** - Development setup and architecture overview
 
 ## API Documentation
