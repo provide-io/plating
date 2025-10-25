@@ -153,12 +153,12 @@ class TemplateError(PlatingError):
         template_path: Path | str,
         reason: str,
         line_number: int | None = None,
-        context: str | None = None,
+        template_context: str | None = None,
     ):
         self.template_path = template_path
         self.reason = reason
         self.line_number = line_number
-        self.context = context
+        self.template_context = template_context
         super().__init__(f"Template error in '{template_path}': {reason}")
 
     def to_user_message(self) -> str:
@@ -167,8 +167,8 @@ class TemplateError(PlatingError):
         if self.line_number:
             parts.append(f" at line {self.line_number}")
         parts.append(f": {self.reason}")
-        if self.context:
-            parts.append(f"\n  {self.context}")
+        if self.template_context:
+            parts.append(f"\n  {self.template_context}")
 
         parts.append("\n\n💡 How to fix:")
         parts.append(f"\n  • Check template syntax at: {self.template_path}")
