@@ -91,25 +91,25 @@ context = PlatingContext(
 
 All methods are async and should be awaited.
 
-### PlatingAdorner
+### PlatingAdorner (Deprecated - Use Plating API)
 
-Creates documentation templates and examples for components.
+**⚠️ Note:** PlatingAdorner is an internal implementation detail. Use the main `Plating` API instead:
 
 ```python
-from plating.adorner import PlatingAdorner
+# Recommended approach using Plating API
+from plating import Plating, PlatingContext
+from plating.types import ComponentType
 
-adorner = PlatingAdorner(package_name="pyvider.components")
+async def main():
+    context = PlatingContext(provider_name="my_provider")
+    api = Plating(context, package_name="pyvider.components")
 
-# Adorn missing components
-results = await adorner.adorn_missing(component_types=["resource"])
-print(f"Adorned {results['resource']} resources")
+    # This replaces PlatingAdorner.adorn_missing()
+    result = await api.adorn(component_types=[ComponentType.RESOURCE])
+    print(f"Adorned {result.templates_generated} resources")
 ```
 
-#### Methods
-
-- `adorn_missing(component_types: list[str] | None = None) -> dict[str, int]` - Adorn components with missing bundles
-
-**Note:** Internal methods (prefixed with `_`) are not part of the public API and should not be used directly.
+The PlatingAdorner class is used internally by the Plating API and should not be accessed directly.
 
 ### PlatingDiscovery
 
@@ -522,28 +522,45 @@ env.globals["custom"] = custom_function
 Process multiple providers:
 
 ```python
-providers = ["aws", "azure", "gcp"]
+import asyncio
+from plating import Plating, PlatingContext
 
-for provider in providers:
-    schema_processor = SchemaProcessor(provider_name=provider)
-    discovery = PlatingDiscovery(f"pyvider.{provider}")
-    bundles = discovery.discover_bundles()
-    
-    plater = PlatingPlater(bundles=bundles, schema_processor=schema_processor)
-    plater.plate(Path(f"docs/{provider}"))
+async def process_providers():
+    providers = ["aws", "azure", "gcp"]
+
+    for provider in providers:
+        context = PlatingContext(provider_name=provider)
+        api = Plating(context, package_name=f"pyvider.{provider}")
+
+        # Generate documentation for each provider
+        await api.adorn()
+        result = await api.plate(Path(f"docs/{provider}"))
+        print(f"Generated docs for {provider}: {result.files_generated} files")
+
+asyncio.run(process_providers())
 ```
 
 ### Async Operations
 
-All adorning operations are async:
+All plating operations are async-first:
 
 ```python
 import asyncio
+from plating import Plating, PlatingContext
 
 async def main():
-    adorner = PlatingAdorner()
-    results = await adorner.adorn_missing()
-    print(f"Adorned {sum(results.values())} components")
+    context = PlatingContext(provider_name="my_provider")
+    api = Plating(context)
+
+    # All operations are async
+    adorn_result = await api.adorn()
+    print(f"Adorned {adorn_result.templates_generated} components")
+
+    plate_result = await api.plate()
+    print(f"Generated {plate_result.files_generated} files")
+
+    validate_result = await api.validate()
+    print(f"Validated {validate_result.total} files")
 
 asyncio.run(main())
 ```
