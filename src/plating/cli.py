@@ -550,7 +550,9 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
         actual_provider_name = get_provider_name(provider_name)
         actual_package_name = get_package_name(package_name)
 
-        if actual_package_name is None:
+        if actual_package_name:
+            pout(f"🔍 Filtering to package: {actual_package_name}")
+        else:
             pout("🌍 Discovering components from ALL installed packages")
 
         context = PlatingContext(provider_name=actual_provider_name)
@@ -585,7 +587,9 @@ def stats_command(package_name: str | None) -> None:
     async def run() -> None:
         actual_package_name = get_package_name(package_name)
 
-        if actual_package_name is None:
+        if actual_package_name:
+            pout(f"🔍 Filtering to package: {actual_package_name}")
+        else:
             pout("🌍 Discovering components from ALL installed packages")
 
         # Stats command doesn't need provider context
