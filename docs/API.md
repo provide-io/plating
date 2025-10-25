@@ -9,12 +9,13 @@ This document provides comprehensive API documentation for the Plating documenta
 Represents a single `.plating` bundle containing documentation assets.
 
 ```python
-from plating.plating import PlatingBundle
+from plating.bundles import PlatingBundle
+from pathlib import Path
 
 bundle = PlatingBundle(
     name="my_resource",
     plating_dir=Path("my_resource.plating"),
-    component_type="resource"
+    component_type="resource"  # or "data_source", "function", "provider"
 )
 ```
 
@@ -22,6 +23,7 @@ bundle = PlatingBundle(
 
 - `docs_dir: Path` - Directory containing documentation templates and partials
 - `examples_dir: Path` - Directory containing example files (.tf or .py)
+- `fixtures_dir: Path` - Directory containing test fixtures and data files
 
 #### Methods
 
@@ -34,25 +36,50 @@ bundle = PlatingBundle(
 The primary API for all plating operations. This is the recommended way to interact with plating.
 
 ```python
+import asyncio
 from plating import Plating, PlatingContext
 from plating.types import ComponentType
 from pathlib import Path
 
-# Initialize plating API with context
-context = PlatingContext(provider_name="my_provider")
-api = Plating(context, package_name="pyvider.components")
+async def main():
+    # Initialize plating API with context
+    context = PlatingContext(
+        provider_name="my_provider",
+        log_level="INFO",
+        no_color=False
+    )
+    api = Plating(context, package_name="pyvider.components")
 
-# Adorn components with templates
-result = await api.adorn(component_types=[ComponentType.RESOURCE])
-print(f"Generated {result.templates_generated} templates")
+    # Adorn components with templates
+    result = await api.adorn(component_types=[ComponentType.RESOURCE])
+    print(f"Generated {result.templates_generated} templates")
 
-# Generate documentation
-result = await api.plate(output_dir=Path("docs"))
-print(f"Generated {result.files_generated} files")
+    # Generate documentation
+    result = await api.plate(output_dir=Path("docs"))
+    print(f"Generated {result.files_generated} files")
 
-# Validate documentation
-result = await api.validate(output_dir=Path("docs"))
-print(f"Validated {result.total} files")
+    # Validate documentation
+    result = await api.validate(output_dir=Path("docs"))
+    print(f"Validated {result.total} files")
+
+# Run the async function
+asyncio.run(main())
+```
+
+### PlatingContext
+
+Configuration context for plating operations with foundation integration.
+
+```python
+from plating import PlatingContext
+
+context = PlatingContext(
+    provider_name="my_provider",
+    log_level="INFO",           # Logging level (DEBUG, INFO, WARNING, ERROR)
+    no_color=False,             # Disable colored output
+    verbose=False,              # Enable verbose output
+    quiet=False                 # Suppress non-error output
+)
 ```
 
 #### Methods
@@ -317,20 +344,93 @@ Plating provides structured error handling with custom exception types.
   - `BundleError` - Bundle-related errors
   - `PlatingRenderError` - Template rendering errors
   - `SchemaError` - Schema extraction/processing errors
+  - `AdorningError` - Component adorning errors
+  - `FileSystemError` - File system operation errors
+  - `TemplateError` - Template processing errors
+  - `ValidationError` - Documentation validation errors
 
 ### Error Handling Example
 
 ```python
-from plating.errors import PlatingError, BundleError, PlatingRenderError
+from plating.errors import (
+    PlatingError,
+    BundleError,
+    PlatingRenderError,
+    AdorningError,
+    FileSystemError,
+    TemplateError,
+    SchemaError,
+    ValidationError
+)
 
 try:
-    plater.plate(output_dir)
+    result = await api.plate(output_dir)
+except TemplateError as e:
+    logger.error(f"Template processing failed: {e}")
+except FileSystemError as e:
+    logger.error(f"File system error: {e}")
 except PlatingRenderError as e:
-    logger.error(f"Template rendering failed: {e}")
+    logger.error(f"Rendering failed: {e}")
 except BundleError as e:
     logger.error(f"Bundle error: {e}")
 except PlatingError as e:
     logger.error(f"Plating operation failed: {e}")
+```
+
+## Foundation Integration
+
+Plating is built on provide.foundation patterns for enterprise-grade reliability:
+
+### Resilience Patterns
+
+```python
+from plating import Plating, PlatingContext
+
+# Plating automatically includes retry policies for I/O operations
+context = PlatingContext(provider_name="my_provider")
+api = Plating(context)
+
+# Built-in retry policy with exponential backoff
+# - Max attempts: 3
+# - Base delay: 0.5s
+# - Max delay: 10s
+# - Retryable errors: IOError, OSError, TimeoutError, ConnectionError
+```
+
+### Metrics and Observability
+
+```python
+# Plating operations are automatically tracked with foundation metrics
+# Operations tracked include:
+# - adorn: Component adorning duration and success rate
+# - plate: Documentation generation performance
+# - validate: Validation execution time
+# - template_render: Individual template rendering metrics
+```
+
+### Circuit Breaker Pattern
+
+```python
+# Circuit breakers prevent cascading failures
+# Automatically applied to:
+# - Schema extraction operations
+# - Template rendering
+# - File I/O operations
+```
+
+### Structured Logging
+
+```python
+from provide.foundation import logger, pout, perr
+
+# All operations use foundation's structured logging
+logger.info("Processing component", component_name="my_resource", type="resource")
+
+# User-friendly output
+pout("✅ Documentation generated successfully")
+
+# Error output
+perr("❌ Failed to generate documentation")
 ```
 
 ## Integration with Pyvider

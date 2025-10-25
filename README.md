@@ -124,12 +124,19 @@ my_resource.plating/
 ├── docs/
 │   ├── my_resource.tmpl.md    # Main template
 │   └── _partial.md             # Reusable partials (optional)
-└── examples/
-    ├── basic.tf                # Example configurations
-    └── advanced.tf             # (optional)
+├── examples/
+│   ├── basic.tf                # Example configurations
+│   ├── advanced.tf             # (optional)
+│   └── full_stack/             # Grouped examples (optional)
+│       └── main.tf             # Required entry point
+└── fixtures/                   # Test fixtures (optional)
+    └── data.json               # Test data files
 ```
 
-**Note:** The `examples/` directory can contain `.tf` files (for resources/data sources) or `.py` files (for Python API examples).
+**Note:** The `examples/` directory can contain:
+- `.tf` files for resources/data sources (flat examples)
+- `.py` files for Python API examples
+- Subdirectories with `main.tf` for grouped examples that combine multiple components
 
 ## 🎨 Template Functions
 
@@ -151,6 +158,16 @@ plating validate
 # Validate in custom directory
 plating validate --output-dir ./documentation
 ```
+
+## 🛡️ Foundation Integration
+
+Plating is built on provide.foundation patterns for enterprise-grade reliability:
+
+- **🔄 Automatic Retries**: Built-in retry policies with exponential backoff for I/O operations
+- **📊 Metrics & Observability**: Integrated performance tracking and operation metrics
+- **⚡ Circuit Breakers**: Prevents cascading failures in distributed systems
+- **📝 Structured Logging**: Foundation logger integration with contextual information
+- **🚀 Async-First Design**: High-performance async operations throughout
 
 ## 🔧 Advanced Usage
 

@@ -56,3 +56,52 @@ This will check your documentation for:
 - Broken links
 - Formatting issues
 - Schema consistency
+
+## Advanced: Grouped Examples
+
+For comprehensive examples that demonstrate multiple components working together, you can create grouped examples:
+
+### Creating Grouped Examples
+
+Create subdirectories within your `examples/` folder:
+
+```
+my_resource.plating/examples/
+├── basic.tf              # Simple flat example
+└── full_stack/          # Grouped example directory
+    └── main.tf          # Required entry point
+```
+
+### How Grouped Examples Work
+
+1. **Discovery**: Plating finds all directories with `main.tf` files
+2. **Compilation**: Examples from multiple components are combined
+3. **Generation**: Creates:
+   - `provider.tf` with required_providers block
+   - Component-specific `.tf` files
+   - `README.md` with terraform commands
+4. **Fixtures**: Any fixtures in `fixtures/` are copied to the output
+
+### Example Structure
+
+```bash
+# Multiple components contribute to the same group
+resource1.plating/examples/full_stack/main.tf
+resource2.plating/examples/full_stack/main.tf
+data_source1.plating/examples/full_stack/main.tf
+
+# Compiles to:
+examples/full_stack/
+├── provider.tf           # Auto-generated
+├── resource1.tf          # From resource1
+├── resource2.tf          # From resource2
+├── data_source1.tf       # From data_source1
+└── README.md            # Auto-generated with instructions
+```
+
+### Best Practices for Grouped Examples
+
+1. **Use meaningful group names**: `full_stack`, `minimal`, `advanced`
+2. **Always include main.tf**: Required for group discovery
+3. **Add fixtures if needed**: Place test data in `fixtures/` directory
+4. **Avoid filename conflicts**: Each component's files should be uniquely named

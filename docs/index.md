@@ -96,21 +96,30 @@ $ plating validate --output-dir docs/
 ### Python API Usage
 
 ```python
+import asyncio
 from plating import Plating, PlatingContext
 from plating.types import ComponentType
 from pathlib import Path
 
-# Initialize plating API
-context = PlatingContext(provider_name="my_provider")
-api = Plating(context, package_name="pyvider.components")
+async def main():
+    # Initialize plating API with foundation context
+    context = PlatingContext(
+        provider_name="my_provider",
+        log_level="INFO",
+        no_color=False
+    )
+    api = Plating(context, package_name="pyvider.components")
 
-# Adorn components with templates
-result = await api.adorn(component_types=[ComponentType.RESOURCE])
-print(f"Generated {result.templates_generated} templates")
+    # Adorn components with templates
+    result = await api.adorn(component_types=[ComponentType.RESOURCE])
+    print(f"Generated {result.templates_generated} templates")
 
-# Plate documentation
-result = await api.plate(output_dir=Path("docs"))
-print(f"Generated {result.files_generated} files")
+    # Plate documentation with validation
+    result = await api.plate(output_dir=Path("docs"), validate_markdown=True)
+    print(f"Generated {result.files_generated} files")
+
+# Run the async main function
+asyncio.run(main())
 ```
 
 ## API Reference
