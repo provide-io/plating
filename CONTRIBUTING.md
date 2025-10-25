@@ -40,6 +40,9 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
    ```bash
    python -m plating.cli --help
    pytest tests/ -v
+
+   # Note: 2 tests may be skipped if optional dependencies are not installed
+   # This is expected behavior and not a problem
    ```
 
 ## Development Workflow

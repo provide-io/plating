@@ -52,6 +52,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated bundle structure examples to match actual output
 - Corrected configuration documentation (only provider_name currently supported)
 
-## [0.1.0] - 2025-01-XX
+## [0.0.1000] - 2025-10-25
 
 Initial pre-release version extracted from tofusoup project.

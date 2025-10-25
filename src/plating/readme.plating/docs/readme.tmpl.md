@@ -2,12 +2,12 @@
 
 > A sophisticated documentation generation system for Terraform/OpenTofu providers
 
-Plating is a powerful documentation system that brings culinary elegance to technical documentation. Just as a chef carefully plates and platinges a dish, Plating helps you present your Terraform provider documentation beautifully.
+Plating is a powerful documentation system that brings culinary elegance to technical documentation. Just as a chef carefully plates a dish, Plating helps you present your Terraform provider documentation beautifully.
 
 ## ✨ Features
 
 - **🎯 Automatic Documentation Generation** - Generate comprehensive docs from your provider code
-- **👗 Smart Component Dressing** - Automatically create documentation templates for undocumented components
+- **✨ Smart Component Adorning** - Automatically create documentation templates for undocumented components
 - **🍽️ Beautiful Plating** - Render documentation with examples, schemas, and rich formatting
 - **🔍 Component Discovery** - Automatically find and document resources, data sources, and functions
 - **📝 Jinja2 Templates** - Flexible templating with custom functions and filters
@@ -25,15 +25,15 @@ uv add plating
 
 ## 🚀 Quick Start
 
-### 1. Dress Your Components
+### 1. Adorn Your Components
 
 First, create `.plating` bundles for your undocumented components:
 
 ```bash
-# Dress all missing components
+# Adorn all missing components
 plating adorn
 
-# Dress only resources
+# Adorn only resources
 plating adorn --component-type resource
 ```
 
@@ -61,10 +61,10 @@ Render your documentation:
 
 ```bash
 # Generate docs in ./docs directory
-plating render
+plating plate
 
 # Custom output directory
-plating render --output-dir ./documentation
+plating plate --output-dir ./documentation
 ```
 
 ## 📂 Bundle Structure
@@ -75,13 +75,13 @@ Each component has a `.plating` bundle:
 my_resource.plating/
 ├── docs/
 │   ├── my_resource.tmpl.md    # Main template
-│   └── _partial.md             # Reusable partials
-├── examples/
-│   ├── basic.tf                # Example configurations
-│   └── advanced.tf
-└── fixtures/                   # Test data
-    └── test_config.json
+│   └── _partial.md             # Reusable partials (optional)
+└── examples/
+    ├── basic.tf                # Example configurations
+    └── advanced.tf             # (optional)
 ```
+
+**Note:** The `examples/` directory can contain `.tf` files (for resources/data sources) or `.py` files (for Python API examples).
 
 ## 🎨 Template Functions
 
@@ -92,16 +92,16 @@ Plating provides powerful template functions:
 - `{{ "{{ include('filename') }}" }}` - Include a static partial file
 - `{{ "{{ render('filename') }}" }}` - Render a dynamic template partial with current context
 
-## 🧪 Testing
+## ✅ Validation
 
-Test your examples with the built-in test runner:
+Validate your generated documentation:
 
 ```bash
-# Test all examples
-plating test
+# Validate all documentation
+plating validate
 
-# Test specific component types
-plating test --component-type resource
+# Validate specific component types
+plating validate --component-type resource
 ```
 
 ## 🔧 Configuration
@@ -110,9 +110,14 @@ Configure Plating in your `pyproject.toml`:
 
 ```toml
 [tool.plating]
+# Provider name (auto-detected if not specified)
 provider_name = "my_provider"
-output_dir = "docs"
-component_types = ["resource", "data_source", "function"]
+```
+
+**Note:** Currently only `provider_name` can be configured in `pyproject.toml`. Other options like `output_dir` and `component_types` must be passed as CLI flags:
+
+```bash
+plating plate --output-dir docs --component-type resource
 ```
 
 ## 🏗️ Architecture

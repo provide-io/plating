@@ -24,11 +24,11 @@ drwxr-xr-x 15 user staff  480 Oct 24 11:59 ..
 <div class="termy">
 
 ```console
-$ plating scaffold --component-type resource
-// Creating resource scaffold...
+$ plating adorn --component-type resource
+// Adorning components...
 // Generating templates...
 ✓ Created example_resource.plating/
-✓ Generated docs/resource.md.j2
+✓ Generated docs/resource.tmpl.md
 ✓ Generated examples/basic.tf
 
 $ ls example_resource.plating/
@@ -43,10 +43,10 @@ examples/
 <div class="termy">
 
 ```console
-$ plating render --output-dir docs/
-// Rendering documentation...
+$ plating plate --output-dir docs/
+// Plating documentation...
 ---> 100%
-✓ Rendered 15 files
+✓ Generated 15 files
 ✓ Documentation complete!
 ```
 

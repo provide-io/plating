@@ -24,8 +24,8 @@ $ uv add plating
 // Installing plating...
 Successfully installed plating
 
-$ plating --version
-plating, version 0.1.0
+$ plating --help
+Plating - Modern async documentation generator
 ```
 
 </div>

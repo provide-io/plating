@@ -21,15 +21,13 @@ bundle = PlatingBundle(
 #### Properties
 
 - `docs_dir: Path` - Directory containing documentation templates and partials
-- `examples_dir: Path` - Directory containing example Terraform files  
-- `fixtures_dir: Path` - Directory containing fixture files for tests
+- `examples_dir: Path` - Directory containing example files (.tf or .py)
 
 #### Methods
 
 - `load_main_template() -> str | None` - Load the main template file
 - `load_examples() -> dict[str, str]` - Load all example files as dictionary
 - `load_partials() -> dict[str, str]` - Load partial files (starting with `_`)
-- `load_fixtures() -> dict[str, str]` - Load fixture files from fixtures directory
 
 ### PlatingPlater
 
@@ -186,6 +184,12 @@ plating adorn --component-type function
 
 # Multiple component types
 plating adorn --component-type resource --component-type function
+
+# Filter to specific package
+plating adorn --package-name pyvider.components
+
+# Explicit provider name (otherwise auto-detected)
+plating adorn --provider-name my_provider
 ```
 
 #### plate
@@ -199,14 +203,28 @@ plating plate
 # Custom output directory
 plating plate --output-dir ./documentation
 
+# Filter to specific component types
+plating plate --component-type resource --component-type data_source
+
+# Filter to specific package
+plating plate --package-name pyvider.components
+
 # Force overwrite existing files
 plating plate --force
 
 # Disable validation
 plating plate --no-validate
 
+# Specify project root (auto-detected if not provided)
+plating plate --project-root /path/to/project
+
 # Generate executable examples alongside documentation
-plating plate --generate-examples --examples-dir examples/
+plating plate --generate-examples
+
+# Customize example output directories
+plating plate --generate-examples \
+  --examples-dir examples/ \
+  --grouped-examples-dir examples/integration/
 ```
 
 #### validate
@@ -222,6 +240,9 @@ plating validate --output-dir ./documentation
 
 # Validate specific component types
 plating validate --component-type resource --component-type data_source
+
+# Filter to specific package
+plating validate --package-name pyvider.components
 ```
 
 #### info
@@ -232,10 +253,10 @@ Show registry information and statistics.
 # Show registry info with auto-detected provider
 plating info
 
-# Show info for specific provider
+# Show info for specific provider (otherwise auto-detected)
 plating info --provider-name my_provider
 
-# Filter to specific package
+# Filter to specific package (default: search all installed packages)
 plating info --package-name pyvider.components
 ```
 
@@ -244,7 +265,7 @@ plating info --package-name pyvider.components
 Show detailed registry statistics.
 
 ```bash
-# Show all statistics
+# Show all statistics (searches all installed packages)
 plating stats
 
 # Filter to specific package
@@ -261,11 +282,21 @@ Configure Plating behavior in `pyproject.toml`:
 provider_name = "my_provider"
 ```
 
-**Note:** Currently only `provider_name` is read from configuration. The CLI uses command-line arguments for other options:
-- Output directory: `--output-dir` flag
-- Component types: `--component-type` flag (can be used multiple times)
-- Validation: `--validate` / `--no-validate` flags
-- Force overwrite: `--force` flag
+**Important:** Currently only `provider_name` is read from `pyproject.toml`. All other options must be passed as CLI flags:
+
+### CLI-Only Options
+
+| Option | Flag | Commands | Description |
+|--------|------|----------|-------------|
+| Output directory | `--output-dir PATH` | plate, validate | Where to write/read docs |
+| Component types | `--component-type TYPE` | adorn, plate, validate | Filter by type (repeatable) |
+| Package filter | `--package-name NAME` | all | Filter to specific package |
+| Force overwrite | `--force` | plate | Overwrite existing files |
+| Validation | `--validate/--no-validate` | plate | Enable/disable validation |
+| Project root | `--project-root PATH` | plate | Specify project root |
+| Generate examples | `--generate-examples` | plate | Create executable examples |
+| Examples directory | `--examples-dir PATH` | plate | Output dir for examples |
+| Grouped examples | `--grouped-examples-dir PATH` | plate | Output dir for integration examples |
 
 ## Error Handling
 

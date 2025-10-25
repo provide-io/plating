@@ -22,20 +22,20 @@ The adorner automates the creation of plating bundles by:
 - **Automatic Discovery**: Finds undocumented components
 - **Template Generation**: Creates documentation templates from docstrings
 - **Example Creation**: Generates basic Terraform examples
-- **Batch Processing**: Dresses multiple components at once
+- **Batch Processing**: Adorns multiple components at once
 - **Component Filtering**: Focus on specific component types
 
 ## Usage
 
-### Dress Missing Components
+### Adorn Missing Components
 
 {{ example("basic") }}
 
-### Dress Specific Component Types
+### Adorn Specific Component Types
 
 {{ example("filtered") }}
 
-### Manual Component Dressing
+### Manual Component Adorning
 
 {{ example("manual") }}
 
