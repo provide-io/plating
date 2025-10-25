@@ -38,7 +38,8 @@
       "Bash(uv run:*)",
       "Bash(git stash:*)",
       "Bash(awk:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": [],
