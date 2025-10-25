@@ -192,7 +192,7 @@ async def ci_generate_docs():
     if not result.success:
         print(f"::error::Documentation generation failed")
         for error in result.errors:
-            print(f"::error file={error.file}::{error.message}")
+            print(f"::error::{error}")
         return 1
 
     # Validate
@@ -223,7 +223,7 @@ import asyncio
 from datetime import datetime
 from pathlib import Path
 from plating import Plating, PlatingContext
-from plating.templating.engine import AsyncTemplateEngine
+from plating.templating.engine import template_engine
 
 def format_date(date_str: str) -> str:
     """Format date for documentation."""
@@ -240,11 +240,8 @@ async def generate_with_custom_functions():
     context = PlatingContext(provider_name="myprovider")
     api = Plating(context)
 
-    # Get the template engine
-    engine = api._template_engine  # Note: accessing internal
-
-    # Add custom functions
-    engine._jinja_env.globals.update({
+    # Add custom functions to the global template engine
+    template_engine._jinja_env.globals.update({
         "format_date": format_date,
         "tf_version": terraform_version,
         "provider_version": lambda: "1.2.3",

@@ -299,7 +299,7 @@ class AdornResult:
         return len(self.errors) == 0
 ```
 
-**Note:** AdornResult does not have a duration field.
+**Note:** `AdornResult` does not track duration because adorning is primarily a fast, metadata-focused operation. `PlateResult` tracks duration because template rendering can be time-intensive with many components, and users may want to monitor performance for optimization purposes.
 
 ### PlateResult
 

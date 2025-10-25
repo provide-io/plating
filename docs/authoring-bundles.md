@@ -28,7 +28,7 @@ Open the main template file, `my_resource.plating/docs/my_resource.tmpl.md`. Thi
 
 -   **Update the Frontmatter**: Edit the `page_title` and `description` fields.
 -   **Write the Introduction**: Add a clear, high-level description of what your component does.
--   **Use Template Functions**: The boilerplate will already contain `{{ example("example") }}` and `{{ schema() }}`. These are essential and should be kept.
+-   **Use Template Functions**: The boilerplate will already contain `{{ example("basic") }}` and `{{ schema() }}`. These are essential and should be kept.
 
 ## Step 3: Write Meaningful Examples
 
