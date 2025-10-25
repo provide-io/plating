@@ -22,8 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UV package manager support and tooling
 
 ### Changed
-- Package renamed from "garnish" to "plating"
-- Terminology updated: "dress" operations renamed to "adorn"
 - Line length standardized to 111 characters
 - Modern Python typing throughout (dict, list, set instead of Dict, List, Set)
 
@@ -43,4 +41,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.1000] - 2025-10-25
 
-Initial pre-release version extracted from tofusoup project.
+Initial pre-release version.
