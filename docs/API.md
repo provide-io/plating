@@ -116,7 +116,7 @@ Plating provides custom Jinja2 template functions for documentation generation.
 
 ### schema()
 
-Renders the schema information for the current component.
+Renders the component schema as a markdown table with attributes, types, and descriptions.
 
 ```jinja2
 ## Arguments
@@ -124,9 +124,11 @@ Renders the schema information for the current component.
 {{ schema() }}
 ```
 
+**Output:** Generates a markdown table with columns: Argument, Type, Required, Description
+
 ### example(name)
 
-Includes an example file by name from the examples directory.
+Includes an example file by name from the examples directory, wrapped in a terraform code block.
 
 ```jinja2
 ### Basic Usage
@@ -134,21 +136,36 @@ Includes an example file by name from the examples directory.
 {{ example("basic") }}
 ```
 
+**Parameters:**
+- `name` - Filename (without .tf extension) from the bundle's examples/ directory
+
+**Output:** Returns the example wrapped in triple-backtick terraform code block
+
 ### include(filename)
 
-Includes a partial file from the docs directory.
+Includes a static partial file from the docs directory without processing.
 
 ```jinja2
 {{ include("_common_note.md") }}
 ```
 
-### render(template_string, context)
+**Parameters:**
+- `filename` - Name of partial file in the bundle's docs/ directory
 
-Renders a template string with additional context.
+**Output:** Raw content of the partial file
+
+### render(filename)
+
+Renders a dynamic template partial with the current template context.
 
 ```jinja2
-{{ render("Resource: {{ name }}", {"name": "aws_s3_bucket"}) }}
+{{ render("_dynamic_section.md") }}
 ```
+
+**Parameters:**
+- `filename` - Name of partial file in the bundle's docs/ directory
+
+**Output:** The partial file processed as a Jinja2 template with full access to context variables (name, type, schema, examples, etc.)
 
 ## CLI Interface
 

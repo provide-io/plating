@@ -87,10 +87,10 @@ my_resource.plating/
 
 Plating provides powerful template functions:
 
-- `{{ "{{ example('name') }}" }}` - Include an example file
-- `{{ "{{ schema() }}" }}` - Render component schema
-- `{{ "{{ partial('name') }}" }}` - Include a partial template
-- `{{ "{{ anchor('text') }}" }}` - Create header anchors
+- `{{ "{{ schema() }}" }}` - Render component schema as markdown table
+- `{{ "{{ example('name') }}" }}` - Include an example file in a terraform code block
+- `{{ "{{ include('filename') }}" }}` - Include a static partial file
+- `{{ "{{ render('filename') }}" }}` - Render a dynamic template partial with current context
 
 ## 🧪 Testing
 
