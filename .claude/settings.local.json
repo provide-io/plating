@@ -40,7 +40,8 @@
       "Bash(awk:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": [],
