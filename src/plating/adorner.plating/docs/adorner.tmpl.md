@@ -35,10 +35,6 @@ The adorner automates the creation of plating bundles by:
 
 {{ example("filtered") }}
 
-### Manual Component Adorning
-
-{{ example("manual") }}
-
 ## Methods
 
 ### `adorn_missing(component_types: list[str] = None)`
@@ -122,9 +118,3 @@ The adorner handles:
 - Invalid component types
 - File system errors
 - Component discovery failures
-
-## See Also
-
-- [TemplateGenerator](../templates) - Template creation
-- [ComponentFinder](../finder) - Source file location
-- [PlatingBundle](../plating) - Bundle structure

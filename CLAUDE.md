@@ -30,7 +30,7 @@ uv pip install -e ".[dev]"
 ```bash
 uv run pytest tests                  # Run all tests
 uv run pytest tests/test_cli.py      # Run specific test file
-uv run pytest -k test_scaffold       # Run tests matching pattern
+uv run pytest -k test_adorn          # Run tests matching pattern
 uv run pytest -xvs                   # Stop on first failure, verbose output
 ```
 

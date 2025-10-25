@@ -48,7 +48,15 @@ page_title: "Resource: my_resource"
 
 # my_resource
 
-{{ "{{ example('basic') }}" }}
+Describe your resource here.
+
+## Example Usage
+
+\```terraform
+resource "my_provider_my_resource" "example" {
+  name = "example"
+}
+\```
 
 ## Schema
 
