@@ -11,17 +11,11 @@ from plating.templating.metadata import TemplateMetadataExtractor
 from plating.templating.processor import TemplateProcessor
 
 __all__ = [
-    # Engine
     "AsyncTemplateEngine",
-    "template_engine",
-    # Processor
-    "TemplateProcessor",
-    # Generator
-    "TemplateGenerator",
-    # Metadata
-    "TemplateMetadataExtractor",
-    # Functions
     "SchemaRenderer",
-    # Filters
+    "TemplateGenerator",
+    "TemplateMetadataExtractor",
+    "TemplateProcessor",
     "schema_to_markdown",
+    "template_engine",
 ]

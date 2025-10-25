@@ -106,38 +106,30 @@ from plating.types import (
 )
 
 __all__ = [
-    # Core API
-    "Plating",
-    "plating",
-    # Type-safe data structures
+    "__version__",
     "AdornResult",
     "ArgumentInfo",
-    "ComponentType",
-    "PlateResult",
-    "PlatingContext",
-    "SchemaInfo",
-    "ValidationResult",
-    # Template engine
     "AsyncTemplateEngine",
-    "template_engine",
-    # Modular components
+    "ComponentType",
+    "DocumentationAdorner",
+    "DocumentationPlater",
     "FunctionPlatingBundle",
     "ModularPlatingBundle",
     "ModularPlatingDiscovery",
-    "TemplateMetadataExtractor",
-    # Generation system
-    "DocumentationAdorner",
-    "DocumentationPlater",
-    # Registry
+    "PlateResult",
+    "Plating",
+    "PlatingContext",
     "PlatingRegistry",
+    "SchemaInfo",
+    "TemplateMetadataExtractor",
+    "ValidationResult",
     "get_plating_registry",
-    "reset_plating_registry",
-    # Foundation decorators
+    "plating",
     "plating_metrics",
+    "reset_plating_registry",
+    "template_engine",
     "with_circuit_breaker",
     "with_metrics",
     "with_retry",
     "with_timing",
-    # Version
-    "__version__",
 ]

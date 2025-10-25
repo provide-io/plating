@@ -37,7 +37,7 @@ def auto_detect_package_name() -> str | None:
                 logger.debug("Neither tomllib nor tomli available for parsing pyproject.toml")
                 return None
 
-        with open(pyproject_path, "rb") as f:
+        with pyproject_path.open("rb") as f:
             pyproject = tomllib.load(f)
 
         # Try to get package name from [project] section
@@ -68,13 +68,13 @@ def auto_detect_provider_name() -> str | None:
                 except ImportError:
                     pass
                 else:
-                    with open(pyproject_path, "rb") as f:
+                    with pyproject_path.open("rb") as f:
                         pyproject = tomllib.load(f)
                     if "tool" in pyproject and "plating" in pyproject["tool"]:
                         if "provider_name" in pyproject["tool"]["plating"]:
                             return pyproject["tool"]["plating"]["provider_name"]
             else:
-                with open(pyproject_path, "rb") as f:
+                with pyproject_path.open("rb") as f:
                     pyproject = tomllib.load(f)
                 if "tool" in pyproject and "plating" in pyproject["tool"]:
                     if "provider_name" in pyproject["tool"]["plating"]:
