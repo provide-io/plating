@@ -23,7 +23,7 @@ from .types import ValidationResult
 class MarkdownValidator:
     """Markdown validation using pymarkdownlnt API."""
 
-    def __init__(self, config_file: Path | None = None, strict_mode: bool = True):
+    def __init__(self, config_file: Path | None = None, strict_mode: bool = True) -> None:
         """Initialize markdown validator.
 
         Args:

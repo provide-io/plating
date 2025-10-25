@@ -50,7 +50,7 @@ def auto_detect_package_name() -> str | None:
         return None
 
 
-def _load_tomllib_module():
+def _load_tomllib_module() -> type | None:
     """Load tomllib or tomli module.
 
     Returns:
@@ -256,61 +256,6 @@ def adorn_command(
         sys.exit(exit_code)
 
 
-@main.command("plate")
-@click.option(
-    "--output-dir",
-    type=click.Path(path_type=Path),
-    default=Path("docs"),
-    help="Output directory for documentation.",
-)
-@click.option(
-    "--component-type",
-    type=click.Choice(["resource", "data_source", "function", "provider"]),
-    multiple=True,
-    help="Component types to plate (can be used multiple times).",
-)
-@click.option(
-    "--provider-name",
-    type=str,
-    help="Provider name (auto-detected from package name if not provided).",
-)
-@click.option(
-    "--package-name",
-    type=str,
-    help="Filter to specific package (default: search all installed packages).",
-)
-@click.option(
-    "--force",
-    is_flag=True,
-    help="Force overwrite existing files.",
-)
-@click.option(
-    "--validate/--no-validate",
-    default=True,
-    help="Enable/disable markdown validation.",
-)
-@click.option(
-    "--project-root",
-    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
-    help="Project root directory (auto-detected if not provided).",
-)
-@click.option(
-    "--generate-examples",
-    is_flag=True,
-    help="Generate executable example files alongside documentation.",
-)
-@click.option(
-    "--examples-dir",
-    type=click.Path(path_type=Path),
-    default=Path("examples"),
-    help="Output directory for compiled examples (default: examples).",
-)
-@click.option(
-    "--grouped-examples-dir",
-    type=click.Path(path_type=Path),
-    default=Path("examples/integration"),
-    help="Directory for grouped/cross-component examples (default: examples/integration).",
-)
 def _generate_examples_if_requested(
     api: "Plating",
     generate_examples: bool,
@@ -395,6 +340,61 @@ def _print_plate_success(result: "PlateResult") -> None:
             pout(f"  ... and {len(result.output_files) - 10} more")
 
 
+@main.command("plate")
+@click.option(
+    "--output-dir",
+    type=click.Path(path_type=Path),
+    default=Path("docs"),
+    help="Output directory for documentation.",
+)
+@click.option(
+    "--component-type",
+    type=click.Choice(["resource", "data_source", "function", "provider"]),
+    multiple=True,
+    help="Component types to plate (can be used multiple times).",
+)
+@click.option(
+    "--provider-name",
+    type=str,
+    help="Provider name (auto-detected from package name if not provided).",
+)
+@click.option(
+    "--package-name",
+    type=str,
+    help="Filter to specific package (default: search all installed packages).",
+)
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Force overwrite existing files.",
+)
+@click.option(
+    "--validate/--no-validate",
+    default=True,
+    help="Enable/disable markdown validation.",
+)
+@click.option(
+    "--project-root",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    help="Project root directory (auto-detected if not provided).",
+)
+@click.option(
+    "--generate-examples",
+    is_flag=True,
+    help="Generate executable example files alongside documentation.",
+)
+@click.option(
+    "--examples-dir",
+    type=click.Path(path_type=Path),
+    default=Path("examples"),
+    help="Output directory for compiled examples (default: examples).",
+)
+@click.option(
+    "--grouped-examples-dir",
+    type=click.Path(path_type=Path),
+    default=Path("examples/integration"),
+    help="Directory for grouped/cross-component examples (default: examples/integration).",
+)
 def plate_command(
     output_dir: Path,
     component_type: tuple[str, ...],

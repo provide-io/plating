@@ -15,7 +15,7 @@ from provide.foundation.resilience import CircuitState, SyncCircuitBreaker
 class MarkdownLinter:
     """Handles markdown linting for generated documentation."""
 
-    def __init__(self, config_file: Path | None = None):
+    def __init__(self, config_file: Path | None = None) -> None:
         self.config_file = config_file
         # Circuit breaker for markdownlint operations
         self.circuit_breaker = SyncCircuitBreaker(

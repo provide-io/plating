@@ -42,7 +42,7 @@ class PlatingError(FoundationError):
 class BundleError(PlatingError):
     """Error related to plating bundles."""
 
-    def __init__(self, bundle_name: str, message: str, bundle_path: Path | None = None):
+    def __init__(self, bundle_name: str, message: str, bundle_path: Path | None = None) -> None:
         self.bundle_name = bundle_name
         self.message = message
         self.bundle_path = bundle_path
@@ -67,7 +67,7 @@ class BundleError(PlatingError):
 class PlatingRenderError(PlatingError):
     """Error during documentation plating."""
 
-    def __init__(self, bundle_name: str, reason: str, output_path: Path | None = None):
+    def __init__(self, bundle_name: str, reason: str, output_path: Path | None = None) -> None:
         self.bundle_name = bundle_name
         self.reason = reason
         self.output_path = output_path
@@ -123,7 +123,7 @@ class AdorningError(PlatingError):
 class SchemaError(PlatingError):
     """Error related to schema extraction or processing."""
 
-    def __init__(self, provider_name: str, reason: str, component_name: str | None = None):
+    def __init__(self, provider_name: str, reason: str, component_name: str | None = None) -> None:
         self.provider_name = provider_name
         self.reason = reason
         self.component_name = component_name
@@ -193,7 +193,7 @@ class TemplateError(PlatingError):
 class DiscoveryError(PlatingError):
     """Error during bundle discovery."""
 
-    def __init__(self, package_name: str, reason: str, search_paths: list[Path] | None = None):
+    def __init__(self, package_name: str, reason: str, search_paths: list[Path] | None = None) -> None:
         self.package_name = package_name
         self.reason = reason
         self.search_paths = search_paths or []
@@ -226,7 +226,7 @@ class DiscoveryError(PlatingError):
 class ConfigurationError(PlatingError):
     """Error in plating configuration."""
 
-    def __init__(self, config_key: str, reason: str, config_file: Path | None = None):
+    def __init__(self, config_key: str, reason: str, config_file: Path | None = None) -> None:
         self.config_key = config_key
         self.reason = reason
         self.config_file = config_file
@@ -306,7 +306,7 @@ class ValidationError(PlatingError):
 class FileSystemError(PlatingError):
     """Error related to file system operations."""
 
-    def __init__(self, path: Path | str, operation: str, reason: str, caused_by: Exception | None = None):
+    def __init__(self, path: Path | str, operation: str, reason: str, caused_by: Exception | None = None) -> None:
         self.path = path
         self.operation = operation
         self.reason = reason

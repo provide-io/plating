@@ -18,7 +18,7 @@ from plating.templating.generator import TemplateGenerator
 class PlatingAdorner:
     """Adorns components with .plating directories."""
 
-    def __init__(self, package_name: str):
+    def __init__(self, package_name: str) -> None:
         """Initialize adorner with package name.
 
         Args:
@@ -95,7 +95,7 @@ class PlatingAdorner:
             logger.warning(f"Failed to get {dimension} components: {e}")
         return components
 
-    async def _adorn_component(self, name: str, component_type: str, component_class) -> bool:
+    async def _adorn_component(self, name: str, component_type: str, component_class: type) -> bool:
         """Adorn a single component with a .plating directory."""
         try:
             # Find the component's source file location
