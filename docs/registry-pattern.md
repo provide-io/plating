@@ -69,8 +69,8 @@ documented = api.registry.get_components_with_templates(
 Get insights into your provider's documentation:
 
 ```python
-# Via API
-stats = await api.get_registry_stats()
+# Via API (synchronous method)
+stats = api.get_registry_stats()
 
 # Stats include:
 # - Total components by type
@@ -205,10 +205,14 @@ async def explore_registry():
         print(f"Has template: {resource.has_main_template()}")
         print(f"Has examples: {resource.has_examples()}")
 
-    # Get registry statistics
-    stats = await api.get_registry_stats()
-    print(f"Total components: {stats['total']}")
-    print(f"Documented: {stats['documented']}")
+    # Get registry statistics (synchronous method)
+    stats = api.get_registry_stats()
+    print(f"Total components: {stats['total_components']}")
+
+    # Print stats by component type
+    for comp_type in ['resource', 'data_source', 'function']:
+        if comp_type in stats:
+            print(f"{comp_type}: {stats[comp_type]['with_templates']}/{stats[comp_type]['total']} documented")
 
 asyncio.run(explore_registry())
 ```

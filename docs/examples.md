@@ -43,11 +43,11 @@ async def generate_provider_docs():
     else:
         pout("ℹ️  All components already have templates")
 
-    # Step 2: Generate documentation
+    # Step 2: Generate documentation (validation runs automatically)
     pout("\n📄 Generating documentation...")
     plate_result = await api.plate(
         output_dir=Path("docs"),
-        validate_markdown=True,
+        validate_markdown=True,  # Validates during generation
         force=True  # Overwrite existing files
     )
 
@@ -63,27 +63,16 @@ async def generate_provider_docs():
             perr(f"   • {error}")
         return False
 
-    # Step 3: Validate documentation
-    pout("\n✓ Validating documentation...")
-    validate_result = await api.validate(output_dir=Path("docs"))
+    # Note: validate_markdown=True already validated during generation
+    # Optional: Run standalone validation if you need additional checks
+    # validate_result = await api.validate(output_dir=Path("docs"))
 
-    pout(f"📊 Validation Results:")
-    pout(f"   • Total files: {validate_result.total}")
-    pout(f"   • Passed: {validate_result.passed}")
-    pout(f"   • Failed: {validate_result.failed}")
-
-    if validate_result.failed > 0:
-        perr(f"\n❌ {validate_result.failed} files failed validation:")
-        for failure in validate_result.failures[:5]:
-            perr(f"   • {failure.file}: {failure.reason}")
-        return False
-
-    # Step 4: Generate statistics
-    stats = await api.get_registry_stats()
+    # Step 3: Generate statistics
+    stats = api.get_registry_stats()  # Note: This is a sync method, not async
     pout(f"\n📈 Documentation Coverage:")
-    pout(f"   • Resources: {stats['resources']['documented']}/{stats['resources']['total']}")
-    pout(f"   • Data Sources: {stats['data_sources']['documented']}/{stats['data_sources']['total']}")
-    pout(f"   • Functions: {stats['functions']['documented']}/{stats['functions']['total']}")
+    pout(f"   • Resources: {stats['resource']['total']} total, {stats['resource']['with_templates']} documented")
+    pout(f"   • Data Sources: {stats['data_source']['total']} total, {stats['data_source']['with_templates']} documented")
+    pout(f"   • Functions: {stats['function']['total']} total, {stats['function']['with_templates']} documented")
 
     pout(f"\n✨ Documentation generation complete!")
     return True
@@ -368,20 +357,25 @@ async def robust_generation():
     except TemplateError as e:
         logger.error(f"Template error in {e.template_path}:{e.line_number}")
         logger.error(f"  Reason: {e.reason}")
-        if e.context:
-            logger.error(f"  Context: {e.context}")
+        if e.template_context:
+            logger.error(f"  Context: {e.template_context}")
         return False
 
     except FileSystemError as e:
         logger.error(f"File system error with {e.path}")
         logger.error(f"  Operation: {e.operation}")
         logger.error(f"  Reason: {e.reason}")
+        if e.caused_by:
+            logger.error(f"  Caused by: {e.caused_by}")
         return False
 
     except ValidationError as e:
-        logger.error(f"Validation error: {e}")
-        for detail in e.details:
-            logger.error(f"  - {detail}")
+        logger.error(f"Validation error: {e.validation_name}")
+        logger.error(f"  Reason: {e.reason}")
+        if e.file_path:
+            logger.error(f"  File: {e.file_path}")
+        for failure in e.failures:
+            logger.error(f"  - {failure}")
         return False
 
     except PlatingError as e:

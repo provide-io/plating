@@ -70,18 +70,16 @@ async def generate_docs():
     )
     print(f"✅ Created {adorn_result.templates_generated} templates")
 
-    # Step 2: Generate documentation
+    # Step 2: Generate documentation (with automatic validation)
     plate_result = await api.plate(
         output_dir=Path("docs"),
-        validate_markdown=True
+        validate_markdown=True  # Validates during generation
     )
     print(f"📄 Generated {plate_result.files_generated} files")
 
-    # Step 3: Validate results
-    validate_result = await api.validate(
-        output_dir=Path("docs")
-    )
-    print(f"✓ Validation: {validate_result.passed}/{validate_result.total} passed")
+    # Optional: Run standalone validation if needed
+    # validate_result = await api.validate(output_dir=Path("docs"))
+    # print(f"✓ Validation: {validate_result.passed}/{validate_result.total} passed")
 
     return plate_result.success
 

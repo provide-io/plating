@@ -117,9 +117,12 @@ async def main():
     result = await api.adorn(component_types=[ComponentType.RESOURCE])
     print(f"Generated {result.templates_generated} templates")
 
-    # Plate documentation with validation
+    # Plate documentation (validation runs automatically if validate_markdown=True)
     result = await api.plate(output_dir=Path("docs"), validate_markdown=True)
     print(f"Generated {result.files_generated} files")
+
+    # Note: validate_markdown=True runs validation during generation
+    # No need to call validate() separately unless you want to run it standalone
 
 # Run the async main function
 asyncio.run(main())
