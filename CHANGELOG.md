@@ -41,17 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Authoring guide for plating bundles
 - Future proposals directory for enhancement ideas
 
-### Fixed
-- Removed incorrect TofuSoup project documentation (STATUS.md, CONFIGURATION.md, architecture/)
-- Corrected repository clone URL from garnish.git to plating.git
-- Fixed all command references to match actual CLI (adorn, plate, validate, info, stats)
-- Removed documentation for non-existent commands (scaffold, render, test)
-- Updated template function documentation to match implementation (schema, example, include, render)
-- Corrected CLI flag documentation (--force, --validate, --generate-examples)
-- Fixed terminology throughout documentation (garnish → plating, soup plating → plating)
-- Updated bundle structure examples to match actual output
-- Corrected configuration documentation (only provider_name currently supported)
-
 ## [0.0.1000] - 2025-10-25
 
 Initial pre-release version extracted from tofusoup project.
