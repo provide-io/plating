@@ -158,7 +158,9 @@ def main() -> None:
     type=str,
     help="Filter to specific package (default: search all installed packages).",
 )
-def adorn_command(component_type: tuple[str, ...], provider_name: str | None, package_name: str | None) -> None:
+def adorn_command(
+    component_type: tuple[str, ...], provider_name: str | None, package_name: str | None
+) -> None:
     """Create missing documentation templates and examples."""
 
     async def run() -> int:
@@ -537,5 +539,3 @@ def stats_command(package_name: str | None) -> None:
 
 if __name__ == "__main__":
     main()
-
-

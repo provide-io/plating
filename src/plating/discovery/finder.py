@@ -50,6 +50,7 @@ class PlatingDiscovery:
 
         # Get all site-packages and source directories
         import sys
+
         search_roots = set()
 
         for path_str in sys.path:
@@ -89,7 +90,7 @@ class PlatingDiscovery:
                                 bundle = PlatingBundle(
                                     name=component_name,
                                     plating_dir=plating_dir,
-                                    component_type=bundle_component_type
+                                    component_type=bundle_component_type,
                                 )
                                 all_bundles.append(bundle)
                         else:
@@ -97,7 +98,7 @@ class PlatingDiscovery:
                             bundle = PlatingBundle(
                                 name=component_name,
                                 plating_dir=plating_dir,
-                                component_type=bundle_component_type
+                                component_type=bundle_component_type,
                             )
                             all_bundles.append(bundle)
             except Exception:

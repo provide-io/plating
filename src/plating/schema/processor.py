@@ -77,7 +77,9 @@ class SchemaProcessor:
         functions = self._get_components_by_dimension("function")
 
         total_components = len(providers) + len(resources) + len(data_sources) + len(functions)
-        pout(f"   Found {len(resources)} resources, {len(data_sources)} data sources, {len(functions)} functions")
+        pout(
+            f"   Found {len(resources)} resources, {len(data_sources)} data sources, {len(functions)} functions"
+        )
 
         provider_schema = {
             "provider_schemas": {
