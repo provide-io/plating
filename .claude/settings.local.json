@@ -35,7 +35,8 @@
       "Bash(done)",
       "Bash(uv run ruff check:*)",
       "Bash(uv run mypy:*)",
-      "Bash(uv run:*)"
+      "Bash(uv run:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": [],
