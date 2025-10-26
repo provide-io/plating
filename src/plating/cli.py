@@ -37,7 +37,7 @@ def auto_detect_package_name() -> str | None:
                 logger.debug("Neither tomllib nor tomli available for parsing pyproject.toml")
                 return None
 
-        with open(pyproject_path, "rb") as f:
+        with pyproject_path.open("rb") as f:
             pyproject = tomllib.load(f)
 
         # Try to get package name from [project] section
@@ -50,6 +50,73 @@ def auto_detect_package_name() -> str | None:
         return None
 
 
+def _load_tomllib_module() -> type | None:
+    """Load tomllib or tomli module.
+
+    Returns:
+        tomllib module or None if not available
+    """
+    try:
+        import tomllib
+        return tomllib
+    except ImportError:
+        try:
+            import tomli as tomllib  # type: ignore[import-not-found,no-redef]
+            return tomllib
+        except ImportError:
+            return None
+
+
+def _get_provider_name_from_pyproject(pyproject_path: Path) -> str | None:
+    """Get provider name from pyproject.toml if configured.
+
+    Args:
+        pyproject_path: Path to pyproject.toml file
+
+    Returns:
+        Provider name if found, None otherwise
+    """
+    if not pyproject_path.exists():
+        return None
+
+    tomllib = _load_tomllib_module()
+    if tomllib is None:
+        return None
+
+    try:
+        with pyproject_path.open("rb") as f:
+            pyproject = tomllib.load(f)
+
+        # Check for [tool.plating] provider_name
+        if "tool" in pyproject and "plating" in pyproject["tool"]:
+            if "provider_name" in pyproject["tool"]["plating"]:
+                return pyproject["tool"]["plating"]["provider_name"]
+    except Exception as e:
+        logger.debug(f"Failed to read pyproject.toml: {e}")
+
+    return None
+
+
+def _extract_provider_from_package_name(package_name: str) -> str | None:
+    """Extract provider name from package name patterns.
+
+    Args:
+        package_name: Package name to parse
+
+    Returns:
+        Provider name if pattern matches, None otherwise
+    """
+    # Handle terraform-provider-{name} pattern
+    if package_name.startswith("terraform-provider-"):
+        return package_name.replace("terraform-provider-", "")
+
+    # Handle {name}-provider pattern
+    if package_name.endswith("-provider"):
+        return package_name.replace("-provider", "")
+
+    return None
+
+
 def auto_detect_provider_name() -> str | None:
     """Auto-detect provider name from package name or pyproject.toml.
 
@@ -59,36 +126,14 @@ def auto_detect_provider_name() -> str | None:
     try:
         # First, check if there's explicit config in pyproject.toml
         pyproject_path = Path.cwd() / "pyproject.toml"
-        if pyproject_path.exists():
-            try:
-                import tomllib
-            except ImportError:
-                try:
-                    import tomli as tomllib  # type: ignore[import-not-found,no-redef]
-                except ImportError:
-                    pass
-                else:
-                    with open(pyproject_path, "rb") as f:
-                        pyproject = tomllib.load(f)
-                    if "tool" in pyproject and "plating" in pyproject["tool"]:
-                        if "provider_name" in pyproject["tool"]["plating"]:
-                            return pyproject["tool"]["plating"]["provider_name"]
-            else:
-                with open(pyproject_path, "rb") as f:
-                    pyproject = tomllib.load(f)
-                if "tool" in pyproject and "plating" in pyproject["tool"]:
-                    if "provider_name" in pyproject["tool"]["plating"]:
-                        return pyproject["tool"]["plating"]["provider_name"]
+        provider_name = _get_provider_name_from_pyproject(pyproject_path)
+        if provider_name:
+            return provider_name
 
         # Try to extract from package name pattern
         package_name = auto_detect_package_name()
         if package_name:
-            # Handle terraform-provider-{name} pattern
-            if package_name.startswith("terraform-provider-"):
-                return package_name.replace("terraform-provider-", "")
-            # Handle {name}-provider pattern
-            if package_name.endswith("-provider"):
-                return package_name.replace("-provider", "")
+            return _extract_provider_from_package_name(package_name)
 
         return None
     except Exception as e:
@@ -211,6 +256,90 @@ def adorn_command(
         sys.exit(exit_code)
 
 
+def _generate_examples_if_requested(
+    api: "Plating",
+    generate_examples: bool,
+    provider_name: str | None,
+    examples_dir: Path,
+    types: list["ComponentType"] | None,
+    grouped_examples_dir: Path,
+) -> None:
+    """Generate executable examples if requested.
+
+    Args:
+        api: Plating API instance
+        generate_examples: Whether to generate examples
+        provider_name: Provider name for examples
+        examples_dir: Directory for single-component examples
+        types: Component types to process
+        grouped_examples_dir: Directory for grouped examples
+    """
+    if not generate_examples:
+        return
+
+    from plating.example_compiler import ExampleCompiler
+
+    pout("📁 Generating executable examples...")
+
+    # Get all bundles with examples
+    bundles_with_examples = []
+    for component_type_enum in types or list(ComponentType):
+        bundles = api.registry.get_components_with_templates(component_type_enum)
+        bundles_with_examples.extend([b for b in bundles if b.has_examples()])
+
+    if not bundles_with_examples:
+        pout("ℹ️  No components with examples found")
+        return
+
+    compiler = ExampleCompiler(
+        provider_name=provider_name or "pyvider",
+        provider_version="0.0.5",
+    )
+
+    compilation_result = compiler.compile_examples(
+        bundles_with_examples, examples_dir, types, grouped_examples_dir
+    )
+
+    total_examples = (
+        compilation_result.examples_generated + compilation_result.grouped_examples_generated
+    )
+
+    if total_examples > 0:
+        pout(
+            f"✅ Generated {compilation_result.examples_generated} single-component "
+            f"and {compilation_result.grouped_examples_generated} grouped examples "
+            f"(total: {total_examples})"
+        )
+        pout("📂 Example files:")
+        for example_file in compilation_result.output_files[:5]:  # Show first 5
+            pout(f"  • {example_file}")
+        if len(compilation_result.output_files) > 5:
+            pout(f"  ... and {len(compilation_result.output_files) - 5} more")
+    else:
+        pout("ℹ️  No examples found to compile")
+
+    if compilation_result.errors:
+        perr("⚠️ Some example compilation errors:")
+        for error in compilation_result.errors:
+            perr(f"  • {error}")
+
+
+def _print_plate_success(result: "PlateResult") -> None:
+    """Print success message for plate operation.
+
+    Args:
+        result: Plate operation result
+    """
+    pout(f"✅ Generated {result.files_generated} files in {result.duration_seconds:.2f}s")
+    pout(f"📦 Processed {result.bundles_processed} bundles")
+    if result.output_files:
+        pout("📄 Generated files:")
+        for file in result.output_files[:10]:  # Show first 10
+            pout(f"  • {file}")
+        if len(result.output_files) > 10:
+            pout(f"  ... and {len(result.output_files) - 10} more")
+
+
 @main.command("plate")
 @click.option(
     "--output-dir",
@@ -303,62 +432,10 @@ def plate_command(
             result = await api.plate(final_output_dir, types, force, validate, project_root)
 
             if result.success:
-                pout(f"✅ Generated {result.files_generated} files in {result.duration_seconds:.2f}s")
-                pout(f"📦 Processed {result.bundles_processed} bundles")
-                if result.output_files:
-                    pout("📄 Generated files:")
-                    for file in result.output_files[:10]:  # Show first 10
-                        pout(f"  • {file}")
-                    if len(result.output_files) > 10:
-                        pout(f"  ... and {len(result.output_files) - 10} more")
-
-                # Generate executable examples if requested
-                if generate_examples:
-                    from plating.example_compiler import ExampleCompiler
-
-                    pout("📁 Generating executable examples...")
-
-                    # Get all bundles with examples
-                    bundles_with_examples = []
-                    for component_type_enum in types or list(ComponentType):
-                        bundles = api.registry.get_components_with_templates(component_type_enum)
-                        bundles_with_examples.extend([b for b in bundles if b.has_examples()])
-
-                    if bundles_with_examples:
-                        compiler = ExampleCompiler(
-                            provider_name=provider_name or "pyvider",
-                            provider_version="0.0.5",
-                        )
-
-                        compilation_result = compiler.compile_examples(
-                            bundles_with_examples, examples_dir, types, grouped_examples_dir
-                        )
-
-                        total_examples = (
-                            compilation_result.examples_generated
-                            + compilation_result.grouped_examples_generated
-                        )
-                        if total_examples > 0:
-                            pout(
-                                f"✅ Generated {compilation_result.examples_generated} single-component "
-                                f"and {compilation_result.grouped_examples_generated} grouped examples "
-                                f"(total: {total_examples})"
-                            )
-                            pout("📂 Example files:")
-                            for example_file in compilation_result.output_files[:5]:  # Show first 5
-                                pout(f"  • {example_file}")
-                            if len(compilation_result.output_files) > 5:
-                                pout(f"  ... and {len(compilation_result.output_files) - 5} more")
-                        else:
-                            pout("ℹ️  No examples found to compile")
-
-                        if compilation_result.errors:
-                            perr("⚠️ Some example compilation errors:")
-                            for error in compilation_result.errors:
-                                perr(f"  • {error}")
-                    else:
-                        pout("ℹ️  No components with examples found")
-
+                _print_plate_success(result)
+                _generate_examples_if_requested(
+                    api, generate_examples, provider_name, examples_dir, types, grouped_examples_dir
+                )
                 return 0
 
             else:

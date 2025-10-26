@@ -83,11 +83,11 @@ class SchemaInfo:
     """Structured schema information."""
 
     description: str = ""
-    attributes: dict[str, dict] = field(factory=dict)
-    blocks: dict[str, dict] = field(factory=dict)
+    attributes: dict[str, dict[str, Any]] = field(factory=dict)
+    blocks: dict[str, dict[str, Any]] = field(factory=dict)
 
     @classmethod
-    def from_dict(cls, schema_dict: dict) -> "SchemaInfo":
+    def from_dict(cls, schema_dict: dict[str, Any]) -> "SchemaInfo":
         """Create SchemaInfo from a raw schema dictionary."""
         if not schema_dict:
             return cls()
@@ -203,9 +203,9 @@ class PlatingCLIContext(CLIContext):
         self.signature = signature
         self.arguments = arguments
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self, include_sensitive: bool = False) -> dict[str, Any]:
         """Convert to dictionary for template rendering."""
-        base_dict = super().to_dict()
+        base_dict = super().to_dict(include_sensitive=include_sensitive)
         plating_dict = {
             "name": self.name,
             "component_type": self.component_type.display_name,

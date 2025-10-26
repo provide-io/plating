@@ -19,15 +19,12 @@ from plating.schema.helpers import (
 from plating.schema.processor import SchemaProcessor
 
 __all__ = [
-    # Processor
     "SchemaProcessor",
-    # Helpers
     "extract_provider_schema",
+    "format_type_string",
     "get_component_schema",
     "get_component_schemas_from_hub",
     "get_function_schemas_from_hub",
-    # Formatters
-    "format_type_string",
     "parse_function_arguments",
     "parse_function_signature",
     "parse_schema_to_markdown",

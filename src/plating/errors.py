@@ -5,12 +5,15 @@ Custom error types for plating with context and user-friendly messages.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Type
 
 try:
-    from provide.foundation.errors import FoundationError
+    from provide.foundation.errors import FoundationError as _BaseError
 except ImportError:
-    FoundationError = Exception
+    _BaseError = Exception
+
+# Type alias - base class for all plating errors
+FoundationError: Type[Exception] = _BaseError
 
 
 class PlatingError(FoundationError):
@@ -39,7 +42,7 @@ class PlatingError(FoundationError):
 class BundleError(PlatingError):
     """Error related to plating bundles."""
 
-    def __init__(self, bundle_name: str, message: str, bundle_path: Path | None = None):
+    def __init__(self, bundle_name: str, message: str, bundle_path: Path | None = None) -> None:
         self.bundle_name = bundle_name
         self.message = message
         self.bundle_path = bundle_path
@@ -64,7 +67,7 @@ class BundleError(PlatingError):
 class PlatingRenderError(PlatingError):
     """Error during documentation plating."""
 
-    def __init__(self, bundle_name: str, reason: str, output_path: Path | None = None):
+    def __init__(self, bundle_name: str, reason: str, output_path: Path | None = None) -> None:
         self.bundle_name = bundle_name
         self.reason = reason
         self.output_path = output_path
@@ -120,7 +123,7 @@ class AdorningError(PlatingError):
 class SchemaError(PlatingError):
     """Error related to schema extraction or processing."""
 
-    def __init__(self, provider_name: str, reason: str, component_name: str | None = None):
+    def __init__(self, provider_name: str, reason: str, component_name: str | None = None) -> None:
         self.provider_name = provider_name
         self.reason = reason
         self.component_name = component_name
@@ -150,12 +153,12 @@ class TemplateError(PlatingError):
         template_path: Path | str,
         reason: str,
         line_number: int | None = None,
-        context: str | None = None,
+        template_context: str | None = None,
     ):
         self.template_path = template_path
         self.reason = reason
         self.line_number = line_number
-        self.context = context
+        self.template_context = template_context
         super().__init__(f"Template error in '{template_path}': {reason}")
 
     def to_user_message(self) -> str:
@@ -164,8 +167,8 @@ class TemplateError(PlatingError):
         if self.line_number:
             parts.append(f" at line {self.line_number}")
         parts.append(f": {self.reason}")
-        if self.context:
-            parts.append(f"\n  {self.context}")
+        if self.template_context:
+            parts.append(f"\n  {self.template_context}")
 
         parts.append("\n\n💡 How to fix:")
         parts.append(f"\n  • Check template syntax at: {self.template_path}")
@@ -190,7 +193,7 @@ class TemplateError(PlatingError):
 class DiscoveryError(PlatingError):
     """Error during bundle discovery."""
 
-    def __init__(self, package_name: str, reason: str, search_paths: list[Path] | None = None):
+    def __init__(self, package_name: str, reason: str, search_paths: list[Path] | None = None) -> None:
         self.package_name = package_name
         self.reason = reason
         self.search_paths = search_paths or []
@@ -223,7 +226,7 @@ class DiscoveryError(PlatingError):
 class ConfigurationError(PlatingError):
     """Error in plating configuration."""
 
-    def __init__(self, config_key: str, reason: str, config_file: Path | None = None):
+    def __init__(self, config_key: str, reason: str, config_file: Path | None = None) -> None:
         self.config_key = config_key
         self.reason = reason
         self.config_file = config_file
@@ -303,7 +306,7 @@ class ValidationError(PlatingError):
 class FileSystemError(PlatingError):
     """Error related to file system operations."""
 
-    def __init__(self, path: Path | str, operation: str, reason: str, caused_by: Exception | None = None):
+    def __init__(self, path: Path | str, operation: str, reason: str, caused_by: Exception | None = None) -> None:
         self.path = path
         self.operation = operation
         self.reason = reason
