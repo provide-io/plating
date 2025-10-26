@@ -550,7 +550,9 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
         actual_provider_name = get_provider_name(provider_name)
         actual_package_name = get_package_name(package_name)
 
-        if actual_package_name is None:
+        if actual_package_name:
+            pout(f"🔍 Filtering to package: {actual_package_name}")
+        else:
             pout("🌍 Discovering components from ALL installed packages")
 
         context = PlatingContext(provider_name=actual_provider_name)
@@ -563,13 +565,11 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
         pout(f"  • Component types: {', '.join(stats.get('component_types', []))}")
 
         for comp_type in stats.get("component_types", []):
-            count = stats.get(f"{comp_type}_count", 0)
-            with_templates = stats.get(f"{comp_type}_with_templates", 0)
-            with_examples = stats.get(f"{comp_type}_with_examples", 0)
+            count = stats.get(comp_type, {}).get('total', 0)
+            with_templates = stats.get(comp_type, {}).get('with_templates', 0)
 
             pout(
-                f"  • {comp_type}: {count} total, {with_templates} with templates, "
-                f"{with_examples} with examples"
+                f"  • {comp_type}: {count} total, {with_templates} with templates"
             )
 
     asyncio.run(run())
@@ -587,7 +587,9 @@ def stats_command(package_name: str | None) -> None:
     async def run() -> None:
         actual_package_name = get_package_name(package_name)
 
-        if actual_package_name is None:
+        if actual_package_name:
+            pout(f"🔍 Filtering to package: {actual_package_name}")
+        else:
             pout("🌍 Discovering components from ALL installed packages")
 
         # Stats command doesn't need provider context
@@ -603,12 +605,10 @@ def stats_command(package_name: str | None) -> None:
         if component_types:
             pout("\n📦 Components by type:")
             for comp_type in sorted(component_types):
-                count = stats.get(f"{comp_type}_count", 0)
-                with_templates = stats.get(f"{comp_type}_with_templates", 0)
-                with_examples = stats.get(f"{comp_type}_with_examples", 0)
+                count = stats.get(comp_type, {}).get('total', 0)
+                with_templates = stats.get(comp_type, {}).get('with_templates', 0)
                 pout(
-                    f"   {comp_type}: {count} total, {with_templates} with templates, "
-                    f"{with_examples} with examples"
+                    f"   {comp_type}: {count} total, {with_templates} with templates"
                 )
 
     asyncio.run(run())

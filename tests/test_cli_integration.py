@@ -364,9 +364,9 @@ class TestInfoCommand:
         mock_api.get_registry_stats.return_value = {
             "total_components": 25,
             "component_types": ["resource", "data_source", "function"],
-            "resource_count": 15,
-            "data_source_count": 8,
-            "function_count": 2,
+            "resource": {"total": 15, "with_templates": 10},
+            "data_source": {"total": 8, "with_templates": 6},
+            "function": {"total": 2, "with_templates": 1},
         }
         mock_plating_class.return_value = mock_api
 
@@ -383,7 +383,7 @@ class TestInfoCommand:
         mock_api.get_registry_stats.return_value = {
             "total_components": 10,
             "component_types": ["resource"],
-            "resource_count": 10,
+            "resource": {"total": 10, "with_templates": 8},
         }
         mock_plating_class.return_value = mock_api
 
@@ -400,8 +400,8 @@ class TestInfoCommand:
         mock_api.get_registry_stats.return_value = {
             "total_components": 5,
             "component_types": ["resource", "data_source"],
-            "resource_count": 3,
-            "data_source_count": 2,
+            "resource": {"total": 3, "with_templates": 2},
+            "data_source": {"total": 2, "with_templates": 1},
         }
         mock_plating_class.return_value = mock_api
 
@@ -422,9 +422,9 @@ class TestStatsCommand:
         mock_api.get_registry_stats.return_value = {
             "total_components": 40,
             "component_types": ["resource", "data_source", "function"],
-            "resource_count": 25,
-            "data_source_count": 12,
-            "function_count": 3,
+            "resource": {"total": 25, "with_templates": 10},
+            "data_source": {"total": 12, "with_templates": 8},
+            "function": {"total": 3, "with_templates": 2},
         }
         mock_plating_class.return_value = mock_api
 
@@ -442,7 +442,7 @@ class TestStatsCommand:
         mock_api.get_registry_stats.return_value = {
             "total_components": 15,
             "component_types": ["resource"],
-            "resource_count": 15,
+            "resource": {"total": 15, "with_templates": 12},
         }
         mock_plating_class.return_value = mock_api
 

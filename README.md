@@ -2,7 +2,7 @@
 
 > A sophisticated documentation generation system for Terraform/OpenTofu providers
 
-Plating is a powerful documentation system that brings culinary elegance to technical documentation. Just as a chef carefully plates and garnishes a dish, Plating helps you present your Terraform provider documentation beautifully.
+Plating is a powerful documentation system that brings culinary elegance to technical documentation. Just as a chef carefully plates a dish, Plating helps you present your Terraform provider documentation beautifully.
 
 ## ✨ Features
 
@@ -37,7 +37,11 @@ uv self update
 
 ## 🚀 Getting Started
 
-### Development Setup
+### Installation
+
+**Note:** Plating is currently in pre-release. Install from source for now.
+
+> **Version Info:** The version `0.0.1000-0` is a pre-release identifier indicating active development. Expect the API and features to evolve as the project matures.
 
 ```bash
 # Clone the repository
@@ -56,19 +60,22 @@ source .venv/bin/activate  # On Linux/macOS
 uv sync
 ```
 
-### Installing as a Package
+**Coming soon to PyPI:**
+```bash
+# PyPI installation (not yet available)
+# uv add plating
+```
+
+### Quick Install from Git
 
 ```bash
-# Install from PyPI
-uv add plating
-
-# Or install from source
+# Install directly from GitHub
 uv add git+https://github.com/provide-io/plating.git
 ```
 
 ## 📚 Usage Examples
 
-### 1. Dress Your Components
+### 1. Adorn Your Components
 
 First, create `.plating` bundles for your undocumented components:
 
@@ -118,13 +125,20 @@ Each component has a `.plating` bundle:
 my_resource.plating/
 ├── docs/
 │   ├── my_resource.tmpl.md    # Main template
-│   └── _partial.md             # Reusable partials
+│   └── _partial.md             # Reusable partials (optional)
 ├── examples/
 │   ├── basic.tf                # Example configurations
-│   └── advanced.tf
-└── fixtures/                   # Test data
-    └── test_config.json
+│   ├── advanced.tf             # (optional)
+│   └── full_stack/             # Grouped examples (optional)
+│       └── main.tf             # Required entry point
+└── fixtures/                   # Test fixtures (optional)
+    └── data.json               # Test data files
 ```
+
+**Note:** The `examples/` directory can contain:
+- `.tf` files for resources/data sources (flat examples)
+- `.py` files for Python API examples
+- Subdirectories with `main.tf` for grouped examples that combine multiple components
 
 ## 🎨 Template Functions
 
@@ -147,15 +161,57 @@ plating validate
 plating validate --output-dir ./documentation
 ```
 
+## 🛡️ Foundation Integration
+
+Plating is built on provide.foundation patterns for enterprise-grade reliability:
+
+- **🔄 Automatic Retries**: Built-in retry policies with exponential backoff for I/O operations
+- **📊 Metrics & Observability**: Integrated performance tracking and operation metrics
+- **⚡ Circuit Breakers**: Prevents cascading failures in distributed systems
+- **📝 Structured Logging**: Foundation logger integration with contextual information
+- **🚀 Async-First Design**: High-performance async operations throughout
+
+## 🔧 Advanced Usage
+
+### Filter to Specific Package
+
+By default, Plating searches all installed packages for components. You can filter to a specific package:
+
+```bash
+plating adorn --package-name pyvider.components
+plating plate --package-name pyvider.components
+```
+
+### Generate Executable Examples
+
+Generate standalone executable Terraform examples alongside documentation:
+
+```bash
+plating plate --generate-examples
+```
+
+Customize example output directories:
+
+```bash
+plating plate --generate-examples \
+  --examples-dir examples/ \
+  --grouped-examples-dir examples/integration/
+```
+
 ## 🔧 Configuration
 
 Configure Plating in your `pyproject.toml`:
 
 ```toml
 [tool.plating]
+# Provider name (auto-detected if not specified)
 provider_name = "my_provider"
-output_dir = "docs"
-component_types = ["resource", "data_source", "function"]
+```
+
+**Note:** Currently only `provider_name` can be configured in `pyproject.toml`. Other options like `output_dir` and `component_types` must be passed as CLI flags:
+
+```bash
+plating plate --output-dir docs --component-type resource
 ```
 
 ## 🏗️ Architecture

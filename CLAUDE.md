@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Plating is a documentation generation system for Terraform/OpenTofu providers that was extracted from the tofusoup project. It automatically generates Terraform Registry-compliant documentation by discovering components via pyvider.hub and processing Jinja2 templates.
+Plating is a documentation generation system for Terraform/OpenTofu providers. It automatically generates Terraform Registry-compliant documentation by discovering components via pyvider.hub and processing Jinja2 templates.
 
 ## Development Setup
 
@@ -30,7 +30,7 @@ uv pip install -e ".[dev]"
 ```bash
 uv run pytest tests                  # Run all tests
 uv run pytest tests/test_cli.py      # Run specific test file
-uv run pytest -k test_scaffold       # Run tests matching pattern
+uv run pytest -k test_adorn          # Run tests matching pattern
 uv run pytest -xvs                   # Stop on first failure, verbose output
 ```
 
@@ -67,9 +67,8 @@ uv run mypy src/plating                 # Type checking
 - Handles resources, data sources, and functions differently
 
 **Test Runner** (`test_runner.py`)
-- Simplified version without tofusoup's stir dependency
 - Executes terraform init/apply/destroy on example files
-- Sequential execution (no parallel support after stir removal)
+- Sequential execution only
 
 ### Key Design Patterns
 
@@ -108,8 +107,8 @@ uv run mypy src/plating                 # Type checking
 ```bash
 # Test without installation
 python -m plating.cli --help
-python -m plating.cli scaffold --component-type resource
-python -m plating.cli render --output-dir docs
+python -m plating.cli adorn --component-type resource
+python -m plating.cli plate --output-dir docs
 ```
 
 ### Working with Sibling Packages
@@ -122,12 +121,12 @@ uv pip install -e ../pyvider-telemetry
 
 ## Testing Philosophy
 
-- CLI tests mock the underlying functions (scaffold_plating, generate_docs)
-- No integration tests for actual Terraform execution after stir removal
+- CLI tests mock the underlying functions
 - Focus on unit testing individual components
+- Integration tests use mocked dependencies
 
 ## Known Limitations
 
-1. Test runner is simplified - no parallel execution or rich UI (was dependent on tofusoup.stir)
+1. Test runner supports sequential execution only - no parallel execution
 2. Tightly coupled to pyvider ecosystem for component discovery
 3. No plugin system for alternative schema extractors

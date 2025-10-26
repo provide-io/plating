@@ -1,34 +1,43 @@
 # Plating Documentation
 
-Welcome to Plating - A sophisticated documentation generation system for Terraform/OpenTofu providers.
+Welcome to Plating - An async-first documentation generation system for Terraform/OpenTofu providers.
 
-## Features
+## What is Plating?
 
-Plating provides:
+Plating is a modern documentation generator that transforms your Terraform provider code into beautiful, Terraform Registry-compliant documentation. Built on foundation patterns for enterprise reliability, Plating makes documentation as delightful as a well-plated dish.
 
-- **Automatic Documentation Generation**: Generate comprehensive docs from your provider code
-- **Smart Component Adorning**: Automatically create documentation templates for undocumented components
-- **Beautiful Plating**: Render documentation with examples, schemas, and rich formatting
-- **Component Discovery**: Automatically find and document resources, data sources, and functions
-- **Jinja2 Templates**: Flexible templating with custom functions and filters
-- **Schema Integration**: Extract and format provider schemas automatically
+## Key Features
+
+- **🚀 Async-First Architecture**: High-performance parallel processing
+- **📝 Automatic Template Generation**: Create documentation templates automatically
+- **🎨 Beautiful Documentation**: Generate Terraform Registry-compliant markdown
+- **🔍 Smart Discovery**: Automatically find components via foundation.hub
+- **⚡ Foundation Integration**: Built-in retry policies, metrics, and circuit breakers
+- **📊 Registry Pattern**: Centralized component management and statistics
+- **🛡️ Enterprise Ready**: Production-grade resilience and observability
 
 ## Quick Start
 
 ### Installation
 
+**Note:** Plating is currently in pre-release (v0.0.1000-0). Install from source:
+
 <div class="termy">
 
 ```console
-$ uv add plating
-// Installing plating...
+$ git clone https://github.com/provide-io/plating.git
+$ cd plating
+$ uv sync
+// Installing dependencies...
 Successfully installed plating
 
-$ plating --version
-plating, version 0.1.0
+$ plating --help
+Plating - Modern async documentation generator
 ```
 
 </div>
+
+**Coming soon to PyPI:** `uv add plating`
 
 ### Adorn Components with Templates
 
@@ -90,26 +99,72 @@ $ plating validate --output-dir docs/
 ### Python API Usage
 
 ```python
-from plating import Plating, PlatingContext, ComponentType
+import asyncio
+from plating import Plating, PlatingContext
+from plating.types import ComponentType
+from pathlib import Path
 
-# Initialize plating API
-context = PlatingContext(provider_name="my_provider")
-api = Plating(context)
+async def main():
+    # Initialize plating API with foundation context
+    context = PlatingContext(
+        provider_name="my_provider",
+        log_level="INFO",
+        no_color=False
+    )
+    api = Plating(context, package_name="pyvider.components")
 
-# Adorn components with templates
-result = await api.adorn(component_types=[ComponentType.RESOURCE])
+    # Adorn components with templates
+    result = await api.adorn(component_types=[ComponentType.RESOURCE])
+    print(f"Generated {result.templates_generated} templates")
 
-# Plate documentation
-result = await api.plate(output_dir=Path("docs"))
+    # Plate documentation (validation runs automatically if validate_markdown=True)
+    result = await api.plate(output_dir=Path("docs"), validate_markdown=True)
+    print(f"Generated {result.files_generated} files")
+
+    # Note: validate_markdown=True runs validation during generation
+    # No need to call validate() separately unless you want to run it standalone
+
+# Run the async main function
+asyncio.run(main())
 ```
 
-## API Reference
+## Documentation
 
-For complete API documentation, see the [API Reference](api/index.md).
+### Getting Started
+- **[Quick Start](quick-start.md)** - Get up and running in 5 minutes
+- **[Authoring Bundles](authoring-bundles.md)** - Create custom documentation
+- **[Examples](examples.md)** - Complete working examples
 
-## Component Types
+### Reference
+- **[API Reference](api-reference.md)** - Complete Python API documentation
+- **[CLI Reference](cli-reference.md)** - Command-line interface and options
+- **[Registry Pattern](registry-pattern.md)** - Component discovery and management
+
+### Advanced Topics
+- **[Performance](performance.md)** - Optimization and best practices
+- **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
+
+### API Documentation
+- **[Auto-generated API](api/index.md)** - Auto-generated API documentation from source code
+
+## Component Types Supported
 
 - **Resources**: Terraform resources (e.g., `aws_s3_bucket`)
 - **Data Sources**: Terraform data sources (e.g., `aws_ami`)
 - **Functions**: Provider functions (e.g., `timestamp()`)
 - **Providers**: Provider configuration documentation
+
+## Architecture Overview
+
+Plating follows a clean, modular architecture:
+
+```
+Plating API (async-first)
+    ├── Registry (component discovery)
+    ├── Template Engine (Jinja2)
+    ├── Schema Processor (extraction)
+    └── Foundation Integration
+        ├── Retry Policies
+        ├── Circuit Breakers
+        └── Metrics & Observability
+```
