@@ -186,16 +186,46 @@ plating plate --output-dir ./documentation
 plating plate --clean
 ```
 
-#### scaffold
+#### validate
 
-Create a new `.plating` bundle structure.
+Validate generated documentation.
 
 ```bash
-# Create resource bundle
-plating scaffold --name my_resource --component-type resource
+# Validate all documentation
+plating validate
 
-# Create with custom directory
-plating scaffold --name my_data_source --component-type data_source --output-dir ./custom
+# Validate in custom directory
+plating validate --output-dir ./documentation
+
+# Validate specific component types
+plating validate --component-type resource --component-type data_source
+```
+
+#### info
+
+Show registry information and statistics.
+
+```bash
+# Show registry info with auto-detected provider
+plating info
+
+# Show info for specific provider
+plating info --provider-name my_provider
+
+# Filter to specific package
+plating info --package-name pyvider.components
+```
+
+#### stats
+
+Show detailed registry statistics.
+
+```bash
+# Show all statistics
+plating stats
+
+# Filter to specific package
+plating stats --package-name pyvider.components
 ```
 
 ## Configuration
@@ -204,26 +234,15 @@ Configure Plating behavior in `pyproject.toml`:
 
 ```toml
 [tool.plating]
-# Provider name for schema extraction
+# Provider name for schema extraction (auto-detected if not specified)
 provider_name = "my_provider"
-
-# Default output directory
-output_dir = "docs"
-
-# Component types to process
-component_types = ["resource", "data_source", "function"]
-
-# Ignore deprecated components
-ignore_deprecated = true
-
-# Template rendering options
-template_debug = false
-template_strict = true
-
-# Schema processing options
-extract_schema = true
-schema_format = "terraform"
 ```
+
+**Note:** Currently only `provider_name` is read from configuration. The CLI uses command-line arguments for other options:
+- Output directory: `--output-dir` flag
+- Component types: `--component-type` flag (can be used multiple times)
+- Validation: `--validate` / `--no-validate` flags
+- Force overwrite: `--force` flag
 
 ## Error Handling
 

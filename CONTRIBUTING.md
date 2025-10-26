@@ -83,7 +83,7 @@ pytest tests/test_cli.py
 pytest tests/ --cov=plating --cov-report=html
 
 # Run tests matching pattern
-pytest -k test_scaffold
+pytest -k test_adorn
 ```
 
 ### Architecture Guidelines
@@ -126,11 +126,16 @@ pytest -k test_scaffold
 
 ### Core Modules
 
-- **`plating.py`:** PlatingBundle and discovery system
-- **`plater.py`:** Documentation rendering engine
-- **`adorner/`:** Component decoration system
-- **`schema.py`:** Schema extraction and processing
+- **`plating.py`:** Main Plating API class with adorn/plate/validate operations
 - **`cli.py`:** Command-line interface
+- **`registry.py`:** Component registry and bundle management
+- **`adorner/`:** Component template generation system
+- **`core/`:** Core documentation generation logic
+- **`schema/`:** Schema extraction and processing
+- **`templating/`:** Jinja2 template engine and functions
+- **`discovery/`:** Bundle and component discovery
+- **`types.py`:** Type definitions and data models
+- **`errors.py`:** Custom exception classes
 
 ### Template System
 

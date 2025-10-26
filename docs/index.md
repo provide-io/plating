@@ -1,17 +1,17 @@
 # Plating Documentation
 
-Welcome to Plating - Documentation and code generation templates for consistent project scaffolding and documentation automation.
+Welcome to Plating - A sophisticated documentation generation system for Terraform/OpenTofu providers.
 
 ## Features
 
 Plating provides:
 
-- **Template Engine**: Powerful templating system for code and documentation generation
-- **Project Scaffolding**: Automated project structure creation
-- **Documentation Generation**: Consistent documentation patterns across projects
-- **Code Templates**: Reusable code templates and patterns
-- **Multi-Language Support**: Templates for Python, Go, TypeScript, and more
-- **Integration Tools**: CI/CD and development workflow templates
+- **Automatic Documentation Generation**: Generate comprehensive docs from your provider code
+- **Smart Component Adorning**: Automatically create documentation templates for undocumented components
+- **Beautiful Plating**: Render documentation with examples, schemas, and rich formatting
+- **Component Discovery**: Automatically find and document resources, data sources, and functions
+- **Jinja2 Templates**: Flexible templating with custom functions and filters
+- **Schema Integration**: Extract and format provider schemas automatically
 
 ## Quick Start
 
@@ -20,7 +20,7 @@ Plating provides:
 <div class="termy">
 
 ```console
-$ pip install plating
+$ uv add plating
 // Installing plating...
 Successfully installed plating
 
@@ -30,39 +30,59 @@ plating, version 0.1.0
 
 </div>
 
-### Scaffold a New Component
+### Adorn Components with Templates
+
+Create `.plating` bundles for your undocumented components:
 
 <div class="termy">
 
 ```console
-$ plating scaffold --component-type resource --name example_resource
-// Creating .plating directory structure...
-✓ Created example_resource.plating/
-✓ Created docs/ directory
-✓ Created examples/ directory
-// Resource scaffold complete!
-
-$ ls example_resource.plating/
-docs/  examples/  resource.md.j2
+$ plating adorn --component-type resource
+// Discovering components...
+🎨 Adorning 5 component types...
+📦 Processing 10 resource(s)...
+✅ Generated 8 templates
+📦 Processed 10 components
 ```
 
 </div>
 
 ### Generate Documentation
 
+Render your documentation from templates:
+
 <div class="termy">
 
 ```console
-$ plating render --output-dir docs/
+$ plating plate --output-dir docs/
 // Discovering plating bundles...
-Found 3 components
-// Rendering documentation...
----> 100%
-✓ Generated docs/resources/example_resource.md
-✓ Generated docs/data-sources/example_data.md
-✓ Generated docs/functions/example_function.md
+🍽️ Plating documentation...
+✅ Generated 10 files in 0.52s
+📦 Processed 10 bundles
+📄 Generated files:
+  • docs/resources/example_resource.md
+  • docs/data-sources/example_data.md
+  • docs/functions/example_function.md
+  ... and 7 more
+```
 
-Documentation generated successfully!
+</div>
+
+### Validate Documentation
+
+Validate your generated documentation:
+
+<div class="termy">
+
+```console
+$ plating validate --output-dir docs/
+// Validating documentation in docs/...
+📊 Validation results:
+  • Total files: 10
+  • Passed: 10
+  • Failed: 0
+  • Duration: 0.23s
+✅ All validations passed
 ```
 
 </div>
@@ -70,26 +90,26 @@ Documentation generated successfully!
 ### Python API Usage
 
 ```python
-from plating import Template, Generator
+from plating import Plating, PlatingContext, ComponentType
 
-# Load a template
-template = Template.load("python-package")
+# Initialize plating API
+context = PlatingContext(provider_name="my_provider")
+api = Plating(context)
 
-# Generate project structure
-generator = Generator(template)
-generator.create_project("my-new-project", {
-    "package_name": "my_package",
-    "author": "Your Name"
-})
+# Adorn components with templates
+result = await api.adorn(component_types=[ComponentType.RESOURCE])
+
+# Plate documentation
+result = await api.plate(output_dir=Path("docs"))
 ```
 
 ## API Reference
 
 For complete API documentation, see the [API Reference](api/index.md).
 
-## Template Types
+## Component Types
 
-- **Project Templates**: Complete project scaffolding
-- **Documentation Templates**: README, API docs, and guides
-- **Code Templates**: Classes, functions, and modules
-- **Configuration Templates**: CI/CD, build, and deployment configs
+- **Resources**: Terraform resources (e.g., `aws_s3_bucket`)
+- **Data Sources**: Terraform data sources (e.g., `aws_ami`)
+- **Functions**: Provider functions (e.g., `timestamp()`)
+- **Providers**: Provider configuration documentation
