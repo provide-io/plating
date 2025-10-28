@@ -16,6 +16,51 @@ from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingConte
 """Documentation generation utilities."""
 
 
+def _inject_test_mode_subcategory(content: str) -> str:
+    """Inject 'subcategory: Test Mode' into YAML frontmatter if present.
+
+    Args:
+        content: Markdown content with optional YAML frontmatter
+
+    Returns:
+        Content with subcategory added to frontmatter
+    """
+    # Check if content starts with frontmatter (---)
+    if not content.startswith("---"):
+        # No frontmatter, add one with subcategory
+        return f'''---
+subcategory: "Test Mode"
+---
+
+{content}'''
+
+    # Find end of frontmatter
+    lines = content.split("\n")
+    frontmatter_end = -1
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            frontmatter_end = i
+            break
+
+    if frontmatter_end == -1:
+        # Malformed frontmatter, just return original content
+        return content
+
+    # Check if subcategory already exists
+    has_subcategory = any(
+        line.strip().startswith("subcategory:")
+        for line in lines[1:frontmatter_end]
+    )
+
+    if has_subcategory:
+        # Already has subcategory, don't modify
+        return content
+
+    # Insert subcategory before the closing ---
+    lines.insert(frontmatter_end, 'subcategory: "Test Mode"')
+    return "\n".join(lines)
+
+
 async def render_component_docs(
     components: list[PlatingBundle],
     component_type: ComponentType,
@@ -113,6 +158,10 @@ async def render_component_docs(
 
             # Render with template engine
             rendered_content = await template_engine.render(component, render_context)
+
+            # Add subcategory to frontmatter if test_only is True
+            if schema_info and schema_info.test_only:
+                rendered_content = _inject_test_mode_subcategory(rendered_content)
 
             # Write output
             output_file.write_text(rendered_content, encoding="utf-8")
@@ -224,10 +273,20 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
         return name
 
     # Helper function to check if component is test mode
-    def is_test_mode_component(name: str) -> bool:
-        """Check if component is a test mode component."""
+    def is_test_mode_component(component_name: str, component_type: ComponentType) -> bool:
+        """Check if component is a test mode component by reading its metadata."""
+        # Try to get the component schema which contains test_only metadata
+        schema_info = get_component_schema(
+            PlatingBundle(name=component_name, plating_dir=Path("."), component_type=component_type.value),
+            component_type,
+            provider_schema
+        )
+        if schema_info and schema_info.test_only:
+            return True
+
+        # Fallback to heuristic-based detection for components without schema
         test_indicators = ["_test", "test_", "warning_example", "verifier"]
-        return any(indicator in name.lower() for indicator in test_indicators)
+        return any(indicator in component_name.lower() for indicator in test_indicators)
 
     # Add links to resources (excluding test mode)
     resource_components = registry.get_components_with_templates(ComponentType.RESOURCE)
@@ -235,7 +294,7 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     if resource_components:
         for component in sorted(resource_components, key=lambda c: c.name):
             clean_name = strip_provider_prefix(component.name, provider_name)
-            if is_test_mode_component(clean_name):
+            if is_test_mode_component(component.name, ComponentType.RESOURCE):
                 test_resources.append((component, clean_name))
             else:
                 index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.RESOURCE.output_subdir}/{clean_name}.md)\n"
@@ -250,7 +309,7 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     if data_source_components:
         for component in sorted(data_source_components, key=lambda c: c.name):
             clean_name = strip_provider_prefix(component.name, provider_name)
-            if is_test_mode_component(clean_name):
+            if is_test_mode_component(component.name, ComponentType.DATA_SOURCE):
                 test_data_sources.append((component, clean_name))
             else:
                 index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.DATA_SOURCE.output_subdir}/{clean_name}.md)\n"

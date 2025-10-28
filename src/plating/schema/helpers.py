@@ -52,6 +52,9 @@ def get_component_schemas_from_hub(hub: Any, dimension: str) -> dict[str, Any]:
                     schema = component.get_schema()
                     # Convert PvsSchema to dict format for templates
                     schema_dict = convert_pvs_schema_to_dict(schema)
+                    # Extract test_only metadata from component class
+                    test_only = getattr(component, "_is_test_only", False)
+                    schema_dict["test_only"] = test_only
                     schemas[name] = schema_dict
                 except Exception as e:
                     logger.warning(f"Failed to get schema for {dimension} {name}: {e}")
@@ -89,6 +92,9 @@ def get_function_schemas_from_hub(hub: Any, dimension: str) -> dict[str, Any]:
                         },
                         "description": func.__doc__ or f"Function {name}",
                     }
+                    # Extract test_only metadata from function
+                    test_only = getattr(func, "_is_test_only", False)
+                    schema_dict["test_only"] = test_only
                     schemas[name] = schema_dict
                 except Exception as e:
                     logger.warning(f"Failed to get schema for function {name}: {e}")
