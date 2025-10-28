@@ -76,11 +76,27 @@ class SingleExampleCompiler:
             type_dir = output_dir / component_type.value
             type_dir.mkdir(parents=True, exist_ok=True)
 
+            # Deduplicate bundles that share the same plating_dir
+            # Use plating directory name for multi-function bundles
+            seen_plating_dirs: dict[Path, PlatingBundle] = {}
             for bundle in type_bundles:
+                if bundle.plating_dir not in seen_plating_dirs:
+                    # First bundle with this plating_dir - use plating dir name
+                    plating_name = bundle.plating_dir.name.replace(".plating", "")
+                    # Create a representative bundle with the plating directory name
+                    representative_bundle = PlatingBundle(
+                        name=plating_name,
+                        plating_dir=bundle.plating_dir,
+                        component_type=bundle.component_type,
+                    )
+                    seen_plating_dirs[bundle.plating_dir] = representative_bundle
+
+            # Now generate examples for each unique plating directory
+            for representative_bundle in seen_plating_dirs.values():
                 try:
-                    self._compile_component_examples(bundle, type_dir, result)
+                    self._compile_component_examples(representative_bundle, type_dir, result)
                 except Exception as e:
-                    error_msg = f"Failed to compile examples for {bundle.name}: {e}"
+                    error_msg = f"Failed to compile examples for {representative_bundle.name}: {e}"
                     result.errors.append(error_msg)
                     logger.error(error_msg)
 
