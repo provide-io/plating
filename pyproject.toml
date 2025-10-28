@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "plating"
 dynamic = ["version"]
@@ -32,10 +36,10 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "provide-testkit[standard,build]>=0.0.1000",
+    "provide-testkit[standard,build]",
 ]
 docs = [
-    "provide-testkit[docs]>=0.0.1000",
+    "provide-testkit[docs]",
 ]
 
 [project.scripts]
@@ -112,4 +116,3 @@ branch = true
 show_missing = true
 skip_covered = true
 exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ == .__main__.:", "if TYPE_CHECKING:", "def __repr__", "def __str__", "pass"]
-
