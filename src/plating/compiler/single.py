@@ -132,6 +132,9 @@ class SingleExampleCompiler:
     def _load_flat_examples(self, bundle: PlatingBundle) -> dict[str, str]:
         """Load only flat .tf examples (not grouped subdirectories).
 
+        For bundles that share a plating directory with multiple components,
+        filter examples to only include those that reference this specific component.
+
         Args:
             bundle: Plating bundle
 
@@ -146,11 +149,42 @@ class SingleExampleCompiler:
         # Only load flat .tf files
         for example_file in bundle.examples_dir.glob("*.tf"):
             try:
-                flat_examples[example_file.stem] = example_file.read_text(encoding="utf-8")
+                content = example_file.read_text(encoding="utf-8")
+
+                # Filter examples: only include if they reference this component
+                # Check if the component name appears in the example
+                if self._example_references_component(content, bundle.name):
+                    flat_examples[example_file.stem] = content
             except Exception:
                 continue
 
         return flat_examples
+
+    def _example_references_component(self, content: str, component_name: str) -> bool:
+        """Check if an example file references a specific component.
+
+        Args:
+            content: Example file content
+            component_name: Component name to search for
+
+        Returns:
+            True if the example references this component
+        """
+        # Look for references to the component in resource/data source/function calls
+        # This handles: resource "component_name", data "component_name", provider::component_name()
+        import re
+
+        # Match resource/data declarations: resource "name" or data "name"
+        resource_pattern = rf'(resource|data)\s+"{re.escape(component_name)}"'
+        if re.search(resource_pattern, content):
+            return True
+
+        # Match function calls: provider::function_name()
+        function_pattern = rf'{re.escape(self.provider_name)}::{re.escape(component_name)}\s*\('
+        if re.search(function_pattern, content):
+            return True
+
+        return False
 
     def _generate_provider_tf(self, component_dir: Path) -> None:
         """Generate provider.tf file for a component directory.
