@@ -31,7 +31,14 @@ async def render_component_docs(
 
     for component in components:
         try:
-            output_file = output_subdir / f"{component.name}.md"
+            # Strip provider prefix from filename if present (for resources and data sources)
+            component_name = component.name
+            if context.provider_name and component_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE]:
+                prefix = f"{context.provider_name}_"
+                if component_name.startswith(prefix):
+                    component_name = component_name[len(prefix):]
+
+            output_file = output_subdir / f"{component_name}.md"
 
             if output_file.exists() and not force:
                 logger.debug(f"Skipping existing file: {output_file}")
@@ -208,21 +215,45 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
 
 '''
 
-    # Add links to resources
+    # Helper function to strip provider prefix if present
+    def strip_provider_prefix(name: str, prefix: str) -> str:
+        """Remove provider prefix from component name if present."""
+        prefix_with_underscore = f"{prefix}_"
+        if name.startswith(prefix_with_underscore):
+            return name[len(prefix_with_underscore):]
+        return name
+
+    # Helper function to check if component is test mode
+    def is_test_mode_component(name: str) -> bool:
+        """Check if component is a test mode component."""
+        test_indicators = ["_test", "test_", "warning_example", "verifier"]
+        return any(indicator in name.lower() for indicator in test_indicators)
+
+    # Add links to resources (excluding test mode)
     resource_components = registry.get_components_with_templates(ComponentType.RESOURCE)
+    test_resources = []
     if resource_components:
         for component in sorted(resource_components, key=lambda c: c.name):
-            index_content += f"- [`{provider_name}_{component.name}`](./{ComponentType.RESOURCE.output_subdir}/{component.name}.md)\n"
+            clean_name = strip_provider_prefix(component.name, provider_name)
+            if is_test_mode_component(clean_name):
+                test_resources.append((component, clean_name))
+            else:
+                index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.RESOURCE.output_subdir}/{clean_name}.md)\n"
     else:
         index_content += "No resources available.\n"
 
     index_content += "\n## Data Sources\n\n"
 
-    # Add links to data sources
+    # Add links to data sources (excluding test mode)
     data_source_components = registry.get_components_with_templates(ComponentType.DATA_SOURCE)
+    test_data_sources = []
     if data_source_components:
         for component in sorted(data_source_components, key=lambda c: c.name):
-            index_content += f"- [`{provider_name}_{component.name}`](./{ComponentType.DATA_SOURCE.output_subdir}/{component.name}.md)\n"
+            clean_name = strip_provider_prefix(component.name, provider_name)
+            if is_test_mode_component(clean_name):
+                test_data_sources.append((component, clean_name))
+            else:
+                index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.DATA_SOURCE.output_subdir}/{clean_name}.md)\n"
     else:
         index_content += "No data sources available.\n"
 
@@ -237,6 +268,22 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
             )
     else:
         index_content += "No functions available.\n"
+
+    # Add Test Mode section if there are test components
+    if test_resources or test_data_sources:
+        index_content += "\n## Test Mode\n\n"
+        index_content += "_Test-only components for testing and development purposes._\n\n"
+
+        if test_resources:
+            index_content += "### Test Resources\n\n"
+            for component, clean_name in test_resources:
+                index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.RESOURCE.output_subdir}/{clean_name}.md)\n"
+            index_content += "\n"
+
+        if test_data_sources:
+            index_content += "### Test Data Sources\n\n"
+            for component, clean_name in test_data_sources:
+                index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.DATA_SOURCE.output_subdir}/{clean_name}.md)\n"
 
     # Write the index file
     index_file.write_text(index_content, encoding="utf-8")
