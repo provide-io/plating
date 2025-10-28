@@ -16,6 +16,39 @@ from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingConte
 """Documentation generation utilities."""
 
 
+def _check_component_test_only(bundle: PlatingBundle, component_type: ComponentType, provider_name: str | None) -> bool:
+    """Check if a component is marked as test_only by inspecting the component class.
+
+    Args:
+        bundle: PlatingBundle for the component
+        component_type: Type of component (resource, data_source, function)
+        provider_name: Provider name (used for constructing module paths)
+
+    Returns:
+        True if component is test_only, False otherwise
+    """
+    try:
+        # Construct the module path
+        # For pyvider components, the pattern is: pyvider.components.{type}s.{name}
+        type_dir = f"{component_type.value}s"  # resource -> resources, data_source -> data_sources
+        module_name = f"pyvider.components.{type_dir}.{bundle.name}"
+
+        # Try to import the module
+        import importlib
+        module = importlib.import_module(module_name)
+
+        # Look for classes in the module that have _is_test_only attribute
+        for attr_name in dir(module):
+            attr = getattr(module, attr_name)
+            if isinstance(attr, type) and hasattr(attr, "_is_test_only"):
+                return bool(attr._is_test_only)
+
+        return False
+    except (ImportError, AttributeError) as e:
+        logger.debug(f"Could not check test_only for {bundle.name}: {e}")
+        return False
+
+
 def _inject_test_mode_subcategory(content: str) -> str:
     """Inject 'subcategory: Test Mode' into YAML frontmatter if present.
 
@@ -98,6 +131,9 @@ async def render_component_docs(
             # Get component schema if available
             schema_info = get_component_schema(component, component_type, provider_schema)
 
+            # Check if component is test_only by trying to import and inspect the class
+            is_test_only = _check_component_test_only(component, component_type, context.provider_name)
+
             # Extract metadata for functions
             signature = None
             arguments = None
@@ -160,7 +196,7 @@ async def render_component_docs(
             rendered_content = await template_engine.render(component, render_context)
 
             # Add subcategory to frontmatter if test_only is True
-            if schema_info and schema_info.test_only:
+            if is_test_only or (schema_info and schema_info.test_only):
                 rendered_content = _inject_test_mode_subcategory(rendered_content)
 
             # Write output
