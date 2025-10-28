@@ -39,6 +39,40 @@ class PlatingDiscovery:
             # Global discovery from all installed packages
             return self._discover_from_all_packages(component_type)
 
+    def _distribution_to_module_name(self, dist_name: str) -> str | None:
+        """Convert a distribution name to a module name.
+
+        Args:
+            dist_name: Distribution name (e.g., "pyvider-components")
+
+        Returns:
+            Module name (e.g., "pyvider.components") or None if not found
+        """
+        try:
+            # First, try to find an entry point that matches the distribution name
+            eps = importlib.metadata.entry_points()
+            for group in eps.groups:
+                group_eps = eps.select(group=group)
+                for ep in group_eps:
+                    if ep.name == dist_name:
+                        return ep.value
+
+            # Fallback: construct module name from distribution name
+            dist = importlib.metadata.distribution(dist_name)
+            if dist.read_text("top_level.txt"):
+                top_levels = dist.read_text("top_level.txt").strip().split("\n")
+                if top_levels:
+                    top_level = top_levels[0]
+                    # Convert dist name "pyvider-components" to "pyvider.components"
+                    if dist_name.startswith(f"{top_level}-"):
+                        suffix = dist_name[len(top_level) + 1:].replace("-", ".")
+                        return f"{top_level}.{suffix}"
+                    return top_level
+        except (importlib.metadata.PackageNotFoundError, FileNotFoundError, TypeError):
+            pass
+
+        return None
+
     def _discover_from_all_packages(self, component_type: str | None = None) -> list[PlatingBundle]:
         """Discover .plating bundles from all installed packages.
 
@@ -113,11 +147,25 @@ class PlatingDiscovery:
         """Discover .plating bundles from a specific package."""
         bundles: list[PlatingBundle] = []
 
+        # Try to find the module spec
+        # If package_name is a distribution name (e.g., "pyvider-components"),
+        # convert it to a module name (e.g., "pyvider.components")
+        spec = None
         try:
             spec = importlib.util.find_spec(package_name)
-            if not spec or not spec.origin:
-                return bundles
         except (ModuleNotFoundError, ValueError, AttributeError):
+            pass
+
+        # If direct lookup failed, try resolving distribution name to module name
+        if not spec:
+            module_name = self._distribution_to_module_name(package_name)
+            if module_name:
+                try:
+                    spec = importlib.util.find_spec(module_name)
+                except (ModuleNotFoundError, ValueError, AttributeError):
+                    pass
+
+        if not spec or not spec.origin:
             return bundles
 
         package_path = Path(spec.origin).parent
@@ -135,20 +183,12 @@ class PlatingDiscovery:
             if sub_component_bundles:
                 bundles.extend(sub_component_bundles)
             else:
-                # For function bundles, check for individual template files
-                if bundle_component_type == "function":
-                    function_bundles = self._discover_function_templates(plating_dir)
-                    if function_bundles:
-                        bundles.extend(function_bundles)
-                    else:
-                        # Fallback to single bundle
-                        component_name = plating_dir.name.replace(".plating", "")
-                        bundle = PlatingBundle(
-                            name=component_name, plating_dir=plating_dir, component_type=bundle_component_type
-                        )
-                        bundles.append(bundle)
+                # Check for individual template files (multiple components in one module)
+                template_bundles = self._discover_component_templates(plating_dir, bundle_component_type)
+                if template_bundles:
+                    bundles.extend(template_bundles)
                 else:
-                    # Non-function components use single bundle approach
+                    # Fallback to single bundle
                     component_name = plating_dir.name.replace(".plating", "")
                     bundle = PlatingBundle(
                         name=component_name, plating_dir=plating_dir, component_type=bundle_component_type
@@ -176,28 +216,41 @@ class PlatingDiscovery:
 
         return sub_bundles
 
-    def _discover_function_templates(self, plating_dir: Path) -> list[PlatingBundle]:
-        """Discover individual function templates within a function .plating bundle."""
-        function_bundles: list[PlatingBundle] = []
+    def _discover_component_templates(self, plating_dir: Path, component_type: str) -> list[PlatingBundle]:
+        """Discover individual component templates within a .plating bundle.
+
+        Used when multiple components are defined in a single Python module.
+        Each component gets its own template file (e.g., pyvider_component_name.tmpl.md).
+        """
+        template_bundles: list[PlatingBundle] = []
         docs_dir = plating_dir / "docs"
 
         if not docs_dir.exists():
-            return function_bundles
+            return template_bundles
 
         # Find all .tmpl.md files except main.md.j2
         for template_file in docs_dir.glob("*.tmpl.md"):
-            function_name = template_file.stem.replace(".tmpl", "")
+            component_name = template_file.stem.replace(".tmpl", "")
 
-            # Create a specialized bundle for individual function templates
-            bundle = FunctionPlatingBundle(
-                name=function_name,
-                plating_dir=plating_dir,
-                component_type="function",
-                template_file=template_file,
-            )
-            function_bundles.append(bundle)
+            # For functions, use specialized FunctionPlatingBundle
+            if component_type == "function":
+                bundle = FunctionPlatingBundle(
+                    name=component_name,
+                    plating_dir=plating_dir,
+                    component_type=component_type,
+                    template_file=template_file,
+                )
+            else:
+                # For data sources and resources, use regular PlatingBundle
+                # but override the name to match the component name from the template
+                bundle = PlatingBundle(
+                    name=component_name,
+                    plating_dir=plating_dir,
+                    component_type=component_type,
+                )
+            template_bundles.append(bundle)
 
-        return function_bundles
+        return template_bundles
 
     def _determine_component_type(self, plating_dir: Path) -> str:
         """Determine component type from the .plating directory path."""

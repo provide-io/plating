@@ -131,9 +131,6 @@ class GroupedExampleCompiler:
                     dest.parent.mkdir(parents=True, exist_ok=True)
                     dest.write_bytes(source_path.read_bytes())
 
-            # Generate README
-            self._generate_readme(group, group_dir)
-
             logger.info(f"Compiled grouped example '{group.name}' with {len(group.components)} components")
             count += 1
 

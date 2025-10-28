@@ -161,12 +161,6 @@ class SingleExampleCompiler:
         main_tf_path.write_text(main_tf_content, encoding="utf-8")
         result.output_files.append(main_tf_path)
 
-        # Generate README.md
-        readme_content = self._generate_example_readme(bundle, example_name, example_content)
-        readme_path = example_dir / "README.md"
-        readme_path.write_text(readme_content, encoding="utf-8")
-        result.output_files.append(readme_path)
-
         result.examples_generated += 1
 
     def _build_complete_example(self, example_content: str) -> str:

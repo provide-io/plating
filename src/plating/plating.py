@@ -8,7 +8,8 @@ from typing import Any
 from provide.foundation import logger, pout
 from provide.foundation.resilience import BackoffStrategy, RetryPolicy
 
-from plating.core.doc_generator import generate_provider_index, generate_template, render_component_docs
+from plating.adorner import PlatingAdorner
+from plating.core.doc_generator import generate_provider_index, render_component_docs
 from plating.core.project_utils import find_project_root, get_output_directory
 from plating.decorators import with_metrics, with_retry, with_timing
 from plating.errors import FileSystemError
@@ -55,101 +56,38 @@ class Plating:
     @with_metrics("adorn")
     async def adorn(
         self,
-        output_dir: Path | None = None,
         component_types: list[ComponentType] | None = None,
-        templates_only: bool = False,
     ) -> AdornResult:
         """Generate template structure for discovered components.
 
         Args:
-            output_dir: Directory to write templates (default: .plating)
             component_types: Specific component types to adorn
-            templates_only: Only generate templates, skip discovery
 
         Returns:
             AdornResult with generation statistics
         """
-        if not component_types:
-            component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
+        if not self.package_name:
+            pout("⚠️  Adorn requires a package name. Run with --package-name or in a project with pyproject.toml.")
+            return AdornResult(errors=["--package-name is required for adorn."])
 
-        output_dir = output_dir or Path(".plating")
+        pout(f"🎨 Adorning components in package: {self.package_name}")
 
         try:
-            output_dir.mkdir(parents=True, exist_ok=True)
-        except (PermissionError, OSError) as e:
-            logger.error("Failed to create adorn output directory", path=output_dir, error=str(e))
-            raise FileSystemError(
-                path=output_dir, operation="create directory", reason=str(e), caused_by=e
-            ) from e
+            adorner = PlatingAdorner(self.package_name)
+            target_types = [ct.value for ct in component_types] if component_types else None
+            adorned_counts = await adorner.adorn_missing(target_types)
 
-        pout(f"🎨 Starting adorn for {len(component_types)} component type(s)")
+            total_adorned = sum(adorned_counts.values())
 
-        start_time = time.monotonic()
-        templates_generated = 0
-        errors = []
+            return AdornResult(
+                templates_generated=total_adorned,
+                examples_created=total_adorned,  # Each adorn creates one template and one example
+                errors=[],
+            )
 
-        for component_type in component_types:
-            components = self.registry.get_components(component_type)
-            logger.info(f"Found {len(components)} {component_type.value} components to adorn")
-            pout(f"📦 Processing {len(components)} {component_type.value}(s)...")
-
-            generated_for_type = 0
-            for component in components:
-                try:
-                    # Skip generating stub templates if source templates already exist
-                    if component.has_main_template():
-                        logger.debug(f"Skipping {component.name} - source template already exists")
-                        continue
-
-                    # Only generate stub templates for components that don't have source templates
-                    template_dir = output_dir / component_type.output_subdir / component.name
-
-                    try:
-                        template_dir.mkdir(parents=True, exist_ok=True)
-                    except (PermissionError, OSError) as e:
-                        raise FileSystemError(
-                            path=template_dir, operation="create directory", reason=str(e), caused_by=e
-                        ) from e
-
-                    # Generate basic template only if it doesn't exist in source
-                    template_file = template_dir / f"{component.name}.tmpl.md"
-                    if not template_file.exists():
-                        try:
-                            generate_template(component, template_file)
-                            templates_generated += 1
-                            generated_for_type += 1
-                            logger.info(
-                                f"Generated stub template for {component.name} (no source template found)"
-                            )
-                        except OSError as e:
-                            raise FileSystemError(
-                                path=template_file, operation="write", reason=str(e), caused_by=e
-                            ) from e
-
-                except FileSystemError:
-                    raise
-                except Exception as e:
-                    error_msg = f"Failed to adorn {component.name}: {e}"
-                    logger.error(error_msg, component=component.name, error=str(e))
-                    errors.append(error_msg)
-
-            if generated_for_type > 0:
-                pout(f"   ✅ Generated {generated_for_type} template(s)")
-            else:
-                pout(f"   ℹ️  All {component_type.value}s already have templates")
-
-        duration = time.monotonic() - start_time
-        if templates_generated > 0:
-            pout(f"\n✅ Adorning complete: {templates_generated} template(s) in {duration:.2f}s")
-        else:
-            pout("\nℹ️  No new templates needed")
-
-        return AdornResult(
-            components_processed=sum(len(self.registry.get_components(ct)) for ct in component_types),
-            templates_generated=templates_generated,
-            examples_created=0,
-            errors=errors,
-        )
+        except Exception as e:
+            logger.error("Adorn operation failed", error=str(e))
+            return AdornResult(errors=[f"An unexpected error occurred: {e}"])
 
     @with_timing
     @with_retry()
@@ -213,6 +151,9 @@ class Plating:
 
         start_time = time.monotonic()
         result = PlateResult(duration_seconds=0.0, files_generated=0, errors=[], output_files=[])
+
+        # Await schema extraction before rendering
+        self._provider_schema = await self._extract_provider_schema()
 
         # Track unique bundles processed
         processed_bundles: set[str] = set()
