@@ -36,17 +36,33 @@ def _check_component_test_only(bundle: PlatingBundle, component_type: ComponentT
         # Construct the module path
         # For pyvider components, the pattern is: pyvider.components.{type}s.{name}
         type_dir = f"{component_type.value}s"  # resource -> resources, data_source -> data_sources
+
+        # First try using the component name directly
         module_name = f"pyvider.components.{type_dir}.{component_name}"
 
-        # Try to import the module
+        # Import the module
         import importlib
-        module = importlib.import_module(module_name)
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError:
+            # If direct import fails, try using the plating directory name
+            # Extract module name from plating_dir (e.g., "nested_data_test_suite.plating" -> "nested_data_test_suite")
+            plating_dir_name = bundle.plating_dir.name.replace(".plating", "")
+            module_name = f"pyvider.components.{type_dir}.{plating_dir_name}"
+            module = importlib.import_module(module_name)
 
         # Look for classes in the module that have _is_test_only attribute
+        # and match the component's registered name
+        full_component_name = bundle.name
         for attr_name in dir(module):
             attr = getattr(module, attr_name)
             if isinstance(attr, type) and hasattr(attr, "_is_test_only"):
-                return bool(attr._is_test_only)
+                # Check if this is the right component by matching the registered name
+                if hasattr(attr, "_registered_name") and attr._registered_name == full_component_name:
+                    return bool(attr._is_test_only)
+                # Fallback: if there's only one class with test_only, use it
+                elif not hasattr(attr, "_registered_name"):
+                    return bool(attr._is_test_only)
 
         return False
     except (ImportError, AttributeError) as e:
