@@ -28,10 +28,15 @@ def _check_component_test_only(bundle: PlatingBundle, component_type: ComponentT
         True if component is test_only, False otherwise
     """
     try:
+        # Strip provider prefix from component name if present
+        component_name = bundle.name
+        if provider_name and component_name.startswith(f"{provider_name}_"):
+            component_name = component_name[len(provider_name) + 1:]
+
         # Construct the module path
         # For pyvider components, the pattern is: pyvider.components.{type}s.{name}
         type_dir = f"{component_type.value}s"  # resource -> resources, data_source -> data_sources
-        module_name = f"pyvider.components.{type_dir}.{bundle.name}"
+        module_name = f"pyvider.components.{type_dir}.{component_name}"
 
         # Try to import the module
         import importlib
