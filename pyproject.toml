@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "plating"
 dynamic = ["version"]
@@ -24,18 +28,18 @@ classifiers = [
 dependencies = [
     "jinja2>=3.1.6",
     "rich>=14.0.0",
-    "pyvider-cty>=0.0.1000",
-    "provide-foundation[all]>=0.0.1000",
+    "pyvider-cty",
+    "provide-foundation[all]",
     "pymarkdownlnt>=0.9.32",
     "mkdocs-material>=9.6.20",
 ]
 
 [dependency-groups]
 dev = [
-    "provide-testkit[standard,build]>=0.0.1000",
+    "provide-testkit[standard,build]",
 ]
 docs = [
-    "provide-testkit[docs]>=0.0.1000",
+    "provide-testkit[docs]",
 ]
 
 [project.scripts]
@@ -112,4 +116,3 @@ branch = true
 show_missing = true
 skip_covered = true
 exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ == .__main__.:", "if TYPE_CHECKING:", "def __repr__", "def __str__", "pass"]
-
