@@ -7,7 +7,8 @@ import asyncio
 from typing import Any
 
 from provide.foundation import logger, perr, pout
-from provide.foundation.hub import Hub
+from pyvider.hub.components import ComponentRegistry
+from pyvider.hub.discovery import ComponentDiscovery
 
 from plating.adorner.finder import ComponentFinder
 from plating.discovery import PlatingDiscovery
@@ -28,8 +29,9 @@ class PlatingAdorner:
         self.plating_discovery = PlatingDiscovery(package_name)
         self.template_generator = TemplateGenerator()
         self.component_finder = ComponentFinder()
-        # Initialize foundation hub for component discovery
-        self.hub = Hub()
+        # Initialize pyvider component registry and discovery
+        self.registry = ComponentRegistry()
+        self.discovery = ComponentDiscovery(self.registry)
 
     async def adorn_missing(self, component_types: list[str] = None) -> dict[str, int]:
         """
@@ -39,9 +41,9 @@ class PlatingAdorner:
         """
         pout(f"🔍 Discovering components in package: {self.package_name}")
 
-        # Discover all components via foundation hub
+        # Discover all components using pyvider's component discovery
         try:
-            self.hub.discover_components(self.package_name)
+            await self.discovery.discover_all(strict=False)
         except Exception as e:
             logger.error(f"Component discovery failed: {e}")
             perr(f"❌ Component discovery failed: {e}")
@@ -83,14 +85,12 @@ class PlatingAdorner:
         return adorned
 
     def _get_components_by_dimension(self, dimension: str) -> dict[str, Any]:
-        """Get components from foundation hub by dimension."""
+        """Get components from pyvider registry by dimension."""
         components = {}
         try:
-            names = self.hub.list_components(dimension=dimension)
-            for name in names:
-                component = self.hub.get_component(name, dimension=dimension)
-                if component:
-                    components[name] = component
+            all_components = self.registry.list_components()
+            if dimension in all_components:
+                components = all_components[dimension]
         except Exception as e:
             logger.warning(f"Failed to get {dimension} components: {e}")
         return components
