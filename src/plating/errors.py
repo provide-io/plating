@@ -309,7 +309,9 @@ class ValidationError(PlatingError):
 class FileSystemError(PlatingError):
     """Error related to file system operations."""
 
-    def __init__(self, path: Path | str, operation: str, reason: str, caused_by: Exception | None = None) -> None:
+    def __init__(
+        self, path: Path | str, operation: str, reason: str, caused_by: Exception | None = None
+    ) -> None:
         self.path = path
         self.operation = operation
         self.reason = reason
@@ -388,5 +390,6 @@ def handle_error(error: Exception, logger: Any = None, reraise: bool = False) ->
         raise
 
     return error_msg
+
 
 # 🍽️📖🔚

@@ -32,4 +32,5 @@ class FunctionPlatingBundle(PlatingBundle):
         except Exception:
             return None
 
+
 # 🍽️📖🔚

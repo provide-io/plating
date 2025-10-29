@@ -52,7 +52,7 @@ class PlatingAdorner:
         pout(f"🔍 Discovering components in package: {self.package_name}")
 
         # Try to discover using hub first (can be mocked in tests)
-        if hasattr(self.hub, 'discover_components'):
+        if hasattr(self.hub, "discover_components"):
             try:
                 await asyncio.to_thread(self.hub.discover_components, self.package_name)
             except Exception as e:
@@ -89,7 +89,7 @@ class PlatingAdorner:
                 for name in missing:
                     # Get component class from components dict or from hub if available
                     component_class = components[name]
-                    if component_class is None and hasattr(self.hub, 'get_component'):
+                    if component_class is None and hasattr(self.hub, "get_component"):
                         try:
                             component_class = await asyncio.to_thread(self.hub.get_component, name)
                         except Exception:
@@ -113,7 +113,7 @@ class PlatingAdorner:
         components = {}
         try:
             # Try to use hub first (can be mocked in tests)
-            if hasattr(self.hub, 'list_components'):
+            if hasattr(self.hub, "list_components"):
                 hub_components = self.hub.list_components(dimension=dimension)
                 if hub_components is not None:
                     if isinstance(hub_components, dict):

@@ -23,7 +23,9 @@ from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingConte
 """Documentation generation utilities."""
 
 
-def _check_component_test_only(bundle: PlatingBundle, component_type: ComponentType, provider_name: str | None) -> bool:
+def _check_component_test_only(
+    bundle: PlatingBundle, component_type: ComponentType, provider_name: str | None
+) -> bool:
     """Check if a component is marked as test_only by inspecting the component class.
 
     Args:
@@ -38,7 +40,7 @@ def _check_component_test_only(bundle: PlatingBundle, component_type: ComponentT
         # Strip provider prefix from component name if present
         component_name = bundle.name
         if provider_name and component_name.startswith(f"{provider_name}_"):
-            component_name = component_name[len(provider_name) + 1:]
+            component_name = component_name[len(provider_name) + 1 :]
 
         # Construct the module path
         # For pyvider components, the pattern is: pyvider.components.{type}s.{name}
@@ -49,6 +51,7 @@ def _check_component_test_only(bundle: PlatingBundle, component_type: ComponentT
 
         # Import the module
         import importlib
+
         try:
             module = importlib.import_module(module_name)
         except ImportError:
@@ -65,7 +68,9 @@ def _check_component_test_only(bundle: PlatingBundle, component_type: ComponentT
             attr = getattr(module, attr_name)
             if isinstance(attr, type) and hasattr(attr, "_is_test_only"):
                 # Check if this is the right component by matching the registered name
-                if (hasattr(attr, "_registered_name") and attr._registered_name == full_component_name) or not hasattr(attr, "_registered_name"):
+                if (
+                    hasattr(attr, "_registered_name") and attr._registered_name == full_component_name
+                ) or not hasattr(attr, "_registered_name"):
                     return bool(attr._is_test_only)
 
         return False
@@ -86,11 +91,11 @@ def _inject_test_mode_subcategory(content: str) -> str:
     # Check if content starts with frontmatter (---)
     if not content.startswith("---"):
         # No frontmatter, add one with subcategory
-        return f'''---
+        return f"""---
 subcategory: "Test Mode"
 ---
 
-{content}'''
+{content}"""
 
     # Find end of frontmatter
     lines = content.split("\n")
@@ -105,10 +110,7 @@ subcategory: "Test Mode"
         return content
 
     # Check if subcategory already exists
-    has_subcategory = any(
-        line.strip().startswith("subcategory:")
-        for line in lines[1:frontmatter_end]
-    )
+    has_subcategory = any(line.strip().startswith("subcategory:") for line in lines[1:frontmatter_end])
 
     if has_subcategory:
         # Already has subcategory, don't modify
@@ -139,7 +141,7 @@ async def render_component_docs(
             if context.provider_name and component_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE]:
                 prefix = f"{context.provider_name}_"
                 if component_name.startswith(prefix):
-                    component_name = component_name[len(prefix):]
+                    component_name = component_name[len(prefix) :]
 
             output_file = output_subdir / f"{component_name}.md"
 
@@ -330,7 +332,7 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
         """Remove provider prefix from component name if present."""
         prefix_with_underscore = f"{prefix}_"
         if name.startswith(prefix_with_underscore):
-            return name[len(prefix_with_underscore):]
+            return name[len(prefix_with_underscore) :]
         return name
 
     # Helper function to check if component is test mode
@@ -340,7 +342,7 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
         schema_info = get_component_schema(
             PlatingBundle(name=component_name, plating_dir=Path(), component_type=component_type.value),
             component_type,
-            provider_schema
+            provider_schema,
         )
         if schema_info and schema_info.test_only:
             return True
@@ -411,5 +413,6 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     result.output_files.append(index_file)
 
     logger.info(f"Generated provider index: {index_file}")
+
 
 # 🍽️📖🔚
