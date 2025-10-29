@@ -1,7 +1,9 @@
-"""
-Unit tests for GroupedExampleCompiler using TDD approach.
-"""
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
 
+"""Unit tests for GroupedExampleCompiler using TDD approach."""
 
 import pytest
 
@@ -406,3 +408,5 @@ class TestGroupedExampleCompiler:
         assert len(groups) == 1
         assert "valid" in groups
         assert "incomplete" not in groups
+
+# 🍽️📖🔚

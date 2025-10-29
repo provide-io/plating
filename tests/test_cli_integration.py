@@ -1,8 +1,12 @@
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
 """Comprehensive CLI integration tests using provide-testkit.
 
 These tests use CliTestRunner from provide-testkit for enhanced CLI testing
-with proper async handling, output capture, and assertion helpers.
-"""
+with proper async handling, output capture, and assertion helpers."""
 
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -529,3 +533,5 @@ class TestErrorHandling:
 
         runner.assert_error(result, exit_code=1)
         runner.assert_output_contains(result, "User-friendly error message")
+
+# 🍽️📖🔚

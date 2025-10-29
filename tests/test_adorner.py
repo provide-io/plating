@@ -1,6 +1,9 @@
-"""
-Comprehensive tests for the adorner module.
-"""
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+"""Comprehensive tests for the adorner module."""
 
 from provide.testkit.mocking import AsyncMock, Mock, patch
 import pytest
@@ -345,3 +348,5 @@ class TestAdornerAPI:
 
 
 # 🍲🥄👗🧪🪄
+
+# 🍽️📖🔚
