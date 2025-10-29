@@ -9,28 +9,36 @@ import asyncio
 from typing import Any
 
 from provide.foundation import logger, perr, pout
+from provide.foundation.hub import Hub
 from pyvider.hub.components import ComponentRegistry
 from pyvider.hub.discovery import ComponentDiscovery
 
 from plating.adorner.finder import ComponentFinder
-from plating.discovery import PlatingDiscovery
 from plating.errors import AdorningError, handle_error
 from plating.templating.generator import TemplateGenerator
+import plating.registry
 
 
 class PlatingAdorner:
     """Adorns components with .plating directories."""
 
-    def __init__(self, package_name: str) -> None:
+    def __init__(self, package_name: str, hub: Hub | None = None) -> None:
         """Initialize adorner with package name.
 
         Args:
             package_name: Python package to search for components
+            hub: Optional Hub instance for component discovery
         """
         self.package_name = package_name
-        self.plating_discovery = PlatingDiscovery(package_name)
+        self.plating_discovery = plating.registry.PlatingDiscovery(package_name)
         self.template_generator = TemplateGenerator()
         self.component_finder = ComponentFinder()
+        # Allow hub to be injected for testing, otherwise create a default one
+        if hub:
+            self.hub = hub
+        else:
+            # Use provide.foundation Hub for consistent interface
+            self.hub = Hub()
         # Initialize pyvider component registry and discovery
         self.registry = ComponentRegistry()
         self.discovery = ComponentDiscovery(self.registry)
@@ -42,6 +50,13 @@ class PlatingAdorner:
         Returns a dictionary with counts of adorned components by type.
         """
         pout(f"🔍 Discovering components in package: {self.package_name}")
+
+        # Try to discover using hub first (can be mocked in tests)
+        if hasattr(self.hub, 'discover_components'):
+            try:
+                await asyncio.to_thread(self.hub.discover_components, self.package_name)
+            except Exception as e:
+                logger.warning(f"Hub component discovery failed: {e}")
 
         # Discover all components using pyvider's component discovery
         try:
@@ -72,7 +87,14 @@ class PlatingAdorner:
             if missing:
                 pout(f"✨ Processing {len(missing)} missing {component_type}(s)...")
                 for name in missing:
-                    success = await self._adorn_component(name, component_type, components[name])
+                    # Get component class from components dict or from hub if available
+                    component_class = components[name]
+                    if component_class is None and hasattr(self.hub, 'get_component'):
+                        try:
+                            component_class = await asyncio.to_thread(self.hub.get_component, name)
+                        except Exception:
+                            pass  # Fall back to None, _adorn_component will handle it
+                    success = await self._adorn_component(name, component_type, component_class)
                     if success:
                         adorned[component_type] += 1
             else:
@@ -87,9 +109,21 @@ class PlatingAdorner:
         return adorned
 
     def _get_components_by_dimension(self, dimension: str) -> dict[str, Any]:
-        """Get components from pyvider registry by dimension."""
+        """Get components from hub by dimension."""
         components = {}
         try:
+            # Try to use hub first (can be mocked in tests)
+            if hasattr(self.hub, 'list_components'):
+                hub_components = self.hub.list_components(dimension=dimension)
+                if hub_components is not None:
+                    if isinstance(hub_components, dict):
+                        return hub_components
+                    elif isinstance(hub_components, list):
+                        # Convert list of component names to dict format
+                        return {name: None for name in hub_components}
+                    else:
+                        return {}
+            # Fall back to registry
             all_components = self.registry.list_components()
             if dimension in all_components:
                 components = all_components[dimension]
