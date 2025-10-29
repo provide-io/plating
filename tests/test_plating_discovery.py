@@ -148,7 +148,7 @@ class TestPlatingDiscovery:
         package_dir = tmp_path / "test_package"
         package_dir.mkdir()
 
-        # Create a multi-component garnish directory
+        # Create a multi-component plating directory
         multi_plating = package_dir / "multi.plating"
         multi_plating.mkdir()
 
@@ -213,7 +213,7 @@ class TestPlatingDiscovery:
         package_dir = tmp_path / "test_package"
         package_dir.mkdir()
 
-        # Create deeply nested garnish directory
+        # Create deeply nested plating directory
         deep_dir = package_dir / "providers" / "aws" / "resources"
         deep_dir.mkdir(parents=True)
 
@@ -238,11 +238,11 @@ class TestPlatingDiscovery:
         package_dir = tmp_path / "test_package"
         package_dir.mkdir()
 
-        # Create regular garnish
+        # Create regular plating
         regular_plating = package_dir / "regular.plating"
         regular_plating.mkdir()
 
-        # Create hidden garnish (should be ignored)
+        # Create hidden plating (should be ignored)
         hidden_plating = package_dir / ".hidden.plating"
         hidden_plating.mkdir()
 
