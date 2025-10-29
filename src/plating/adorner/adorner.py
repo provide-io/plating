@@ -1,6 +1,8 @@
 #
-# plating/adorner/adorner.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Core adorner implementation."""
 
 import asyncio
@@ -144,3 +146,5 @@ class PlatingAdorner:
 
 
 # 🍲🥄👗🪄
+
+# 🍽️📖🔚

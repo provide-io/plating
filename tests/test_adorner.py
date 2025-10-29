@@ -3,7 +3,6 @@ Comprehensive tests for the adorner module.
 """
 
 from provide.testkit.mocking import AsyncMock, Mock, patch
-
 import pytest
 
 from plating.adorner import PlatingAdorner, adorn_components, adorn_missing_components

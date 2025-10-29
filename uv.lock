@@ -1804,15 +1804,15 @@ docs = [
 requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "mkdocs-material", specifier = ">=9.6.20" },
-    { name = "provide-foundation", extras = ["all"], specifier = ">=0.0.1000" },
+    { name = "provide-foundation", extras = ["all"] },
     { name = "pymarkdownlnt", specifier = ">=0.9.32" },
-    { name = "pyvider-cty", specifier = ">=0.0.1000" },
+    { name = "pyvider-cty" },
     { name = "rich", specifier = ">=14.0.0" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "provide-testkit", extras = ["standard", "build"], specifier = ">=0.0.1000" }]
-docs = [{ name = "provide-testkit", extras = ["docs"], specifier = ">=0.0.1000" }]
+dev = [{ name = "provide-testkit", extras = ["standard", "build"] }]
+docs = [{ name = "provide-testkit", extras = ["docs"] }]
 
 [[package]]
 name = "pluggy"

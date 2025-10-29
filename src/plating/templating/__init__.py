@@ -1,6 +1,8 @@
 #
-# plating/templating/__init__.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Template processing and rendering module."""
 
 from plating.templating.engine import AsyncTemplateEngine, template_engine
@@ -19,3 +21,5 @@ __all__ = [
     "schema_to_markdown",
     "template_engine",
 ]
+
+# 🍽️📖🔚

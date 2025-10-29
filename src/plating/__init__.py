@@ -1,6 +1,8 @@
 #
-# plating/__init__.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Modern async documentation generation with full foundation integration.
 
 A clean, type-safe API for generating high-quality Terraform/OpenTofu
@@ -67,8 +69,7 @@ CLI Usage:
 
     # Show registry info
     plating info --provider-name my_provider
-    ```
-"""
+    ```"""
 
 from plating._version import __version__
 
@@ -106,7 +107,6 @@ from plating.types import (
 )
 
 __all__ = [
-    "__version__",
     "AdornResult",
     "ArgumentInfo",
     "AsyncTemplateEngine",
@@ -123,6 +123,7 @@ __all__ = [
     "SchemaInfo",
     "TemplateMetadataExtractor",
     "ValidationResult",
+    "__version__",
     "get_plating_registry",
     "plating",
     "plating_metrics",
@@ -133,3 +134,5 @@ __all__ = [
     "with_retry",
     "with_timing",
 ]
+
+# 🍽️📖🔚

@@ -1,6 +1,8 @@
 #
-# plating/types.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Type definitions for the plating system with foundation integration."""
 
 from enum import Enum
@@ -438,3 +440,5 @@ class SetOperationResult:
 
 # Alias for backward compatibility and shorter imports
 PlatingContext = PlatingCLIContext
+
+# 🍽️📖🔚

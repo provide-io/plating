@@ -1,6 +1,8 @@
 #
-# plating/adorner/api.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Public API for the adorner module."""
 
 import asyncio
@@ -22,3 +24,5 @@ def adorn_components(component_types: list[str] | None = None) -> dict[str, int]
 
 
 # 🍲🥄👗🎯🪄
+
+# 🍽️📖🔚

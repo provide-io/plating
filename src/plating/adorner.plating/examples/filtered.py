@@ -1,3 +1,10 @@
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+"""TODO: Add module docstring."""
+
 import asyncio
 
 from plating.adorner import PlatingAdorner
@@ -34,3 +41,5 @@ async def dress_multiple_types():
 # Run async functions
 asyncio.run(dress_resources_only())
 asyncio.run(dress_multiple_types())
+
+# 🍽️📖🔚

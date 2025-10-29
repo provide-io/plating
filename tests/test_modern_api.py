@@ -4,9 +4,9 @@
 """Tests for the modern async API."""
 
 from pathlib import Path
-from provide.testkit.mocking import Mock, patch
 
 from provide.foundation import perr, pout  # Foundation I/O helpers
+from provide.testkit.mocking import Mock, patch
 import pytest
 
 # Use the testkit utilities available via conftest.py fixtures
