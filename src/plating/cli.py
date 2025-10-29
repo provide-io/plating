@@ -167,17 +167,23 @@ def get_provider_name(provided_name: str | None) -> str:
 
 
 def get_package_name(provided_name: str | None) -> str | None:
-    """Get package name from CLI arg, or None for global discovery.
+    """Get package name from CLI arg, or auto-detect.
 
     Args:
         provided_name: Package name from CLI argument (may be None)
 
     Returns:
-        Package name to filter to (if provided), or None to search all packages
+        Package name to filter to, or None if auto-detection fails
     """
-    # If provided explicitly, use it as a filter
-    # If not provided, return None to enable global discovery from ALL packages
-    return provided_name
+    if provided_name:
+        return provided_name
+
+    detected = auto_detect_package_name()
+    if detected:
+        pout(f"📦 Auto-detected package: {detected}")
+        return detected
+
+    return None
 
 
 @click.group()
@@ -201,7 +207,7 @@ def main() -> None:
 @click.option(
     "--package-name",
     type=str,
-    help="Filter to specific package (default: search all installed packages).",
+    help="Filter to specific package (default: auto-detect from pyproject.toml).",
 )
 def adorn_command(
     component_type: tuple[str, ...], provider_name: str | None, package_name: str | None
@@ -213,10 +219,10 @@ def adorn_command(
             actual_provider_name = get_provider_name(provider_name)
             actual_package_name = get_package_name(package_name)
 
-            if actual_package_name:
-                pout(f"🔍 Filtering to package: {actual_package_name}")
-            else:
-                pout("🌍 Discovering from ALL installed packages")
+            if not actual_package_name:
+                raise click.UsageError(
+                    "Could not auto-detect package name. Please provide --package-name or run from a directory with pyproject.toml"
+                )
 
             context = PlatingContext(provider_name=actual_provider_name)
             api = Plating(context, actual_package_name)
@@ -228,8 +234,7 @@ def adorn_command(
             result = await api.adorn(component_types=types)
 
             if result.success:
-                pout(f"✅ Generated {result.templates_generated} templates")
-                pout(f"📦 Processed {result.components_processed} components")
+                pout(f"✅ Generated {result.templates_generated} templates and examples")
                 return 0
             else:
                 perr("❌ Adorn operation failed:")
