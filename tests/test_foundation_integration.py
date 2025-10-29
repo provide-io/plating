@@ -1,6 +1,8 @@
 #
-# tests/test_foundation_integration.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Tests for foundation integration patterns."""
 
 from pathlib import Path
@@ -358,3 +360,5 @@ class TestGlobalInstances:
 
 
 # 🧪⚡🏗️✨
+
+# 🍽️📖🔚

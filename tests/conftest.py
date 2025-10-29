@@ -1,6 +1,8 @@
 #
-# tests/conftest.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Centralized test configuration and fixtures using provide-testkit."""
 
 from pathlib import Path
@@ -258,3 +260,5 @@ __all__ = [
 
 
 # 🧪🏗️✨🎯
+
+# 🍽️📖🔚

@@ -1,9 +1,13 @@
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
 """Tests for CLI commands.
 
 Note: These tests currently cover CLI help text and basic structure.
 More comprehensive integration tests with async mocking are needed for full coverage.
-See QUALITY_IMPROVEMENTS.md for details.
-"""
+See QUALITY_IMPROVEMENTS.md for details."""
 
 from click.testing import CliRunner
 import pytest
@@ -82,3 +86,5 @@ class TestCLI:
 # - Click's CliRunner needs special handling for async commands
 #
 # See: https://click.palletsprojects.com/en/8.1.x/testing/
+
+# 🍽️📖🔚

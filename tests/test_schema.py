@@ -1,6 +1,9 @@
-"""
-Comprehensive tests for the schema module.
-"""
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+"""Comprehensive tests for the schema module."""
 
 from pathlib import Path
 
@@ -458,3 +461,5 @@ class TestSchemaProcessorWithCTY:
             result = schema_processor._format_type_string(mock_list)
             # Since CtyList won't be recognized without pyvider.cty installed, it returns String
             assert result == "String"
+
+# 🍽️📖🔚
