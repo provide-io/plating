@@ -1,6 +1,8 @@
 #
-# plating/templating/functions.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Custom Jinja2 template functions for .plating rendering."""
 
 from typing import Any
@@ -211,3 +213,5 @@ def _create_function_context(schema) -> dict[str, Any]:
 
 
 # 🍲🥄📄🪄
+
+# 🍽️📖🔚
