@@ -85,6 +85,7 @@ class SchemaInfo:
     description: str = ""
     attributes: dict[str, dict[str, Any]] = field(factory=dict)
     blocks: dict[str, dict[str, Any]] = field(factory=dict)
+    test_only: bool = False
 
     @classmethod
     def from_dict(cls, schema_dict: dict[str, Any]) -> "SchemaInfo":
@@ -97,6 +98,7 @@ class SchemaInfo:
             description=schema_dict.get("description", ""),
             attributes=block.get("attributes", {}),
             blocks=block.get("block_types", {}),
+            test_only=schema_dict.get("test_only", False),
         )
 
     def to_markdown(self) -> str:

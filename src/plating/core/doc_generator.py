@@ -16,6 +16,105 @@ from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingConte
 """Documentation generation utilities."""
 
 
+def _check_component_test_only(bundle: PlatingBundle, component_type: ComponentType, provider_name: str | None) -> bool:
+    """Check if a component is marked as test_only by inspecting the component class.
+
+    Args:
+        bundle: PlatingBundle for the component
+        component_type: Type of component (resource, data_source, function)
+        provider_name: Provider name (used for constructing module paths)
+
+    Returns:
+        True if component is test_only, False otherwise
+    """
+    try:
+        # Strip provider prefix from component name if present
+        component_name = bundle.name
+        if provider_name and component_name.startswith(f"{provider_name}_"):
+            component_name = component_name[len(provider_name) + 1:]
+
+        # Construct the module path
+        # For pyvider components, the pattern is: pyvider.components.{type}s.{name}
+        type_dir = f"{component_type.value}s"  # resource -> resources, data_source -> data_sources
+
+        # First try using the component name directly
+        module_name = f"pyvider.components.{type_dir}.{component_name}"
+
+        # Import the module
+        import importlib
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError:
+            # If direct import fails, try using the plating directory name
+            # Extract module name from plating_dir (e.g., "nested_data_test_suite.plating" -> "nested_data_test_suite")
+            plating_dir_name = bundle.plating_dir.name.replace(".plating", "")
+            module_name = f"pyvider.components.{type_dir}.{plating_dir_name}"
+            module = importlib.import_module(module_name)
+
+        # Look for classes in the module that have _is_test_only attribute
+        # and match the component's registered name
+        full_component_name = bundle.name
+        for attr_name in dir(module):
+            attr = getattr(module, attr_name)
+            if isinstance(attr, type) and hasattr(attr, "_is_test_only"):
+                # Check if this is the right component by matching the registered name
+                if hasattr(attr, "_registered_name") and attr._registered_name == full_component_name:
+                    return bool(attr._is_test_only)
+                # Fallback: if there's only one class with test_only, use it
+                elif not hasattr(attr, "_registered_name"):
+                    return bool(attr._is_test_only)
+
+        return False
+    except (ImportError, AttributeError) as e:
+        logger.debug(f"Could not check test_only for {bundle.name}: {e}")
+        return False
+
+
+def _inject_test_mode_subcategory(content: str) -> str:
+    """Inject 'subcategory: Test Mode' into YAML frontmatter if present.
+
+    Args:
+        content: Markdown content with optional YAML frontmatter
+
+    Returns:
+        Content with subcategory added to frontmatter
+    """
+    # Check if content starts with frontmatter (---)
+    if not content.startswith("---"):
+        # No frontmatter, add one with subcategory
+        return f'''---
+subcategory: "Test Mode"
+---
+
+{content}'''
+
+    # Find end of frontmatter
+    lines = content.split("\n")
+    frontmatter_end = -1
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            frontmatter_end = i
+            break
+
+    if frontmatter_end == -1:
+        # Malformed frontmatter, just return original content
+        return content
+
+    # Check if subcategory already exists
+    has_subcategory = any(
+        line.strip().startswith("subcategory:")
+        for line in lines[1:frontmatter_end]
+    )
+
+    if has_subcategory:
+        # Already has subcategory, don't modify
+        return content
+
+    # Insert subcategory before the closing ---
+    lines.insert(frontmatter_end, 'subcategory: "Test Mode"')
+    return "\n".join(lines)
+
+
 async def render_component_docs(
     components: list[PlatingBundle],
     component_type: ComponentType,
@@ -52,6 +151,9 @@ async def render_component_docs(
 
             # Get component schema if available
             schema_info = get_component_schema(component, component_type, provider_schema)
+
+            # Check if component is test_only by trying to import and inspect the class
+            is_test_only = _check_component_test_only(component, component_type, context.provider_name)
 
             # Extract metadata for functions
             signature = None
@@ -113,6 +215,10 @@ async def render_component_docs(
 
             # Render with template engine
             rendered_content = await template_engine.render(component, render_context)
+
+            # Add subcategory to frontmatter if test_only is True
+            if is_test_only or (schema_info and schema_info.test_only):
+                rendered_content = _inject_test_mode_subcategory(rendered_content)
 
             # Write output
             output_file.write_text(rendered_content, encoding="utf-8")
@@ -224,10 +330,20 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
         return name
 
     # Helper function to check if component is test mode
-    def is_test_mode_component(name: str) -> bool:
-        """Check if component is a test mode component."""
+    def is_test_mode_component(component_name: str, component_type: ComponentType) -> bool:
+        """Check if component is a test mode component by reading its metadata."""
+        # Try to get the component schema which contains test_only metadata
+        schema_info = get_component_schema(
+            PlatingBundle(name=component_name, plating_dir=Path("."), component_type=component_type.value),
+            component_type,
+            provider_schema
+        )
+        if schema_info and schema_info.test_only:
+            return True
+
+        # Fallback to heuristic-based detection for components without schema
         test_indicators = ["_test", "test_", "warning_example", "verifier"]
-        return any(indicator in name.lower() for indicator in test_indicators)
+        return any(indicator in component_name.lower() for indicator in test_indicators)
 
     # Add links to resources (excluding test mode)
     resource_components = registry.get_components_with_templates(ComponentType.RESOURCE)
@@ -235,7 +351,7 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     if resource_components:
         for component in sorted(resource_components, key=lambda c: c.name):
             clean_name = strip_provider_prefix(component.name, provider_name)
-            if is_test_mode_component(clean_name):
+            if is_test_mode_component(component.name, ComponentType.RESOURCE):
                 test_resources.append((component, clean_name))
             else:
                 index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.RESOURCE.output_subdir}/{clean_name}.md)\n"
@@ -250,7 +366,7 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     if data_source_components:
         for component in sorted(data_source_components, key=lambda c: c.name):
             clean_name = strip_provider_prefix(component.name, provider_name)
-            if is_test_mode_component(clean_name):
+            if is_test_mode_component(component.name, ComponentType.DATA_SOURCE):
                 test_data_sources.append((component, clean_name))
             else:
                 index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.DATA_SOURCE.output_subdir}/{clean_name}.md)\n"
