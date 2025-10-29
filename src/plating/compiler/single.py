@@ -116,7 +116,8 @@ class SingleExampleCompiler:
             return
 
         # Generate provider.tf once for this component directory
-        self._generate_provider_tf(component_dir)
+        is_test_only = self._is_test_only_component(bundle.name)
+        self._generate_provider_tf(component_dir, is_test_only)
 
         # Generate flat .tf files in the component directory
         for example_name, example_content in flat_examples.items():
