@@ -3,8 +3,8 @@ Comprehensive tests for the schema module.
 """
 
 from pathlib import Path
-from provide.testkit.mocking import Mock, patch
 
+from provide.testkit.mocking import Mock, patch
 import pytest
 
 from plating.schema.processor import SchemaProcessor

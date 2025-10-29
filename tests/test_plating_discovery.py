@@ -3,6 +3,7 @@ Unit tests for PlatingDiscovery class using TDD approach.
 """
 
 from pathlib import Path
+
 from provide.testkit.mocking import MagicMock, patch
 
 from plating.bundles import PlatingBundle

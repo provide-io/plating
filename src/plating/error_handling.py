@@ -1,6 +1,8 @@
 #
-# plating/error_handling.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Centralized error handling and reporting for plating."""
 
 from pathlib import Path
@@ -106,3 +108,5 @@ def handle_subprocess_execution(
             "Please ensure the required tool is installed",
         )
         raise
+
+# 🍽️📖🔚
