@@ -76,27 +76,13 @@ class SingleExampleCompiler:
             type_dir = output_dir / component_type.value
             type_dir.mkdir(parents=True, exist_ok=True)
 
-            # Deduplicate bundles that share the same plating_dir
-            # Use plating directory name for multi-function bundles
-            seen_plating_dirs: dict[Path, PlatingBundle] = {}
+            # Process each bundle individually - don't deduplicate
+            # Each component should get its own example directory based on its name
             for bundle in type_bundles:
-                if bundle.plating_dir not in seen_plating_dirs:
-                    # First bundle with this plating_dir - use plating dir name
-                    plating_name = bundle.plating_dir.name.replace(".plating", "")
-                    # Create a representative bundle with the plating directory name
-                    representative_bundle = PlatingBundle(
-                        name=plating_name,
-                        plating_dir=bundle.plating_dir,
-                        component_type=bundle.component_type,
-                    )
-                    seen_plating_dirs[bundle.plating_dir] = representative_bundle
-
-            # Now generate examples for each unique plating directory
-            for representative_bundle in seen_plating_dirs.values():
                 try:
-                    self._compile_component_examples(representative_bundle, type_dir, result)
+                    self._compile_component_examples(bundle, type_dir, result)
                 except Exception as e:
-                    error_msg = f"Failed to compile examples for {representative_bundle.name}: {e}"
+                    error_msg = f"Failed to compile examples for {bundle.name}: {e}"
                     result.errors.append(error_msg)
                     logger.error(error_msg)
 
@@ -116,7 +102,12 @@ class SingleExampleCompiler:
         if not bundle.has_examples():
             return
 
-        component_dir = type_dir / bundle.name
+        # Strip provider prefix from component name for directory naming
+        component_name = bundle.name
+        if self.provider_name and component_name.startswith(f"{self.provider_name}_"):
+            component_name = component_name[len(self.provider_name) + 1:]
+
+        component_dir = type_dir / component_name
         component_dir.mkdir(parents=True, exist_ok=True)
 
         # Load only flat examples (not grouped ones)
@@ -141,6 +132,9 @@ class SingleExampleCompiler:
     def _load_flat_examples(self, bundle: PlatingBundle) -> dict[str, str]:
         """Load only flat .tf examples (not grouped subdirectories).
 
+        For bundles that share a plating directory with multiple components,
+        filter examples to only include those that reference this specific component.
+
         Args:
             bundle: Plating bundle
 
@@ -155,11 +149,42 @@ class SingleExampleCompiler:
         # Only load flat .tf files
         for example_file in bundle.examples_dir.glob("*.tf"):
             try:
-                flat_examples[example_file.stem] = example_file.read_text(encoding="utf-8")
+                content = example_file.read_text(encoding="utf-8")
+
+                # Filter examples: only include if they reference this component
+                # Check if the component name appears in the example
+                if self._example_references_component(content, bundle.name):
+                    flat_examples[example_file.stem] = content
             except Exception:
                 continue
 
         return flat_examples
+
+    def _example_references_component(self, content: str, component_name: str) -> bool:
+        """Check if an example file references a specific component.
+
+        Args:
+            content: Example file content
+            component_name: Component name to search for
+
+        Returns:
+            True if the example references this component
+        """
+        # Look for references to the component in resource/data source/function calls
+        # This handles: resource "component_name", data "component_name", provider::component_name()
+        import re
+
+        # Match resource/data declarations: resource "name" or data "name"
+        resource_pattern = rf'(resource|data)\s+"{re.escape(component_name)}"'
+        if re.search(resource_pattern, content):
+            return True
+
+        # Match function calls: provider::function_name()
+        function_pattern = rf'{re.escape(self.provider_name)}::{re.escape(component_name)}\s*\('
+        if re.search(function_pattern, content):
+            return True
+
+        return False
 
     def _generate_provider_tf(self, component_dir: Path) -> None:
         """Generate provider.tf file for a component directory.
