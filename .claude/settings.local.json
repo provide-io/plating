@@ -41,7 +41,13 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(cp:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git log:*)",
+      "Bash(python3:*)",
+      "Bash(git add:*)",
+      "Bash(git restore:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nFix multiple test failures and missing module issues\n\n- Restore missing src/plating/compiler/single.py module that was deleted\n- Fix PlatingDiscovery discovery lookup to only use distribution fallback for dist names\n- Add hub attribute to PlatingAdorner for testability\n- Update adorner to use PlatingDiscovery from registry module for proper mocking\n- Handle both dict and list returns from hub.list_components\n- Add support for getting component classes from hub.get_component\n\nThis fixes 5 test failures:\n- test_grouped_compiler.py: Module import error\n- test_plating_discovery.py::test_discover_bundles_no_package: Double find_spec call\n- test_adorner.py (4 tests): Hub mocking for unit tests\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd README generation to grouped example compiler\n\n- Implement _generate_readme method to create README.md files for grouped examples\n- Generate human-readable titles from group names\n- Include components list, usage instructions, and cleanup commands\n- Match expected test output with terraform init, plan, apply commands\n\nFixes test_grouped_compiler.py::test_compile_generates_readme\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": [],
