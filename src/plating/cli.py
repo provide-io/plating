@@ -59,10 +59,12 @@ def _load_tomllib_module() -> type | None:
     """
     try:
         import tomllib
+
         return tomllib
     except ImportError:
         try:
             import tomli as tomllib  # type: ignore[import-not-found,no-redef]
+
             return tomllib
         except ImportError:
             return None
@@ -306,9 +308,7 @@ def _generate_examples_if_requested(
         bundles_with_examples, examples_dir, types, grouped_examples_dir
     )
 
-    total_examples = (
-        compilation_result.examples_generated + compilation_result.grouped_examples_generated
-    )
+    total_examples = compilation_result.examples_generated + compilation_result.grouped_examples_generated
 
     if total_examples > 0:
         pout(
@@ -571,12 +571,10 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
         pout(f"  • Component types: {', '.join(stats.get('component_types', []))}")
 
         for comp_type in stats.get("component_types", []):
-            count = stats.get(comp_type, {}).get('total', 0)
-            with_templates = stats.get(comp_type, {}).get('with_templates', 0)
+            count = stats.get(comp_type, {}).get("total", 0)
+            with_templates = stats.get(comp_type, {}).get("with_templates", 0)
 
-            pout(
-                f"  • {comp_type}: {count} total, {with_templates} with templates"
-            )
+            pout(f"  • {comp_type}: {count} total, {with_templates} with templates")
 
     asyncio.run(run())
 
@@ -611,11 +609,9 @@ def stats_command(package_name: str | None) -> None:
         if component_types:
             pout("\n📦 Components by type:")
             for comp_type in sorted(component_types):
-                count = stats.get(comp_type, {}).get('total', 0)
-                with_templates = stats.get(comp_type, {}).get('with_templates', 0)
-                pout(
-                    f"   {comp_type}: {count} total, {with_templates} with templates"
-                )
+                count = stats.get(comp_type, {}).get("total", 0)
+                with_templates = stats.get(comp_type, {}).get("with_templates", 0)
+                pout(f"   {comp_type}: {count} total, {with_templates} with templates")
 
     asyncio.run(run())
 

@@ -74,7 +74,9 @@ class Plating:
             AdornResult with generation statistics
         """
         if not self.package_name:
-            pout("⚠️  Adorn requires a package name. Run with --package-name or in a project with pyproject.toml.")
+            pout(
+                "⚠️  Adorn requires a package name. Run with --package-name or in a project with pyproject.toml."
+            )
             return AdornResult(errors=["--package-name is required for adorn."])
 
         pout(f"🎨 Adorning components in package: {self.package_name}")
@@ -306,5 +308,6 @@ def plating(context: PlatingContext | None = None) -> Plating:
     if _global_api is None:
         _global_api = Plating(context)
     return _global_api
+
 
 # 🍽️📖🔚

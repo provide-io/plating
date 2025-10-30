@@ -187,4 +187,5 @@ class PlatingBundle:
 
         return fixtures
 
+
 # 🍽️📖🔚
