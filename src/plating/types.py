@@ -1,4 +1,4 @@
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -88,6 +88,7 @@ class SchemaInfo:
     attributes: dict[str, dict[str, Any]] = field(factory=dict)
     blocks: dict[str, dict[str, Any]] = field(factory=dict)
     test_only: bool = False
+    component_of: str | None = None
 
     @classmethod
     def from_dict(cls, schema_dict: dict[str, Any]) -> "SchemaInfo":
@@ -101,6 +102,7 @@ class SchemaInfo:
             attributes=block.get("attributes", {}),
             blocks=block.get("block_types", {}),
             test_only=schema_dict.get("test_only", False),
+            component_of=schema_dict.get("component_of"),
         )
 
     def to_markdown(self) -> str:

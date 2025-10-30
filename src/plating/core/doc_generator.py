@@ -1,4 +1,4 @@
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -77,6 +77,71 @@ def _check_component_test_only(
     except (ImportError, AttributeError) as e:
         logger.debug(f"Could not check test_only for {bundle.name}: {e}")
         return False
+
+
+def _determine_subcategory(schema_info: SchemaInfo | None, is_test_only: bool) -> str:
+    """Determine the subcategory for a component based on its metadata.
+
+    Args:
+        schema_info: Schema information containing component_of metadata
+        is_test_only: Whether the component is marked as test_only
+
+    Returns:
+        Subcategory string: "Test Mode", "Lens", or "Utilities"
+    """
+    # Test Mode takes precedence
+    if is_test_only or (schema_info and schema_info.test_only):
+        return "Test Mode"
+
+    # Lens category for components with component_of="lens"
+    if schema_info and schema_info.component_of == "lens":
+        return "Lens"
+
+    # Default to Utilities
+    return "Utilities"
+
+
+def _inject_subcategory(content: str, subcategory: str) -> str:
+    """Inject subcategory into YAML frontmatter if present.
+
+    Args:
+        content: Markdown content with optional YAML frontmatter
+        subcategory: Subcategory value to inject (e.g., "Test Mode", "Lens", "Utilities")
+
+    Returns:
+        Content with subcategory added to frontmatter
+    """
+    # Check if content starts with frontmatter (---)
+    if not content.startswith("---"):
+        # No frontmatter, add one with subcategory
+        return f"""---
+subcategory: "{subcategory}"
+---
+
+{content}"""
+
+    # Find end of frontmatter
+    lines = content.split("\n")
+    frontmatter_end = -1
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            frontmatter_end = i
+            break
+
+    if frontmatter_end == -1:
+        # Malformed frontmatter, just return original content
+        return content
+
+    # Check if subcategory already exists
+    has_subcategory = any(line.strip().startswith("subcategory:") for line in lines[1:frontmatter_end])
+
+    if has_subcategory:
+        # Already has subcategory, don't modify
+        return content
+
+    # Insert subcategory before the closing ---
+    lines.insert(frontmatter_end, f'subcategory: "{subcategory}"')
+    return "\n".join(lines)
 
 
 def _inject_test_mode_subcategory(content: str) -> str:
@@ -222,9 +287,9 @@ async def render_component_docs(
             # Render with template engine
             rendered_content = await template_engine.render(component, render_context)
 
-            # Add subcategory to frontmatter if test_only is True
-            if is_test_only or (schema_info and schema_info.test_only):
-                rendered_content = _inject_test_mode_subcategory(rendered_content)
+            # Determine and inject appropriate subcategory based on component metadata
+            subcategory = _determine_subcategory(schema_info, is_test_only)
+            rendered_content = _inject_subcategory(rendered_content, subcategory)
 
             # Write output
             output_file.write_text(rendered_content, encoding="utf-8")
