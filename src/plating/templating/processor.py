@@ -1,6 +1,8 @@
 #
-# plating/templating/processor.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Template processing and rendering for documentation generation."""
 
 from typing import TYPE_CHECKING
@@ -223,3 +225,5 @@ provider "{{ provider.short_name }}" {
 
 
 # 🍲🥄📄🪄
+
+# 🍽️📖🔚

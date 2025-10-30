@@ -1,6 +1,8 @@
 #
-# plating/adorner/__init__.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Adorning system for adding .plating directories to components."""
 
 from plating.adorner.adorner import PlatingAdorner
@@ -16,3 +18,5 @@ __all__ = [
 
 
 # 🍲🥄👗🪄
+
+# 🍽️📖🔚

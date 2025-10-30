@@ -4,14 +4,12 @@ These tests use CliTestRunner from provide-testkit for enhanced CLI testing
 with proper async handling, output capture, and assertion helpers.
 """
 
-from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
-import pytest
 from provide.testkit import CliTestRunner
+import pytest
 
 from plating.cli import main as cli
-from plating.types import ComponentType
 
 
 @pytest.fixture

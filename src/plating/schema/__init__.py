@@ -1,6 +1,8 @@
 #
-# plating/schema/__init__.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Schema extraction and processing module."""
 
 from plating.schema.formatters import (
@@ -30,3 +32,5 @@ __all__ = [
     "parse_schema_to_markdown",
     "parse_variadic_argument",
 ]
+
+# 🍽️📖🔚

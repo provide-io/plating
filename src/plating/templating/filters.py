@@ -1,6 +1,8 @@
 #
-# plating/templating/filters.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Custom Jinja2 filters for documentation generation."""
 
 from typing import Any
@@ -97,3 +99,5 @@ def attrs_schema_to_markdown(schema: dict[str, Any], prefix: str = "") -> str:
 
 
 # 🍲🥄📄🪄
+
+# 🍽️📖🔚

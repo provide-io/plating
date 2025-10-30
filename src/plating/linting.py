@@ -1,6 +1,8 @@
 #
-# plating/linting.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Markdown linting integration for documentation generation."""
 
 import json
@@ -255,3 +257,5 @@ def break_long_lines(content: str, max_length: int = 100) -> str:
 
 
 # 🍲🥄📄🪄
+
+# 🍽️📖🔚

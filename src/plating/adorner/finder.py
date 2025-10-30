@@ -1,6 +1,8 @@
 #
-# plating/adorner/finder.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Component source file finding utilities."""
 
 import inspect
@@ -21,3 +23,5 @@ class ComponentFinder:
 
 
 # 🍲🥄🔍🪄
+
+# 🍽️📖🔚

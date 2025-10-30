@@ -1,6 +1,8 @@
 #
-# plating/compiler/grouped.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Grouped (cross-component) example compilation."""
 
 from __future__ import annotations
@@ -290,3 +292,5 @@ This grouped example demonstrates multiple components working together.
 
 
 # 🍲🔗📦🏗️
+
+# 🍽️📖🔚

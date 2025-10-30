@@ -1,11 +1,14 @@
-"""
-Custom error types for plating with context and user-friendly messages.
-"""
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+"""Custom error types for plating with context and user-friendly messages."""
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Type
+from typing import Any
 
 try:
     from provide.foundation.errors import FoundationError as _BaseError
@@ -13,7 +16,7 @@ except ImportError:
     _BaseError = Exception
 
 # Type alias - base class for all plating errors
-FoundationError: Type[Exception] = _BaseError
+FoundationError: type[Exception] = _BaseError
 
 
 class PlatingError(FoundationError):
@@ -385,3 +388,5 @@ def handle_error(error: Exception, logger: Any = None, reraise: bool = False) ->
         raise
 
     return error_msg
+
+# 🍽️📖🔚

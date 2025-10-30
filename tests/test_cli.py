@@ -5,8 +5,8 @@ More comprehensive integration tests with async mocking are needed for full cove
 See QUALITY_IMPROVEMENTS.md for details.
 """
 
-import pytest
 from click.testing import CliRunner
+import pytest
 
 from plating.cli import main as cli
 

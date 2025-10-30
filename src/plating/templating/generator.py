@@ -1,6 +1,8 @@
 #
-# plating/templating/generator.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Template generation for adorned components."""
 
 from typing import Any
@@ -193,3 +195,5 @@ output "function_result" {{
 
 
 # 🍲🥄👗📝🪄
+
+# 🍽️📖🔚
