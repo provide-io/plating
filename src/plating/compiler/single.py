@@ -13,6 +13,7 @@ from attrs import define, field
 from provide.foundation import logger
 
 from plating.bundles import PlatingBundle
+from plating.core.doc_generator import _extract_component_metadata
 from plating.types import ComponentType
 
 
@@ -118,6 +119,7 @@ class SingleExampleCompiler:
             return
 
         # Generate provider.tf once for this component directory
+        component_type = ComponentType(bundle.component_type) if isinstance(bundle.component_type, str) else bundle.component_type
         is_test_only = self._is_test_only_component(bundle, component_type)
         self._generate_provider_tf(component_dir, is_test_only)
 
@@ -189,12 +191,35 @@ class SingleExampleCompiler:
 
         return False
 
-    def _generate_provider_tf(self, component_dir: Path) -> None:
+    def _is_test_only_component(self, bundle: PlatingBundle, component_type: ComponentType) -> bool:
+        """Check if a component is marked as test_only.
+
+        Args:
+            bundle: Plating bundle
+            component_type: Component type
+
+        Returns:
+            True if component is test_only, False otherwise
+        """
+        try:
+            is_test_only, _ = _extract_component_metadata(bundle, component_type, self.provider_name)
+            return is_test_only
+        except Exception:
+            return False
+
+    def _generate_provider_tf(self, component_dir: Path, is_test_only: bool = False) -> None:
         """Generate provider.tf file for a component directory.
 
         Args:
             component_dir: Directory for the component
+            is_test_only: Whether this component requires test mode
         """
+        # Add test_mode config if needed
+        provider_config = ""
+        if is_test_only:
+            provider_config = """  test_mode = true
+"""
+
         provider_content = f"""terraform {{
   required_providers {{
     {self.provider_name} = {{
@@ -205,8 +230,7 @@ class SingleExampleCompiler:
 }}
 
 provider "{self.provider_name}" {{
-  # Provider configuration
-  # Add your configuration options here
+{provider_config}  # Add your configuration options here
 }}
 """
         provider_path = component_dir / "provider.tf"
