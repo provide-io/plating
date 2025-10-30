@@ -25,7 +25,7 @@ def runner():
 class TestCLIHelp:
     """Test CLI help text and command structure."""
 
-    def test_main_help(self, runner):
+    def test_main_help(self, runner) -> None:
         """Test main --help command."""
         result = runner.invoke(cli, ["--help"])
         runner.assert_success(result)
@@ -34,33 +34,33 @@ class TestCLIHelp:
         runner.assert_output_contains(result, "plate")
         runner.assert_output_contains(result, "validate")
 
-    def test_adorn_help(self, runner):
+    def test_adorn_help(self, runner) -> None:
         """Test adorn --help command."""
         result = runner.invoke(cli, ["adorn", "--help"])
         runner.assert_success(result)
         runner.assert_output_contains(result, "Create missing documentation templates")
         runner.assert_output_contains(result, "--component-type")
 
-    def test_plate_help(self, runner):
+    def test_plate_help(self, runner) -> None:
         """Test plate --help command."""
         result = runner.invoke(cli, ["plate", "--help"])
         runner.assert_success(result)
         runner.assert_output_contains(result, "Generate documentation")
         runner.assert_output_contains(result, "--output-dir")
 
-    def test_validate_help(self, runner):
+    def test_validate_help(self, runner) -> None:
         """Test validate --help command."""
         result = runner.invoke(cli, ["validate", "--help"])
         runner.assert_success(result)
         runner.assert_output_contains(result, "Validate generated documentation")
 
-    def test_info_help(self, runner):
+    def test_info_help(self, runner) -> None:
         """Test info --help command."""
         result = runner.invoke(cli, ["info", "--help"])
         runner.assert_success(result)
         runner.assert_output_contains(result, "Show registry information")
 
-    def test_stats_help(self, runner):
+    def test_stats_help(self, runner) -> None:
         """Test stats --help command."""
         result = runner.invoke(cli, ["stats", "--help"])
         runner.assert_success(result)
@@ -72,7 +72,7 @@ class TestAdornCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_adorn_success(self, mock_plating_class, mock_auto_detect, runner):
+    def test_adorn_success(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test successful adorn command execution."""
         # Setup mock
         mock_api = Mock()
@@ -95,7 +95,7 @@ class TestAdornCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_adorn_with_component_type(self, mock_plating_class, mock_auto_detect, runner):
+    def test_adorn_with_component_type(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test adorn with --component-type flag."""
         mock_api = Mock()
         mock_result = Mock()
@@ -115,7 +115,7 @@ class TestAdornCommand:
         assert call_args is not None
 
     @patch("plating.cli.Plating")
-    def test_adorn_with_provider_name(self, mock_plating_class, runner):
+    def test_adorn_with_provider_name(self, mock_plating_class, runner) -> None:
         """Test adorn with --provider-name flag."""
         mock_api = Mock()
         mock_result = Mock()
@@ -134,7 +134,7 @@ class TestAdornCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_adorn_with_errors(self, mock_plating_class, mock_auto_detect, runner):
+    def test_adorn_with_errors(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test adorn command with errors."""
         mock_api = Mock()
         mock_result = Mock()
@@ -154,7 +154,7 @@ class TestAdornCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_adorn_with_exception(self, mock_plating_class, mock_auto_detect, runner):
+    def test_adorn_with_exception(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test adorn command when exception occurs."""
         from plating.errors import PlatingError
 
@@ -173,7 +173,7 @@ class TestPlateCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_plate_success(self, mock_plating_class, mock_auto_detect, runner):
+    def test_plate_success(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test successful plate command execution."""
         mock_api = Mock()
         mock_result = Mock()
@@ -195,7 +195,7 @@ class TestPlateCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_plate_with_output_dir(self, mock_plating_class, mock_auto_detect, runner):
+    def test_plate_with_output_dir(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test plate with custom output directory."""
         mock_api = Mock()
         mock_result = Mock()
@@ -215,7 +215,7 @@ class TestPlateCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_plate_with_force(self, mock_plating_class, mock_auto_detect, runner):
+    def test_plate_with_force(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test plate with --force flag."""
         mock_api = Mock()
         mock_result = Mock()
@@ -239,7 +239,7 @@ class TestPlateCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_plate_with_no_validate(self, mock_plating_class, mock_auto_detect, runner):
+    def test_plate_with_no_validate(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test plate with --no-validate flag."""
         mock_api = Mock()
         mock_result = Mock()
@@ -263,7 +263,7 @@ class TestPlateCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_plate_with_failure(self, mock_plating_class, mock_auto_detect, runner):
+    def test_plate_with_failure(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test plate command with failures."""
         mock_api = Mock()
         mock_result = Mock()
@@ -282,7 +282,7 @@ class TestPlateCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_plate_with_exception(self, mock_plating_class, mock_auto_detect, runner):
+    def test_plate_with_exception(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test plate command when exception occurs."""
         from plating.errors import PlatingError
 
@@ -301,7 +301,7 @@ class TestValidateCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_validate_success(self, mock_plating_class, mock_auto_detect, runner):
+    def test_validate_success(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test successful validation."""
         mock_api = Mock()
         mock_result = Mock()
@@ -321,7 +321,7 @@ class TestValidateCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_validate_with_failures(self, mock_plating_class, mock_auto_detect, runner):
+    def test_validate_with_failures(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test validation with failures."""
         mock_api = Mock()
         mock_result = Mock()
@@ -344,7 +344,7 @@ class TestValidateCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_validate_with_custom_output_dir(self, mock_plating_class, mock_auto_detect, runner):
+    def test_validate_with_custom_output_dir(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test validation with custom output directory."""
         from pathlib import Path as PathlibPath
         import tempfile
@@ -378,7 +378,7 @@ class TestInfoCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_info_basic(self, mock_plating_class, mock_auto_detect, runner):
+    def test_info_basic(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test basic info command."""
         mock_api = Mock()
         mock_api.get_registry_stats.return_value = {
@@ -397,7 +397,7 @@ class TestInfoCommand:
         runner.assert_output_contains(result, "resource")
 
     @patch("plating.cli.Plating")
-    def test_info_with_provider_name(self, mock_plating_class, runner):
+    def test_info_with_provider_name(self, mock_plating_class, runner) -> None:
         """Test info command with --provider-name."""
         mock_api = Mock()
         mock_api.get_registry_stats.return_value = {
@@ -414,7 +414,7 @@ class TestInfoCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_info_with_package_filter(self, mock_plating_class, mock_auto_detect, runner):
+    def test_info_with_package_filter(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test info command with --package-name."""
         mock_api = Mock()
         mock_api.get_registry_stats.return_value = {
@@ -436,7 +436,7 @@ class TestStatsCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_stats_basic(self, mock_plating_class, mock_auto_detect, runner):
+    def test_stats_basic(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test basic stats command."""
         mock_api = Mock()
         mock_api.get_registry_stats.return_value = {
@@ -456,7 +456,7 @@ class TestStatsCommand:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_stats_with_package_filter(self, mock_plating_class, mock_auto_detect, runner):
+    def test_stats_with_package_filter(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test stats with package filter."""
         mock_api = Mock()
         mock_api.get_registry_stats.return_value = {
@@ -477,7 +477,7 @@ class TestProviderNameDetection:
 
     @patch("plating.cli.auto_detect_provider_name")
     @patch("plating.cli.Plating")
-    def test_auto_detect_used_when_not_provided(self, mock_plating_class, mock_auto_detect, runner):
+    def test_auto_detect_used_when_not_provided(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test that auto-detection is used when provider name not provided."""
         mock_auto_detect.return_value = "auto_detected_provider"
         mock_api = Mock()
@@ -497,7 +497,7 @@ class TestProviderNameDetection:
 
     @patch("plating.cli.auto_detect_provider_name")
     @patch("plating.cli.Plating")
-    def test_explicit_provider_overrides_auto_detect(self, mock_plating_class, mock_auto_detect, runner):
+    def test_explicit_provider_overrides_auto_detect(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test that explicit provider name overrides auto-detection."""
         mock_api = Mock()
         mock_result = Mock()
@@ -521,7 +521,7 @@ class TestErrorHandling:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_unexpected_exception_handling(self, mock_plating_class, mock_auto_detect, runner):
+    def test_unexpected_exception_handling(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test handling of unexpected exceptions."""
         mock_api = Mock()
         mock_api.adorn = AsyncMock(side_effect=RuntimeError("Unexpected error"))
@@ -535,7 +535,7 @@ class TestErrorHandling:
 
     @patch("plating.cli.auto_detect_provider_name", return_value="test_provider")
     @patch("plating.cli.Plating")
-    def test_plating_error_with_user_message(self, mock_plating_class, mock_auto_detect, runner):
+    def test_plating_error_with_user_message(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test PlatingError with custom user message."""
         from plating.errors import PlatingError
 

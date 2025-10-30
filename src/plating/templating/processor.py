@@ -18,10 +18,10 @@ if TYPE_CHECKING:
 class TemplateProcessor:
     """Handles template generation and rendering."""
 
-    def __init__(self, generator: "DocsGenerator"):
+    def __init__(self, generator: "DocsGenerator") -> None:
         self.generator = generator
 
-    def generate_missing_templates(self):
+    def generate_missing_templates(self) -> None:
         """
         Generate missing template files - now a no-op since we use .plating bundles.
 
@@ -29,7 +29,7 @@ class TemplateProcessor:
         all necessary templates and are discovered automatically.
         """
 
-    def render_templates(self):
+    def render_templates(self) -> None:
         """Render all templates using plating bundles to generate documentation."""
         # Ensure output directory exists
         self.generator.output_dir.mkdir(parents=True, exist_ok=True)
@@ -44,7 +44,7 @@ class TemplateProcessor:
         for bundle in bundles:
             self._render_component_from_bundle(bundle)
 
-    def _render_provider_index(self):
+    def _render_provider_index(self) -> None:
         """Render the provider index page using built-in template."""
         if not self.generator.provider_info:
             return
@@ -100,7 +100,7 @@ provider "{{ provider.short_name }}" {
 
         (self.generator.output_dir / "index.md").write_text(rendered)
 
-    def _render_component_from_bundle(self, bundle: "PlatingBundle"):
+    def _render_component_from_bundle(self, bundle: "PlatingBundle") -> None:
         """Render a single component using its plating bundle."""
         # Load template and assets from bundle
         template_content = bundle.load_main_template()

@@ -58,11 +58,7 @@ class PlatingBundle:
             return True
 
         # Check for grouped examples (subdirectories with main.tf)
-        for subdir in self.examples_dir.iterdir():
-            if subdir.is_dir() and (subdir / "main.tf").exists():
-                return True
-
-        return False
+        return any(subdir.is_dir() and (subdir / "main.tf").exists() for subdir in self.examples_dir.iterdir())
 
     def load_main_template(self) -> str | None:
         """Load the main template file for this component."""

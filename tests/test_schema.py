@@ -29,12 +29,12 @@ class TestSchemaProcessor:
         mock_generator.functions = {}
         return SchemaProcessor(mock_generator)
 
-    def test_initialization(self, mock_generator):
+    def test_initialization(self, mock_generator) -> None:
         """Test SchemaProcessor initialization."""
         processor = SchemaProcessor(mock_generator)
         assert processor.generator == mock_generator
 
-    def test_extract_provider_schema(self, schema_processor, mock_foundation_hub):
+    def test_extract_provider_schema(self, schema_processor, mock_foundation_hub) -> None:
         """Test extract_provider_schema method."""
         # Setup mock schema result
         mock_schema = {
@@ -61,7 +61,7 @@ class TestSchemaProcessor:
         assert result == mock_schema
         mock_foundation_hub.discover_components.assert_called_once_with("pyvider.components")
 
-    def test_extract_schema_via_discovery(self, schema_processor, mock_foundation_hub, mock_factory):
+    def test_extract_schema_via_discovery(self, schema_processor, mock_foundation_hub, mock_factory) -> None:
         """Test _extract_schema_via_discovery method."""
         # Create mock components without get_schema method (will use default)
         mock_provider = mock_factory("provider", spec=[])
@@ -96,12 +96,12 @@ class TestSchemaProcessor:
         )
         mock_foundation_hub.discover_components.assert_called_once_with("pyvider.components")
 
-    def test_get_provider_schema_empty(self, schema_processor):
+    def test_get_provider_schema_empty(self, schema_processor) -> None:
         """Test _get_provider_schema with empty providers."""
         result = schema_processor._get_provider_schema({})
         assert result == {"block": {"attributes": {}}}
 
-    def test_get_provider_schema_with_schema_method(self, schema_processor):
+    def test_get_provider_schema_with_schema_method(self, schema_processor) -> None:
         """Test _get_provider_schema with component having get_schema method."""
         mock_provider = Mock()
         mock_schema = Mock()
@@ -115,12 +115,12 @@ class TestSchemaProcessor:
             mock_provider.get_schema.assert_called_once()
             mock_asdict.assert_called_once_with(mock_schema)
 
-    def test_get_component_schemas_empty(self, schema_processor):
+    def test_get_component_schemas_empty(self, schema_processor) -> None:
         """Test _get_component_schemas with empty components."""
         result = schema_processor._get_component_schemas({})
         assert result == {}
 
-    def test_get_component_schemas_with_get_schema(self, schema_processor):
+    def test_get_component_schemas_with_get_schema(self, schema_processor) -> None:
         """Test _get_component_schemas with components having get_schema method."""
         mock_component = Mock()
         mock_schema = Mock()
@@ -134,7 +134,7 @@ class TestSchemaProcessor:
             assert "test" in result
             mock_component.get_schema.assert_called_once()
 
-    def test_get_component_schemas_with_pyvider_schema(self, schema_processor):
+    def test_get_component_schemas_with_pyvider_schema(self, schema_processor) -> None:
         """Test _get_component_schemas with __pyvider_schema__ attribute."""
         mock_component = Mock()
         mock_component.__pyvider_schema__ = {"block": {"attributes": {}}}
@@ -145,12 +145,12 @@ class TestSchemaProcessor:
         assert "test" in result
         assert result["test"] == mock_component.__pyvider_schema__
 
-    def test_get_function_schemas_empty(self, schema_processor):
+    def test_get_function_schemas_empty(self, schema_processor) -> None:
         """Test _get_function_schemas with empty functions."""
         result = schema_processor._get_function_schemas({})
         assert result == {}
 
-    def test_get_function_schemas_with_get_schema(self, schema_processor):
+    def test_get_function_schemas_with_get_schema(self, schema_processor) -> None:
         """Test _get_function_schemas with functions having get_schema method."""
         mock_func = Mock()
         mock_schema = Mock()
@@ -164,7 +164,7 @@ class TestSchemaProcessor:
             assert "test_func" in result
             mock_func.get_schema.assert_called_once()
 
-    def test_parse_function_signature_basic(self, schema_processor):
+    def test_parse_function_signature_basic(self, schema_processor) -> None:
         """Test _parse_function_signature with basic function."""
         func_schema = {
             "signature": {
@@ -176,7 +176,7 @@ class TestSchemaProcessor:
         result = schema_processor._parse_function_signature(func_schema)
         assert result == "function(input: string, count: number) -> list(string)"
 
-    def test_parse_function_signature_with_variadic(self, schema_processor):
+    def test_parse_function_signature_with_variadic(self, schema_processor) -> None:
         """Test _parse_function_signature with variadic parameter."""
         func_schema = {
             "signature": {
@@ -189,12 +189,12 @@ class TestSchemaProcessor:
         result = schema_processor._parse_function_signature(func_schema)
         assert result == "function(first: string, ...rest: string) -> string"
 
-    def test_parse_function_signature_no_signature(self, schema_processor):
+    def test_parse_function_signature_no_signature(self, schema_processor) -> None:
         """Test _parse_function_signature with no signature."""
         result = schema_processor._parse_function_signature({})
         assert result == ""
 
-    def test_parse_function_arguments(self, schema_processor):
+    def test_parse_function_arguments(self, schema_processor) -> None:
         """Test _parse_function_arguments."""
         func_schema = {
             "signature": {
@@ -209,7 +209,7 @@ class TestSchemaProcessor:
         assert "- `input` (string) - Input value" in result
         assert "- `count` (number) - Number of items" in result
 
-    def test_parse_variadic_argument(self, schema_processor):
+    def test_parse_variadic_argument(self, schema_processor) -> None:
         """Test _parse_variadic_argument."""
         func_schema = {
             "signature": {
@@ -224,7 +224,7 @@ class TestSchemaProcessor:
         result = schema_processor._parse_variadic_argument(func_schema)
         assert result == "- `values` (string) - Variable number of string values"
 
-    def test_parse_provider_schema(self, mock_generator):
+    def test_parse_provider_schema(self, mock_generator) -> None:
         """Test parse_provider_schema method."""
         processor = SchemaProcessor(mock_generator)
 
@@ -273,7 +273,7 @@ class TestSchemaProcessor:
         assert "test_func" in mock_generator.functions
         assert mock_generator.functions["test_func"].name == "test_func"
 
-    def test_parse_provider_schema_ignore_deprecated(self, mock_generator):
+    def test_parse_provider_schema_ignore_deprecated(self, mock_generator) -> None:
         """Test parse_provider_schema ignores deprecated resources when flag is set."""
         processor = SchemaProcessor(mock_generator)
         mock_generator.ignore_deprecated = True
@@ -298,7 +298,7 @@ class TestSchemaProcessor:
         assert "test_resource" not in mock_generator.resources
         assert "valid_resource" in mock_generator.resources
 
-    def test_parse_schema_to_markdown_basic(self, schema_processor):
+    def test_parse_schema_to_markdown_basic(self, schema_processor) -> None:
         """Test _parse_schema_to_markdown with basic schema."""
         schema = {
             "block": {
@@ -318,7 +318,7 @@ class TestSchemaProcessor:
         assert "| `name` | String | **Yes** | The name |" in result
         assert "| `tags` | String | No | Tags |" in result
 
-    def test_parse_schema_to_markdown_with_blocks(self, schema_processor):
+    def test_parse_schema_to_markdown_with_blocks(self, schema_processor) -> None:
         """Test _parse_schema_to_markdown with nested blocks."""
         schema = {
             "block": {
@@ -343,19 +343,19 @@ class TestSchemaProcessor:
         assert "| Argument | Type | Required | Description |" in result
         assert "| `enabled` | Boolean | No | Enable feature |" in result
 
-    def test_parse_schema_to_markdown_empty(self, schema_processor):
+    def test_parse_schema_to_markdown_empty(self, schema_processor) -> None:
         """Test _parse_schema_to_markdown with empty schema."""
         assert schema_processor._parse_schema_to_markdown({}) == "No arguments available."
         assert schema_processor._parse_schema_to_markdown({"block": {}}) == "No arguments available."
 
-    def test_format_type_string_simple(self, schema_processor):
+    def test_format_type_string_simple(self, schema_processor) -> None:
         """Test _format_type_string with simple types."""
         assert schema_processor._format_type_string("string") == "String"
         assert schema_processor._format_type_string("number") == "Number"
         assert schema_processor._format_type_string("bool") == "Boolean"
         assert schema_processor._format_type_string(None) == "String"
 
-    def test_format_type_string_with_dict(self, schema_processor):
+    def test_format_type_string_with_dict(self, schema_processor) -> None:
         """Test _format_type_string with dict types."""
         assert schema_processor._format_type_string({}) == "String"
         assert schema_processor._format_type_string({"type": "string"}) == "String"
@@ -366,7 +366,7 @@ class TestSchemaProcessor:
     @patch("pathlib.Path.mkdir")
     def test_extract_schema_via_terraform(
         self, mock_mkdir, mock_write_text, mock_rmtree, mock_run, schema_processor
-    ):
+    ) -> None:
         """Test _extract_schema_via_terraform fallback method."""
         # Setup mock subprocess returns
         mock_run.side_effect = [
@@ -386,7 +386,7 @@ class TestSchemaProcessor:
             mock_rmtree.assert_called_once()
 
     @patch("pathlib.Path.glob")
-    def test_find_provider_binary(self, mock_glob, schema_processor):
+    def test_find_provider_binary(self, mock_glob, schema_processor) -> None:
         """Test _find_provider_binary method."""
         # Mock Path.glob to return a list with one matching file
         mock_glob.return_value = [Path("/test/provider/terraform-provider-test")]
@@ -396,7 +396,7 @@ class TestSchemaProcessor:
         assert result == Path("/test/provider/terraform-provider-test")
 
     @patch("pathlib.Path.glob")
-    def test_find_provider_binary_not_found(self, mock_glob, schema_processor):
+    def test_find_provider_binary_not_found(self, mock_glob, schema_processor) -> None:
         """Test _find_provider_binary raises when binary not found."""
         mock_glob.return_value = []
 
@@ -423,7 +423,7 @@ class TestSchemaProcessorWithCTY:
     @patch("pyvider.cty.CtyString")
     @patch("pyvider.cty.CtyNumber")
     @patch("pyvider.cty.CtyBool")
-    def test_format_type_string_with_cty(self, MockCtyBool, MockCtyNumber, MockCtyString, schema_processor):
+    def test_format_type_string_with_cty(self, MockCtyBool, MockCtyNumber, MockCtyString, schema_processor) -> None:
         """Test _format_type_string with CTY objects."""
         # Test string type
         mock_string = Mock()
@@ -441,7 +441,7 @@ class TestSchemaProcessorWithCTY:
         assert schema_processor._format_type_string(mock_bool) == "Boolean"
 
     @pytest.mark.skip(reason="pyvider.cty is an optional dependency and patching doesn't work correctly")
-    def test_format_type_string_with_cty_list(self, schema_processor):
+    def test_format_type_string_with_cty_list(self, schema_processor) -> None:
         """Test _format_type_string with CTY list type."""
         # Since the CTY types are imported inside the function, we need to mock the import
         with patch("pyvider.cty.CtyList") as MockCtyList:

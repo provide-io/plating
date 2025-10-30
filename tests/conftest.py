@@ -19,7 +19,7 @@ except ImportError:
     TESTKIT_AVAILABLE = False
 
     # Fallback implementations
-    def reset_foundation_setup_for_testing():
+    def reset_foundation_setup_for_testing() -> None:
         pass
 
     def mock_logger():
@@ -113,7 +113,7 @@ except ImportError:
         return lambda read_data=None: mock_open(read_data=read_data)
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     """Register custom marks."""
     config.addinivalue_line("markers", "tdd: marks tests as TDD (test-driven development)")
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
@@ -225,37 +225,37 @@ def mock_generator():
 
 # Re-export all testkit utilities for easy access in tests
 __all__ = [
-    # Foundation utilities
-    "foundation_test_setup",
-    "mock_logger",
-    # File fixtures
-    "temp_directory",
-    "test_files_structure",
-    "nested_directory_structure",
-    "empty_directory",
-    "temp_file",
-    # Plating-specific fixtures
-    "plating_bundle_structure",
-    "mock_plating_bundle",
-    "mock_foundation_hub",
-    "mock_component_class",
-    "mock_generator",
-    # Mocking utilities
-    "mock_factory",
-    "magic_mock_factory",
-    "async_mock_factory",
-    "property_mock_factory",
-    "patch_fixture",
-    "auto_patch",
-    "mock_open_fixture",
     # Mock objects
     "ANY",
     "AsyncMock",
     "MagicMock",
     "Mock",
     "PropertyMock",
+    "async_mock_factory",
+    "auto_patch",
     "call",
+    "empty_directory",
+    # Foundation utilities
+    "foundation_test_setup",
+    "magic_mock_factory",
+    "mock_component_class",
+    # Mocking utilities
+    "mock_factory",
+    "mock_foundation_hub",
+    "mock_generator",
+    "mock_logger",
+    "mock_open_fixture",
+    "mock_plating_bundle",
+    "nested_directory_structure",
     "patch",
+    "patch_fixture",
+    # Plating-specific fixtures
+    "plating_bundle_structure",
+    "property_mock_factory",
+    # File fixtures
+    "temp_directory",
+    "temp_file",
+    "test_files_structure",
 ]
 
 # 🍽️📖🔚

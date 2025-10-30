@@ -28,13 +28,13 @@ from plating.registry import reset_plating_registry
 class TestModernAPI:
     """Test the modern async Plating API."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup for each test using foundation patterns."""
         # Foundation setup is handled by foundation_test_setup fixture
         reset_plating_registry()
         pout("Setting up modern API test", color="blue")
 
-    def test_component_type_enum(self):
+    def test_component_type_enum(self) -> None:
         """Test ComponentType enum functionality."""
         # Test enum values
         assert ComponentType.RESOURCE.value == "resource"
@@ -51,7 +51,7 @@ class TestModernAPI:
         assert ComponentType.DATA_SOURCE.output_subdir == "data-sources"
         assert ComponentType.FUNCTION.output_subdir == "functions"
 
-    def test_plating_context(self):
+    def test_plating_context(self) -> None:
         """Test PlatingContext dataclass."""
         context = PlatingContext(
             name="test_resource",
@@ -72,7 +72,7 @@ class TestModernAPI:
         assert context_dict["provider_name"] == "test_provider"
         assert context_dict["description"] == "A test resource"
 
-    def test_schema_info(self):
+    def test_schema_info(self) -> None:
         """Test SchemaInfo dataclass."""
         schema_dict = {
             "description": "Test schema",
@@ -97,7 +97,7 @@ class TestModernAPI:
         assert "`name` (String) - Name" in markdown
         assert "`id` (String) - ID" in markdown
 
-    def test_argument_info(self):
+    def test_argument_info(self) -> None:
         """Test ArgumentInfo dataclass."""
         arg = ArgumentInfo(name="input", type="string", description="Input parameter", required=True)
 
@@ -106,7 +106,7 @@ class TestModernAPI:
         assert arg.description == "Input parameter"
         assert arg.required is True
 
-    def test_result_types(self):
+    def test_result_types(self) -> None:
         """Test result type dataclasses."""
         # AdornResult
         adorn_result = AdornResult(
@@ -132,10 +132,10 @@ class TestModernAPI:
         assert validation_result.total == 10
 
     @pytest.mark.asyncio
-    async def test_plating_api_initialization(self):
+    async def test_plating_api_initialization(self) -> None:
         """Test Plating API initialization using foundation patterns."""
         # Use mock context as base
-        mock_base_context = Mock(name="MockContext")
+        Mock(name="MockContext")
 
         # Create PlatingContext with foundation context features
         context = PlatingContext(
@@ -158,7 +158,7 @@ class TestModernAPI:
 
     @pytest.mark.asyncio
     @patch("plating.registry.PlatingDiscovery")
-    async def test_adorn_operation(self, mock_discovery):
+    async def test_adorn_operation(self, mock_discovery) -> None:
         """Test adorn operation with type-safe API."""
         # Mock the discovery and registry
         mock_bundle = Mock()
@@ -178,7 +178,7 @@ class TestModernAPI:
             patch("pathlib.Path.write_text") as mock_write_text,
         ):
             # Make the mock method async and return a future
-            async def mock_generate_template(*args, **kwargs):
+            async def mock_generate_template(*args, **kwargs) -> str:
                 return "# Mock Template"
 
             mock_template_gen.return_value.generate_template = mock_generate_template
@@ -199,7 +199,7 @@ class TestModernAPI:
 
     @pytest.mark.asyncio
     @patch("plating.registry.PlatingDiscovery")
-    async def test_registry_integration(self, mock_discovery):
+    async def test_registry_integration(self, mock_discovery) -> None:
         """Test that API integrates with registry properly."""
         # Mock the discovery
         mock_bundle = Mock()
@@ -226,7 +226,7 @@ class TestModernAPI:
         assert components[0].name == "test_resource"
 
     @pytest.mark.asyncio
-    async def test_plate_operation_comprehensive(self, tmp_path):
+    async def test_plate_operation_comprehensive(self, tmp_path) -> None:
         """Test comprehensive plate operation with minimal mocking."""
         # Create a real bundle structure in tmp_path
         bundle_dir = tmp_path / "test_resource.plating"
@@ -299,7 +299,7 @@ Test resource for unit testing.
 
     @pytest.mark.asyncio
     @patch("plating.registry.PlatingDiscovery")
-    async def test_validate_operation(self, mock_discovery, tmp_path):
+    async def test_validate_operation(self, mock_discovery, tmp_path) -> None:
         """Test validation operation using foundation patterns."""
         # Mock discovery
         mock_discovery_instance = Mock()
@@ -331,7 +331,7 @@ Test resource for unit testing.
 
     @pytest.mark.asyncio
     @patch("plating.registry.PlatingDiscovery")
-    async def test_error_handling(self, mock_discovery):
+    async def test_error_handling(self, mock_discovery) -> None:
         """Test error handling in API operations using foundation patterns."""
         # Mock discovery to raise exception
         mock_discovery.side_effect = Exception("Discovery failed")
@@ -349,7 +349,7 @@ Test resource for unit testing.
             # Re-raise to fail test if error isn't handled properly
             raise
 
-    def test_modern_api_imports(self):
+    def test_modern_api_imports(self) -> None:
         """Test that modern API imports work correctly."""
         # Test that all expected classes can be imported
         from plating import (

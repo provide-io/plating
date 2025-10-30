@@ -50,7 +50,7 @@ class PlatingAdorner:
         self.registry = ComponentRegistry()
         self.discovery = ComponentDiscovery(self.registry)
 
-    async def adorn_missing(self, component_types: list[str] = None) -> dict[str, int]:
+    async def adorn_missing(self, component_types: list[str] | None = None) -> dict[str, int]:
         """
         Adorn components with missing .plating directories.
 

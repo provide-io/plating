@@ -14,7 +14,7 @@ from plating.compiler import ExampleGroup, GroupedExampleCompiler
 class TestExampleGroup:
     """Test suite for ExampleGroup dataclass."""
 
-    def test_example_group_initialization(self):
+    def test_example_group_initialization(self) -> None:
         """Test that ExampleGroup can be initialized."""
         group = ExampleGroup(name="full_stack")
 
@@ -23,7 +23,7 @@ class TestExampleGroup:
         assert group.fixtures == {}
         assert group.component_types == set()
 
-    def test_example_group_with_components(self):
+    def test_example_group_with_components(self) -> None:
         """Test ExampleGroup with components."""
         group = ExampleGroup(
             name="full_stack",
@@ -40,21 +40,21 @@ class TestExampleGroup:
 class TestGroupedExampleCompiler:
     """Test suite for GroupedExampleCompiler functionality."""
 
-    def test_compiler_initialization(self):
+    def test_compiler_initialization(self) -> None:
         """Test that compiler can be initialized with required attributes."""
         compiler = GroupedExampleCompiler(provider_name="testprovider", provider_version="1.0.0")
 
         assert compiler.provider_name == "testprovider"
         assert compiler.provider_version == "1.0.0"
 
-    def test_compiler_default_initialization(self):
+    def test_compiler_default_initialization(self) -> None:
         """Test compiler initialization with defaults."""
         compiler = GroupedExampleCompiler(provider_name="testprovider")
 
         assert compiler.provider_name == "testprovider"
         assert compiler.provider_version == "0.0.5"
 
-    def test_discover_groups_single_component(self, tmp_path):
+    def test_discover_groups_single_component(self, tmp_path) -> None:
         """Test discovering example groups from a single component."""
         # Create bundle with grouped example
         plating_dir = tmp_path / "network.plating"
@@ -76,7 +76,7 @@ class TestGroupedExampleCompiler:
         assert "network" in groups["full_stack"].components
         assert "resource" in groups["full_stack"].component_types
 
-    def test_discover_groups_multiple_components(self, tmp_path):
+    def test_discover_groups_multiple_components(self, tmp_path) -> None:
         """Test discovering groups from multiple components."""
         # Create first bundle
         network_dir = tmp_path / "network.plating"
@@ -102,7 +102,7 @@ class TestGroupedExampleCompiler:
         assert "network" in groups["full_stack"].components
         assert "database" in groups["full_stack"].components
 
-    def test_discover_groups_with_fixtures(self, tmp_path):
+    def test_discover_groups_with_fixtures(self, tmp_path) -> None:
         """Test discovering groups with fixture files."""
         plating_dir = tmp_path / "network.plating"
         examples_dir = plating_dir / "examples"
@@ -124,7 +124,7 @@ class TestGroupedExampleCompiler:
         assert "config.json" in groups["full_stack"].fixtures
         assert "data.txt" in groups["full_stack"].fixtures
 
-    def test_discover_groups_ignores_flat_examples(self, tmp_path):
+    def test_discover_groups_ignores_flat_examples(self, tmp_path) -> None:
         """Test that discovery ignores flat .tf files in examples/."""
         plating_dir = tmp_path / "network.plating"
         examples_dir = plating_dir / "examples"
@@ -147,7 +147,7 @@ class TestGroupedExampleCompiler:
         assert "full_stack" in groups
         assert "basic" not in groups
 
-    def test_compile_creates_provider_tf(self, tmp_path):
+    def test_compile_creates_provider_tf(self, tmp_path) -> None:
         """Test that compilation creates provider.tf file."""
         plating_dir = tmp_path / "network.plating"
         (plating_dir / "examples" / "full_stack").mkdir(parents=True)
@@ -170,7 +170,7 @@ class TestGroupedExampleCompiler:
         assert "terraform {" in content
         assert "required_providers {" in content
 
-    def test_compile_creates_component_tf_files(self, tmp_path):
+    def test_compile_creates_component_tf_files(self, tmp_path) -> None:
         """Test that compilation creates .tf files for each component."""
         # Create two bundles with same group
         network_dir = tmp_path / "network.plating"
@@ -200,7 +200,7 @@ class TestGroupedExampleCompiler:
         network_content = (group_dir / "network.tf").read_text()
         assert 'resource "network" "test"' in network_content
 
-    def test_compile_copies_fixtures(self, tmp_path):
+    def test_compile_copies_fixtures(self, tmp_path) -> None:
         """Test that compilation copies fixture files."""
         plating_dir = tmp_path / "network.plating"
         full_stack_dir = plating_dir / "examples" / "full_stack"
@@ -230,7 +230,7 @@ class TestGroupedExampleCompiler:
         assert (output_fixtures / "config.json").read_text() == '{"key": "value"}'
         assert (output_fixtures / "nested" / "data.txt").read_text() == "nested data"
 
-    def test_compile_generates_readme(self, tmp_path):
+    def test_compile_generates_readme(self, tmp_path) -> None:
         """Test that compilation generates README.md."""
         plating_dir = tmp_path / "network.plating"
         (plating_dir / "examples" / "full_stack").mkdir(parents=True)
@@ -253,7 +253,7 @@ class TestGroupedExampleCompiler:
         assert "terraform plan" in content
         assert "terraform apply" in content
 
-    def test_compile_with_custom_output_dir(self, tmp_path):
+    def test_compile_with_custom_output_dir(self, tmp_path) -> None:
         """Test compilation with custom output directory for grouped examples."""
         plating_dir = tmp_path / "network.plating"
         (plating_dir / "examples" / "full_stack").mkdir(parents=True)
@@ -272,7 +272,7 @@ class TestGroupedExampleCompiler:
         assert (custom_output_dir / "full_stack").exists()
         assert (custom_output_dir / "full_stack" / "provider.tf").exists()
 
-    def test_compile_detects_tf_filename_collision(self, tmp_path):
+    def test_compile_detects_tf_filename_collision(self, tmp_path) -> None:
         """Test that discovery fails on .tf filename collision."""
         # Create two bundles with SAME NAME
         network1_dir = tmp_path / "network1.plating"
@@ -291,14 +291,14 @@ class TestGroupedExampleCompiler:
         compiler = GroupedExampleCompiler(provider_name="test")
 
         with pytest.raises(ValueError) as exc_info:
-            groups = compiler.discover_groups(bundles)
+            compiler.discover_groups(bundles)
 
         error_msg = str(exc_info.value)
         assert "collision" in error_msg.lower()
         assert "full_stack" in error_msg
         assert "network" in error_msg
 
-    def test_compile_detects_fixture_collision(self, tmp_path):
+    def test_compile_detects_fixture_collision(self, tmp_path) -> None:
         """Test that discovery fails on fixture filename collision."""
         # Create two bundles with same fixture filename
         network_dir = tmp_path / "network.plating"
@@ -321,14 +321,14 @@ class TestGroupedExampleCompiler:
         compiler = GroupedExampleCompiler(provider_name="test")
 
         with pytest.raises(ValueError) as exc_info:
-            groups = compiler.discover_groups(bundles)
+            compiler.discover_groups(bundles)
 
         error_msg = str(exc_info.value)
         assert "collision" in error_msg.lower()
         assert "config.json" in error_msg
         assert "fixtures" in error_msg.lower()
 
-    def test_compile_returns_count(self, tmp_path):
+    def test_compile_returns_count(self, tmp_path) -> None:
         """Test that compile_groups returns count of compiled groups."""
         # Create bundles for two different groups
         network_dir = tmp_path / "network.plating"
@@ -347,7 +347,7 @@ class TestGroupedExampleCompiler:
 
         assert count == 2
 
-    def test_discover_groups_multiple_groups_per_bundle(self, tmp_path):
+    def test_discover_groups_multiple_groups_per_bundle(self, tmp_path) -> None:
         """Test discovering multiple groups from single bundle."""
         plating_dir = tmp_path / "network.plating"
         examples_dir = plating_dir / "examples"
@@ -369,7 +369,7 @@ class TestGroupedExampleCompiler:
         assert "minimal" in groups
         assert groups["full_stack"].components["network"] != groups["minimal"].components["network"]
 
-    def test_discover_groups_ignores_dirs_without_main_tf(self, tmp_path):
+    def test_discover_groups_ignores_dirs_without_main_tf(self, tmp_path) -> None:
         """Test that discovery ignores directories without main.tf."""
         plating_dir = tmp_path / "network.plating"
         examples_dir = plating_dir / "examples"

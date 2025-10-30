@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import importlib.metadata
 import importlib.util
 from pathlib import Path
@@ -158,20 +159,16 @@ class PlatingDiscovery:
         # If package_name is a distribution name (e.g., "pyvider-components"),
         # convert it to a module name (e.g., "pyvider.components")
         spec = None
-        try:
+        with contextlib.suppress(ModuleNotFoundError, ValueError, AttributeError):
             spec = importlib.util.find_spec(package_name)
-        except (ModuleNotFoundError, ValueError, AttributeError):
-            pass
 
         # If direct lookup failed and package_name looks like a distribution name (has hyphens),
         # try resolving distribution name to module name
         if not spec and "-" in package_name and "." not in package_name:
             module_name = self._distribution_to_module_name(package_name)
             if module_name:
-                try:
+                with contextlib.suppress(ModuleNotFoundError, ValueError, AttributeError):
                     spec = importlib.util.find_spec(module_name)
-                except (ModuleNotFoundError, ValueError, AttributeError):
-                    pass
 
         if not spec or not spec.origin:
             return bundles

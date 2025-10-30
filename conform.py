@@ -36,7 +36,7 @@ def get_module_docstring_and_body_start(source):
         return None, 0
 
 
-def process_file(filepath):
+def process_file(filepath) -> None:
     """Applies header/footer conformance to a single Python file."""
     try:
         with open(filepath, encoding="utf-8") as f:
@@ -81,7 +81,7 @@ def process_file(filepath):
         print(f"Error writing to {filepath}: {e}", file=sys.stderr)
 
 
-def main():
+def main() -> None:
     """Main entry point."""
     if len(sys.argv) < 2:
         print("Usage: python3 conform.py <file1.py> <file2.py> ...", file=sys.stderr)

@@ -28,11 +28,11 @@ from plating.types import (
 class TestPlatingContext:
     """Test PlatingContext with foundation.Context integration."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup for each test."""
         # Foundation setup is handled by foundation_test_setup fixture
 
-    def test_plating_context_inherits_foundation_context(self):
+    def test_plating_context_inherits_foundation_context(self) -> None:
         """Test that PlatingContext properly extends foundation.Context."""
         context = PlatingContext(
             name="test_resource", component_type=ComponentType.RESOURCE, provider_name="test_provider"
@@ -49,7 +49,7 @@ class TestPlatingContext:
         assert context.component_type == ComponentType.RESOURCE
         assert context.provider_name == "test_provider"
 
-    def test_plating_context_to_dict_includes_foundation_fields(self):
+    def test_plating_context_to_dict_includes_foundation_fields(self) -> None:
         """Test that to_dict includes both foundation and plating fields."""
         context = PlatingContext(
             name="test_resource",
@@ -74,7 +74,7 @@ class TestPlatingContext:
         assert result["log_level"] == "DEBUG"
         assert result["no_color"] is True
 
-    def test_plating_context_from_dict_handles_component_types(self):
+    def test_plating_context_from_dict_handles_component_types(self) -> None:
         """Test from_dict properly handles ComponentType conversion."""
         # Test with display name
         data = {"name": "test", "component_type": "Data Source", "provider_name": "provider"}
@@ -92,7 +92,7 @@ class TestPlatingContext:
         assert context.name == "test"
         assert context.provider_name == "provider"
 
-    def test_plating_context_save_and_load_config(self, tmp_path):
+    def test_plating_context_save_and_load_config(self, tmp_path) -> None:
         """Test config persistence using foundation patterns."""
         context = PlatingContext(
             name="test_resource", component_type=ComponentType.RESOURCE, provider_name="test_provider"
@@ -114,13 +114,13 @@ class TestPlatingContext:
 class TestPlatingRegistry:
     """Test PlatingRegistry with foundation.Registry integration."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup for each test."""
         # Foundation setup is handled by foundation_test_setup fixture
         reset_plating_registry()
 
     @patch("plating.registry.PlatingDiscovery")
-    def test_registry_initialization_uses_foundation_patterns(self, mock_discovery):
+    def test_registry_initialization_uses_foundation_patterns(self, mock_discovery) -> None:
         """Test that registry uses foundation Registry properly."""
         # Mock discovery
         mock_bundle = Mock()
@@ -148,7 +148,7 @@ class TestPlatingRegistry:
         assert resources[0].name == "test_resource"
 
     @patch("plating.registry.PlatingDiscovery")
-    def test_registry_retry_policy_on_discovery_failure(self, mock_discovery):
+    def test_registry_retry_policy_on_discovery_failure(self, mock_discovery) -> None:
         """Test that registry uses retry policy for discovery failures."""
         # Mock discovery to fail then succeed
         mock_discovery_instance = Mock()
@@ -159,12 +159,12 @@ class TestPlatingRegistry:
         mock_discovery.return_value = mock_discovery_instance
 
         # Should not raise error due to retry policy
-        registry = PlatingRegistry("test.package")
+        PlatingRegistry("test.package")
 
         # Discovery should have been called twice (initial + 1 retry)
         assert mock_discovery_instance.discover_bundles.call_count == 2
 
-    def test_registry_stats_provide_comprehensive_info(self):
+    def test_registry_stats_provide_comprehensive_info(self) -> None:
         """Test that registry stats provide comprehensive information."""
         with patch("plating.registry.PlatingDiscovery") as mock_discovery:
             mock_bundle = Mock()
@@ -190,12 +190,12 @@ class TestPlatingRegistry:
 class TestMarkdownValidator:
     """Test MarkdownValidator with foundation integration."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup for each test."""
         # Foundation setup is handled by foundation_test_setup fixture
         reset_markdown_validator()
 
-    def test_validator_uses_foundation_retry_patterns(self):
+    def test_validator_uses_foundation_retry_patterns(self) -> None:
         """Test that validator uses foundation retry patterns."""
         validator = MarkdownValidator()
 
@@ -204,7 +204,7 @@ class TestMarkdownValidator:
         assert validator._retry_policy.max_attempts == 2
         assert validator._retry_executor is not None
 
-    def test_validator_integrates_with_foundation_metrics(self):
+    def test_validator_integrates_with_foundation_metrics(self) -> None:
         """Test that validator uses foundation metrics decorators."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
             f.write("# Test Header\n\nSome content.\n")
@@ -219,7 +219,7 @@ class TestMarkdownValidator:
             # Clean up
             Path(f.name).unlink()
 
-    def test_validator_handles_api_exceptions_gracefully(self):
+    def test_validator_handles_api_exceptions_gracefully(self) -> None:
         """Test that validator handles PyMarkdownApiException properly."""
         validator = MarkdownValidator()
 
@@ -231,7 +231,7 @@ class TestMarkdownValidator:
         assert len(result.errors) > 0
         assert "File not found" in result.errors[0]
 
-    def test_validator_string_validation(self):
+    def test_validator_string_validation(self) -> None:
         """Test string-based validation."""
         validator = MarkdownValidator()
 
@@ -245,7 +245,7 @@ class TestMarkdownValidator:
         # Should still pass with our lenient config
         assert result.total == 1
 
-    def test_validator_batch_processing(self):
+    def test_validator_batch_processing(self) -> None:
         """Test batch validation of multiple files."""
         validator = MarkdownValidator()
 
@@ -268,7 +268,7 @@ class TestMarkdownValidator:
 class TestFoundationDataClasses:
     """Test that data classes use attrs properly."""
 
-    def test_all_result_classes_use_attrs(self):
+    def test_all_result_classes_use_attrs(self) -> None:
         """Test that result classes use attrs.define."""
         # AdornResult
         result = AdornResult(components_processed=5, templates_generated=3)
@@ -285,7 +285,7 @@ class TestFoundationDataClasses:
         assert result.total == 10
         assert result.success is False  # Due to lint_errors
 
-    def test_argument_info_serialization(self):
+    def test_argument_info_serialization(self) -> None:
         """Test ArgumentInfo to_dict and from_dict."""
         arg = ArgumentInfo(name="input", type="string", description="Input parameter", required=True)
 
@@ -301,7 +301,7 @@ class TestFoundationDataClasses:
         assert restored.description == arg.description
         assert restored.required == arg.required
 
-    def test_schema_info_maintains_functionality(self):
+    def test_schema_info_maintains_functionality(self) -> None:
         """Test that SchemaInfo maintains all existing functionality."""
         schema = SchemaInfo(
             description="Test schema",
@@ -322,13 +322,13 @@ class TestFoundationDataClasses:
 class TestGlobalInstances:
     """Test global instance management for testing."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup for each test."""
         # Foundation setup is handled by foundation_test_setup fixture
         reset_plating_registry()
         reset_markdown_validator()
 
-    def test_global_registry_management(self):
+    def test_global_registry_management(self) -> None:
         """Test global registry creation and reset."""
         # Should create new instance
         registry1 = get_plating_registry("pyvider.components")
@@ -343,7 +343,7 @@ class TestGlobalInstances:
         registry3 = get_plating_registry("pyvider.components")
         assert registry3 is not registry1
 
-    def test_global_validator_management(self):
+    def test_global_validator_management(self) -> None:
         """Test global validator creation and reset."""
         # Should create new instance
         validator1 = get_markdown_validator()

@@ -198,7 +198,7 @@ class PlatingCLIContext(CLIContext):
         signature: str | None = None,
         arguments: list[ArgumentInfo] | None = None,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(**kwargs)
         self.name = name
         self.component_type = component_type
