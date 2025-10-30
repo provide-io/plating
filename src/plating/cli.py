@@ -558,6 +558,7 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
         if actual_package_name:
             pout(f"🔍 Filtering to package: {actual_package_name}")
         else:
+            pout(f"🔍 Discovering all packages")
 
         context = PlatingContext(provider_name=actual_provider_name)
         api = Plating(context, actual_package_name)
@@ -592,6 +593,7 @@ def stats_command(package_name: str | None) -> None:
         if actual_package_name:
             pout(f"🔍 Filtering to package: {actual_package_name}")
         else:
+            pout(f"🔍 Discovering all packages")
 
         # Stats command doesn't need provider context
         context = PlatingContext(provider_name="")
