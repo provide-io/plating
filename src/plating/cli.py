@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
-# plating/cli.py
-#
+
 """Modern CLI interface using the async Plating API with error handling."""
 
 import asyncio
@@ -621,3 +622,5 @@ def stats_command(package_name: str | None) -> None:
 
 if __name__ == "__main__":
     main()
+
+# 🍽️📖🔚

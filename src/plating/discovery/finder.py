@@ -163,8 +163,9 @@ class PlatingDiscovery:
         except (ModuleNotFoundError, ValueError, AttributeError):
             pass
 
-        # If direct lookup failed, try resolving distribution name to module name
-        if not spec:
+        # If direct lookup failed and package_name looks like a distribution name (has hyphens),
+        # try resolving distribution name to module name
+        if not spec and "-" in package_name and "." not in package_name:
             module_name = self._distribution_to_module_name(package_name)
             if module_name:
                 try:

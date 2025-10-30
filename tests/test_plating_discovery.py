@@ -1,6 +1,9 @@
-"""
-Unit tests for PlatingDiscovery class using TDD approach.
-"""
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+"""Unit tests for PlatingDiscovery class using TDD approach."""
 
 from pathlib import Path
 
@@ -265,3 +268,5 @@ class TestPlatingDiscovery:
 
         assert isinstance(bundles, list)
         assert len(bundles) == 0
+
+# 🍽️📖🔚
