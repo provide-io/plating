@@ -1,8 +1,9 @@
 #
-# plating/config/runtime.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Configuration management for plating."""
-# ruff: noqa: RUF009
 
 import os
 from pathlib import Path
@@ -137,3 +138,5 @@ def set_config(config: PlatingConfig) -> None:
     """Set the global configuration instance."""
     global _config
     _config = config
+
+# 🍽️📖🔚

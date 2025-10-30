@@ -1,6 +1,9 @@
-"""
-Unit tests for PlatingBundle class using TDD approach.
-"""
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+"""Unit tests for PlatingBundle class using TDD approach."""
 
 from pathlib import Path
 
@@ -355,3 +358,5 @@ class TestPlatingBundle:
 
         fixtures = bundle.load_group_fixtures("nonexistent")
         assert fixtures == {}
+
+# 🍽️📖🔚
