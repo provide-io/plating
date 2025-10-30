@@ -194,4 +194,5 @@ class TemplateMetadataExtractor:
 
         return template_files
 
+
 # 🍽️📖🔚

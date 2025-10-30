@@ -72,7 +72,7 @@ class PlatingDiscovery:
                     top_level = top_levels[0]
                     # Convert dist name "pyvider-components" to "pyvider.components"
                     if dist_name.startswith(f"{top_level}-"):
-                        suffix = dist_name[len(top_level) + 1:].replace("-", ".")
+                        suffix = dist_name[len(top_level) + 1 :].replace("-", ".")
                         return f"{top_level}.{suffix}"
                     return top_level
         except (importlib.metadata.PackageNotFoundError, FileNotFoundError, TypeError):
@@ -272,5 +272,6 @@ class PlatingDiscovery:
             return "function"
         else:
             return "resource"
+
 
 # 🍽️📖🔚

@@ -126,4 +126,5 @@ class DocumentationPlater:
             "description": f"Documentation for {bundle.name} {bundle.component_type}",
         }
 
+
 # 🍽️📖🔚
