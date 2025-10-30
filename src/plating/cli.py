@@ -501,6 +501,7 @@ def validate_command(
         actual_package_name = get_package_name(package_name)
 
         if actual_package_name is None:
+            pout("🔍 Discovering all packages")
 
         context = PlatingContext(provider_name=actual_provider_name)
         api = Plating(context, actual_package_name)
@@ -518,6 +519,7 @@ def validate_command(
         pout(f"  • Duration: {result.duration_seconds:.2f}s")
 
         if result.success:
+            pout("✅ All validations passed")
         else:
             perr("❌ Validation failed:")
             if result.lint_errors:
