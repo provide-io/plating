@@ -108,6 +108,7 @@ class PlatingAdorner:
 
         total_adorned = sum(adorned.values())
         if total_adorned > 0:
+            pout(f"\n✅ Successfully adorned {total_adorned} component(s)")
         else:
             pout("\nℹ️  No components needed adorning")
 

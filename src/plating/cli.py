@@ -423,6 +423,7 @@ def plate_command(
             if actual_package_name:
                 pout(f"🔍 Filtering to package: {actual_package_name}")
             else:
+                pout(f"🔍 Discovering all packages")
 
             context = PlatingContext(provider_name=actual_provider_name)
             api = Plating(context, actual_package_name)
