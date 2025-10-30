@@ -497,7 +497,9 @@ class TestProviderNameDetection:
 
     @patch("plating.cli.auto_detect_provider_name")
     @patch("plating.cli.Plating")
-    def test_explicit_provider_overrides_auto_detect(self, mock_plating_class, mock_auto_detect, runner) -> None:
+    def test_explicit_provider_overrides_auto_detect(
+        self, mock_plating_class, mock_auto_detect, runner
+    ) -> None:
         """Test that explicit provider name overrides auto-detection."""
         mock_api = Mock()
         mock_result = Mock()
