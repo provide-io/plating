@@ -305,7 +305,9 @@ async def render_component_docs(
             logger.info(f"Generated {component_type.value} docs: {output_file}")
 
         except Exception as e:
+            import traceback
             logger.error(f"Failed to render {component.name}: {e}")
+            logger.debug(f"Traceback: {traceback.format_exc()}")
 
 
 def generate_template(component: PlatingBundle, template_file: Path) -> None:
