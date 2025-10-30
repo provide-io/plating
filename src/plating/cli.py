@@ -292,7 +292,6 @@ def _generate_examples_if_requested(
 
     from plating.example_compiler import ExampleCompiler
 
-
     # Get all bundles with examples
     bundles_with_examples = []
     for component_type_enum in types or list(ComponentType):
@@ -315,10 +314,7 @@ def _generate_examples_if_requested(
     total_examples = compilation_result.examples_generated + compilation_result.grouped_examples_generated
 
     if total_examples > 0:
-        pout(
-            f"and {compilation_result.grouped_examples_generated} grouped examples "
-            f"(total: {total_examples})"
-        )
+        pout(f"and {compilation_result.grouped_examples_generated} grouped examples (total: {total_examples})")
         pout("📂 Example files:")
         for example_file in compilation_result.output_files[:5]:  # Show first 5
             pout(f"  • {example_file}")
@@ -423,7 +419,7 @@ def plate_command(
             if actual_package_name:
                 pout(f"🔍 Filtering to package: {actual_package_name}")
             else:
-                pout(f"🔍 Discovering all packages")
+                pout("🔍 Discovering all packages")
 
             context = PlatingContext(provider_name=actual_provider_name)
             api = Plating(context, actual_package_name)
@@ -558,7 +554,7 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
         if actual_package_name:
             pout(f"🔍 Filtering to package: {actual_package_name}")
         else:
-            pout(f"🔍 Discovering all packages")
+            pout("🔍 Discovering all packages")
 
         context = PlatingContext(provider_name=actual_provider_name)
         api = Plating(context, actual_package_name)
@@ -593,7 +589,7 @@ def stats_command(package_name: str | None) -> None:
         if actual_package_name:
             pout(f"🔍 Filtering to package: {actual_package_name}")
         else:
-            pout(f"🔍 Discovering all packages")
+            pout("🔍 Discovering all packages")
 
         # Stats command doesn't need provider context
         context = PlatingContext(provider_name="")

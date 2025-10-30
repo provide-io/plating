@@ -164,4 +164,5 @@ def get_component_schema(
     # Convert to SchemaInfo for template rendering
     return SchemaInfo.from_dict(component_schema)
 
+
 # 🍽️📖🔚

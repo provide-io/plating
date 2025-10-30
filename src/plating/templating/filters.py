@@ -97,4 +97,5 @@ def attrs_schema_to_markdown(schema: dict[str, Any], prefix: str = "") -> str:
 
     return "\n".join(lines)
 
+
 # 🍽️📖🔚

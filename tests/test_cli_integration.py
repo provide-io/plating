@@ -1,4 +1,4 @@
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -497,9 +497,7 @@ class TestProviderNameDetection:
 
     @patch("plating.cli.auto_detect_provider_name")
     @patch("plating.cli.Plating")
-    def test_explicit_provider_overrides_auto_detect(
-        self, mock_plating_class, mock_auto_detect, runner
-    ):
+    def test_explicit_provider_overrides_auto_detect(self, mock_plating_class, mock_auto_detect, runner):
         """Test that explicit provider name overrides auto-detection."""
         mock_api = Mock()
         mock_result = Mock()
@@ -551,5 +549,6 @@ class TestErrorHandling:
 
         runner.assert_error(result, exit_code=1)
         runner.assert_output_contains(result, "User-friendly error message")
+
 
 # 🍽️📖🔚

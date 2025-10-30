@@ -227,4 +227,5 @@ def reset_markdown_validator() -> None:
     global _global_validator
     _global_validator = None
 
+
 # 🍽️📖🔚

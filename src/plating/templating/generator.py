@@ -193,4 +193,5 @@ output "function_result" {{
 # Add your Terraform configuration here
 """
 
+
 # 🍽️📖🔚

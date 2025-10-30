@@ -66,7 +66,9 @@ def _extract_component_metadata(
         full_component_name = bundle.name
         for attr_name in dir(module):
             attr = getattr(module, attr_name)
-            if isinstance(attr, type) and (hasattr(attr, "_is_test_only") or hasattr(attr, "_parent_capability")):
+            if isinstance(attr, type) and (
+                hasattr(attr, "_is_test_only") or hasattr(attr, "_parent_capability")
+            ):
                 # Check if this is the right component by matching the registered name
                 if (
                     hasattr(attr, "_registered_name") and attr._registered_name == full_component_name
@@ -231,9 +233,13 @@ async def render_component_docs(
 
             # Extract component metadata by importing and inspecting the class
             try:
-                is_test_only, component_of = _extract_component_metadata(component, component_type, context.provider_name)
+                is_test_only, component_of = _extract_component_metadata(
+                    component, component_type, context.provider_name
+                )
             except Exception as meta_e:
-                logger.warning(f"Could not extract metadata for {component.name}, using schema info only: {meta_e}")
+                logger.warning(
+                    f"Could not extract metadata for {component.name}, using schema info only: {meta_e}"
+                )
                 is_test_only, component_of = False, None
 
             # Extract metadata for functions
@@ -310,6 +316,7 @@ async def render_component_docs(
 
         except Exception as e:
             import traceback
+
             logger.error(f"Failed to render {component.name}: {e}")
             logger.debug(f"Traceback: {traceback.format_exc()}")
 
@@ -490,5 +497,6 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     result.output_files.append(index_file)
 
     logger.info(f"Generated provider index: {index_file}")
+
 
 # 🍽️📖🔚

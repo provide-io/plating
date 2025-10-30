@@ -1,11 +1,11 @@
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
 """TODO: Add module docstring."""
 
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -22,8 +22,8 @@ from pyvider.hub.discovery import ComponentDiscovery
 
 from plating.adorner.finder import ComponentFinder
 from plating.errors import AdorningError, handle_error
-from plating.templating.generator import TemplateGenerator
 import plating.registry
+from plating.templating.generator import TemplateGenerator
 
 
 class PlatingAdorner:
@@ -182,5 +182,6 @@ class PlatingAdorner:
             handle_error(error, logger)
             perr(f"   ❌ {name}: {e}")
             return False
+
 
 # 🍽️📖🔚

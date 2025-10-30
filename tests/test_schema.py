@@ -1,4 +1,4 @@
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -461,5 +461,6 @@ class TestSchemaProcessorWithCTY:
             result = schema_processor._format_type_string(mock_list)
             # Since CtyList won't be recognized without pyvider.cty installed, it returns String
             assert result == "String"
+
 
 # 🍽️📖🔚

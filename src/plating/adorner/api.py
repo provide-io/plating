@@ -22,4 +22,5 @@ def adorn_components(component_types: list[str] | None = None) -> dict[str, int]
     """Sync entry point for adorning components."""
     return asyncio.run(adorn_missing_components(component_types))
 
+
 # 🍽️📖🔚

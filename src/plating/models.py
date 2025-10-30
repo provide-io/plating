@@ -73,4 +73,5 @@ class FunctionInfo:
     colocated_notes: str = ""
     migration: str = ""
 
+
 # 🍽️📖🔚

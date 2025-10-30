@@ -155,7 +155,6 @@ class Plating:
         if not component_types:
             component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
 
-
         start_time = time.monotonic()
         result = PlateResult(duration_seconds=0.0, files_generated=0, errors=[], output_files=[])
 
@@ -196,7 +195,6 @@ class Plating:
         # Update result with tracking info
         result.bundles_processed = len(processed_bundles)
         result.duration_seconds = time.monotonic() - start_time
-
 
         # Validate if requested (disabled due to markdown validator dependency)
         # if validate_markdown and result.output_files:
@@ -304,5 +302,6 @@ def plating(context: PlatingContext | None = None) -> Plating:
     if _global_api is None:
         _global_api = Plating(context)
     return _global_api
+
 
 # 🍽️📖🔚

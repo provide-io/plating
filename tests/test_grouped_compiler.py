@@ -1,4 +1,4 @@
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -27,7 +27,7 @@ class TestExampleGroup:
         """Test ExampleGroup with components."""
         group = ExampleGroup(
             name="full_stack",
-            components={"network": "resource \"net\" {}", "database": "resource \"db\" {}"},
+            components={"network": 'resource "net" {}', "database": 'resource "db" {}'},
             component_types={"resource"},
         )
 
@@ -81,16 +81,12 @@ class TestGroupedExampleCompiler:
         # Create first bundle
         network_dir = tmp_path / "network.plating"
         (network_dir / "examples" / "full_stack").mkdir(parents=True)
-        (network_dir / "examples" / "full_stack" / "main.tf").write_text(
-            'resource "network" "test" {}'
-        )
+        (network_dir / "examples" / "full_stack" / "main.tf").write_text('resource "network" "test" {}')
 
         # Create second bundle
         database_dir = tmp_path / "database.plating"
         (database_dir / "examples" / "full_stack").mkdir(parents=True)
-        (database_dir / "examples" / "full_stack" / "main.tf").write_text(
-            'resource "database" "test" {}'
-        )
+        (database_dir / "examples" / "full_stack" / "main.tf").write_text('resource "database" "test" {}')
 
         bundles = [
             PlatingBundle(name="network", plating_dir=network_dir, component_type="resource"),
@@ -155,9 +151,7 @@ class TestGroupedExampleCompiler:
         """Test that compilation creates provider.tf file."""
         plating_dir = tmp_path / "network.plating"
         (plating_dir / "examples" / "full_stack").mkdir(parents=True)
-        (plating_dir / "examples" / "full_stack" / "main.tf").write_text(
-            'resource "network" "test" {}'
-        )
+        (plating_dir / "examples" / "full_stack" / "main.tf").write_text('resource "network" "test" {}')
 
         bundle = PlatingBundle(name="network", plating_dir=plating_dir, component_type="resource")
 
@@ -181,15 +175,11 @@ class TestGroupedExampleCompiler:
         # Create two bundles with same group
         network_dir = tmp_path / "network.plating"
         (network_dir / "examples" / "full_stack").mkdir(parents=True)
-        (network_dir / "examples" / "full_stack" / "main.tf").write_text(
-            'resource "network" "test" {}'
-        )
+        (network_dir / "examples" / "full_stack" / "main.tf").write_text('resource "network" "test" {}')
 
         database_dir = tmp_path / "database.plating"
         (database_dir / "examples" / "full_stack").mkdir(parents=True)
-        (database_dir / "examples" / "full_stack" / "main.tf").write_text(
-            'resource "database" "test" {}'
-        )
+        (database_dir / "examples" / "full_stack" / "main.tf").write_text('resource "database" "test" {}')
 
         bundles = [
             PlatingBundle(name="network", plating_dir=network_dir, component_type="resource"),
@@ -244,9 +234,7 @@ class TestGroupedExampleCompiler:
         """Test that compilation generates README.md."""
         plating_dir = tmp_path / "network.plating"
         (plating_dir / "examples" / "full_stack").mkdir(parents=True)
-        (plating_dir / "examples" / "full_stack" / "main.tf").write_text(
-            'resource "network" "test" {}'
-        )
+        (plating_dir / "examples" / "full_stack" / "main.tf").write_text('resource "network" "test" {}')
 
         bundle = PlatingBundle(name="network", plating_dir=plating_dir, component_type="resource")
 
@@ -269,9 +257,7 @@ class TestGroupedExampleCompiler:
         """Test compilation with custom output directory for grouped examples."""
         plating_dir = tmp_path / "network.plating"
         (plating_dir / "examples" / "full_stack").mkdir(parents=True)
-        (plating_dir / "examples" / "full_stack" / "main.tf").write_text(
-            'resource "network" "test" {}'
-        )
+        (plating_dir / "examples" / "full_stack" / "main.tf").write_text('resource "network" "test" {}')
 
         bundle = PlatingBundle(name="network", plating_dir=plating_dir, component_type="resource")
 
@@ -291,15 +277,11 @@ class TestGroupedExampleCompiler:
         # Create two bundles with SAME NAME
         network1_dir = tmp_path / "network1.plating"
         (network1_dir / "examples" / "full_stack").mkdir(parents=True)
-        (network1_dir / "examples" / "full_stack" / "main.tf").write_text(
-            'resource "network" "first" {}'
-        )
+        (network1_dir / "examples" / "full_stack" / "main.tf").write_text('resource "network" "first" {}')
 
         network2_dir = tmp_path / "network2.plating"
         (network2_dir / "examples" / "full_stack").mkdir(parents=True)
-        (network2_dir / "examples" / "full_stack" / "main.tf").write_text(
-            'resource "network" "second" {}'
-        )
+        (network2_dir / "examples" / "full_stack" / "main.tf").write_text('resource "network" "second" {}')
 
         bundles = [
             PlatingBundle(name="network", plating_dir=network1_dir, component_type="resource"),
@@ -408,5 +390,6 @@ class TestGroupedExampleCompiler:
         assert len(groups) == 1
         assert "valid" in groups
         assert "incomplete" not in groups
+
 
 # 🍽️📖🔚

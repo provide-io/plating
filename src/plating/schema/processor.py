@@ -345,4 +345,5 @@ provider "{self.generator.provider_name}" {{}}
         """Parse schema to markdown (backward compatibility)."""
         return parse_schema_to_markdown(schema)
 
+
 # 🍽️📖🔚
