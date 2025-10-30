@@ -23,10 +23,10 @@ from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingConte
 """Documentation generation utilities."""
 
 
-def _check_component_test_only(
+def _extract_component_metadata(
     bundle: PlatingBundle, component_type: ComponentType, provider_name: str | None
-) -> bool:
-    """Check if a component is marked as test_only by inspecting the component class.
+) -> tuple[bool, str | None]:
+    """Extract metadata from a component by inspecting the component class.
 
     Args:
         bundle: PlatingBundle for the component
@@ -34,7 +34,7 @@ def _check_component_test_only(
         provider_name: Provider name (used for constructing module paths)
 
     Returns:
-        True if component is test_only, False otherwise
+        Tuple of (is_test_only, component_of)
     """
     try:
         # Strip provider prefix from component name if present
@@ -61,30 +61,35 @@ def _check_component_test_only(
             module_name = f"pyvider.components.{type_dir}.{plating_dir_name}"
             module = importlib.import_module(module_name)
 
-        # Look for classes in the module that have _is_test_only attribute
+        # Look for classes in the module that have metadata attributes
         # and match the component's registered name
         full_component_name = bundle.name
         for attr_name in dir(module):
             attr = getattr(module, attr_name)
-            if isinstance(attr, type) and hasattr(attr, "_is_test_only"):
+            if isinstance(attr, type) and (hasattr(attr, "_is_test_only") or hasattr(attr, "_parent_capability")):
                 # Check if this is the right component by matching the registered name
                 if (
                     hasattr(attr, "_registered_name") and attr._registered_name == full_component_name
                 ) or not hasattr(attr, "_registered_name"):
-                    return bool(attr._is_test_only)
+                    is_test_only = bool(getattr(attr, "_is_test_only", False))
+                    component_of = getattr(attr, "_parent_capability", None)
+                    return is_test_only, component_of
 
-        return False
+        return False, None
     except (ImportError, AttributeError) as e:
-        logger.debug(f"Could not check test_only for {bundle.name}: {e}")
-        return False
+        logger.debug(f"Could not extract metadata for {bundle.name}: {e}")
+        return False, None
 
 
-def _determine_subcategory(schema_info: SchemaInfo | None, is_test_only: bool) -> str:
+def _determine_subcategory(
+    schema_info: SchemaInfo | None, is_test_only: bool, component_of: str | None = None
+) -> str:
     """Determine the subcategory for a component based on its metadata.
 
     Args:
         schema_info: Schema information containing component_of metadata
         is_test_only: Whether the component is marked as test_only
+        component_of: Component category from decorator (takes precedence over schema_info)
 
     Returns:
         Subcategory string: "Test Mode", "Lens", or "Utilities"
@@ -94,7 +99,8 @@ def _determine_subcategory(schema_info: SchemaInfo | None, is_test_only: bool) -
         return "Test Mode"
 
     # Lens category for components with component_of="lens"
-    if schema_info and schema_info.component_of == "lens":
+    # Check direct parameter first, then schema_info
+    if component_of == "lens" or (schema_info and schema_info.component_of == "lens"):
         return "Lens"
 
     # Default to Utilities
@@ -223,8 +229,8 @@ async def render_component_docs(
             # Get component schema if available
             schema_info = get_component_schema(component, component_type, provider_schema)
 
-            # Check if component is test_only by trying to import and inspect the class
-            is_test_only = _check_component_test_only(component, component_type, context.provider_name)
+            # Extract component metadata by importing and inspecting the class
+            is_test_only, component_of = _extract_component_metadata(component, component_type, context.provider_name)
 
             # Extract metadata for functions
             signature = None
@@ -288,7 +294,7 @@ async def render_component_docs(
             rendered_content = await template_engine.render(component, render_context)
 
             # Determine and inject appropriate subcategory based on component metadata
-            subcategory = _determine_subcategory(schema_info, is_test_only)
+            subcategory = _determine_subcategory(schema_info, is_test_only, component_of)
             rendered_content = _inject_subcategory(rendered_content, subcategory)
 
             # Write output
