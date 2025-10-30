@@ -1,6 +1,8 @@
 #
-# plating/decorators.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Foundation integration decorators for clean API."""
 
 import asyncio
@@ -252,3 +254,5 @@ class PlatingMetrics:
 
 # Global metrics instance
 plating_metrics = PlatingMetrics()
+
+# 🍽️📖🔚

@@ -1,3 +1,10 @@
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+"""TODO: Add module docstring."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -58,10 +65,7 @@ def _check_component_test_only(bundle: PlatingBundle, component_type: ComponentT
             attr = getattr(module, attr_name)
             if isinstance(attr, type) and hasattr(attr, "_is_test_only"):
                 # Check if this is the right component by matching the registered name
-                if hasattr(attr, "_registered_name") and attr._registered_name == full_component_name:
-                    return bool(attr._is_test_only)
-                # Fallback: if there's only one class with test_only, use it
-                elif not hasattr(attr, "_registered_name"):
+                if (hasattr(attr, "_registered_name") and attr._registered_name == full_component_name) or not hasattr(attr, "_registered_name"):
                     return bool(attr._is_test_only)
 
         return False
@@ -334,7 +338,7 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
         """Check if component is a test mode component by reading its metadata."""
         # Try to get the component schema which contains test_only metadata
         schema_info = get_component_schema(
-            PlatingBundle(name=component_name, plating_dir=Path("."), component_type=component_type.value),
+            PlatingBundle(name=component_name, plating_dir=Path(), component_type=component_type.value),
             component_type,
             provider_schema
         )
@@ -407,3 +411,5 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     result.output_files.append(index_file)
 
     logger.info(f"Generated provider index: {index_file}")
+
+# 🍽️📖🔚

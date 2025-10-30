@@ -2,7 +2,6 @@
 Unit tests for GroupedExampleCompiler using TDD approach.
 """
 
-from pathlib import Path
 
 import pytest
 

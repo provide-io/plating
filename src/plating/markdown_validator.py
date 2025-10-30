@@ -1,6 +1,8 @@
 #
-# plating/markdown_validator.py
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
 """Markdown validation using pymarkdownlnt with foundation integration."""
 
 from pathlib import Path
@@ -227,3 +229,5 @@ def reset_markdown_validator() -> None:
 
 
 # 📝✅🔍⚡
+
+# 🍽️📖🔚
