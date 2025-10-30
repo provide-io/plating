@@ -1,11 +1,9 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""
-This script enforces header and footer conformance on Python source files.
-"""
+"""This script enforces header and footer conformance on Python source files."""
 
 import ast
 import sys
@@ -16,7 +14,6 @@ HEADER_SPDX = [
     "#",
 ]
 PLACEHOLDER_DOCSTRING = '"""TODO: Add module docstring."""'
-FOOTER = "# 🍽️📖🔚"
 
 
 def get_module_docstring_and_body_start(source):
@@ -69,7 +66,6 @@ def process_file(filepath):
 
     final_body_lines = [
         line for line in body_content.split('\n')
-        if "# 🍽️📖" not in line
     ]
 
     # 5. Construct final content
@@ -99,3 +95,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# 🍽️📖🔚

@@ -3,6 +3,13 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+"""TODO: Add module docstring."""
+
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
 """Modern CLI interface using the async Plating API with error handling."""
 
 import asyncio
@@ -183,7 +190,6 @@ def get_package_name(provided_name: str | None) -> str | None:
 
     detected = auto_detect_package_name()
     if detected:
-        pout(f"📦 Auto-detected package: {detected}")
         return detected
 
     return None
@@ -237,7 +243,6 @@ def adorn_command(
             result = await api.adorn(component_types=types)
 
             if result.success:
-                pout(f"✅ Generated {result.templates_generated} templates and examples")
                 return 0
             else:
                 perr("❌ Adorn operation failed:")
@@ -287,7 +292,6 @@ def _generate_examples_if_requested(
 
     from plating.example_compiler import ExampleCompiler
 
-    pout("📁 Generating executable examples...")
 
     # Get all bundles with examples
     bundles_with_examples = []
@@ -312,7 +316,6 @@ def _generate_examples_if_requested(
 
     if total_examples > 0:
         pout(
-            f"✅ Generated {compilation_result.examples_generated} single-component "
             f"and {compilation_result.grouped_examples_generated} grouped examples "
             f"(total: {total_examples})"
         )
@@ -336,10 +339,7 @@ def _print_plate_success(result: "PlateResult") -> None:
     Args:
         result: Plate operation result
     """
-    pout(f"✅ Generated {result.files_generated} files in {result.duration_seconds:.2f}s")
-    pout(f"📦 Processed {result.bundles_processed} bundles")
     if result.output_files:
-        pout("📄 Generated files:")
         for file in result.output_files[:10]:  # Show first 10
             pout(f"  • {file}")
         if len(result.output_files) > 10:
@@ -423,7 +423,6 @@ def plate_command(
             if actual_package_name:
                 pout(f"🔍 Filtering to package: {actual_package_name}")
             else:
-                pout("🌍 Discovering from ALL installed packages")
 
             context = PlatingContext(provider_name=actual_provider_name)
             api = Plating(context, actual_package_name)
@@ -434,7 +433,6 @@ def plate_command(
             # Handle output_dir default behavior - if not specified, let the API auto-detect
             final_output_dir = output_dir if output_dir != Path("docs") else None
 
-            pout("🍽️ Plating documentation...")
             result = await api.plate(final_output_dir, types, force, validate, project_root)
 
             if result.success:
@@ -502,7 +500,6 @@ def validate_command(
         actual_package_name = get_package_name(package_name)
 
         if actual_package_name is None:
-            pout("🌍 Discovering components from ALL installed packages")
 
         context = PlatingContext(provider_name=actual_provider_name)
         api = Plating(context, actual_package_name)
@@ -520,7 +517,6 @@ def validate_command(
         pout(f"  • Duration: {result.duration_seconds:.2f}s")
 
         if result.success:
-            pout("✅ All validations passed")
         else:
             perr("❌ Validation failed:")
             if result.lint_errors:
@@ -559,7 +555,6 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
         if actual_package_name:
             pout(f"🔍 Filtering to package: {actual_package_name}")
         else:
-            pout("🌍 Discovering components from ALL installed packages")
 
         context = PlatingContext(provider_name=actual_provider_name)
         api = Plating(context, actual_package_name)
@@ -594,7 +589,6 @@ def stats_command(package_name: str | None) -> None:
         if actual_package_name:
             pout(f"🔍 Filtering to package: {actual_package_name}")
         else:
-            pout("🌍 Discovering components from ALL installed packages")
 
         # Stats command doesn't need provider context
         context = PlatingContext(provider_name="")
@@ -607,7 +601,6 @@ def stats_command(package_name: str | None) -> None:
 
         component_types = stats.get("component_types", [])
         if component_types:
-            pout("\n📦 Components by type:")
             for comp_type in sorted(component_types):
                 count = stats.get(comp_type, {}).get("total", 0)
                 with_templates = stats.get(comp_type, {}).get("with_templates", 0)

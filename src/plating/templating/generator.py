@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -192,8 +192,5 @@ output "function_result" {{
         return f"""# Example usage for {name}
 # Add your Terraform configuration here
 """
-
-
-# 🍲🥄👗📝🪄
 
 # 🍽️📖🔚

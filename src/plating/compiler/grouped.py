@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -274,6 +274,5 @@ terraform destroy
 """
         readme_path = output_dir / "README.md"
         readme_path.write_text(readme_content, encoding="utf-8")
-
 
 # 🍽️📖🔚

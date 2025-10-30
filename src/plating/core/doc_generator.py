@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -413,6 +413,5 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     result.output_files.append(index_file)
 
     logger.info(f"Generated provider index: {index_file}")
-
 
 # 🍽️📖🔚

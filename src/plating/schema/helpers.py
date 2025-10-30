@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -157,6 +157,5 @@ def get_component_schema(
 
     # Convert to SchemaInfo for template rendering
     return SchemaInfo.from_dict(component_schema)
-
 
 # 🍽️📖🔚

@@ -1,4 +1,11 @@
+# 
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
+"""TODO: Add module docstring."""
+
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -155,8 +162,6 @@ class Plating:
         if not component_types:
             component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
 
-        pout(f"🍽️  Plating documentation to: {final_output_dir}")
-        pout(f"📦 Processing {len(component_types)} component type(s)")
 
         start_time = time.monotonic()
         result = PlateResult(duration_seconds=0.0, files_generated=0, errors=[], output_files=[])
@@ -170,7 +175,6 @@ class Plating:
         for component_type in component_types:
             components = self.registry.get_components_with_templates(component_type)
             logger.info(f"Generating docs for {len(components)} {component_type.value} components")
-            pout(f"📄 Rendering {len(components)} {component_type.value}(s)...")
 
             # Track unique bundle directories
             for component in components:
@@ -188,7 +192,6 @@ class Plating:
             )
             files_for_type = result.files_generated - files_before
             if files_for_type > 0:
-                pout(f"   ✅ Generated {files_for_type} file(s)")
 
         # Generate provider index page
         pout("📝 Generating provider index...")
@@ -200,7 +203,6 @@ class Plating:
         result.bundles_processed = len(processed_bundles)
         result.duration_seconds = time.monotonic() - start_time
 
-        pout(f"\n✅ Plating complete: {result.files_generated} file(s) in {result.duration_seconds:.2f}s")
 
         # Validate if requested (disabled due to markdown validator dependency)
         # if validate_markdown and result.output_files:
@@ -308,6 +310,5 @@ def plating(context: PlatingContext | None = None) -> Plating:
     if _global_api is None:
         _global_api = Plating(context)
     return _global_api
-
 
 # 🍽️📖🔚

@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -357,8 +357,5 @@ class TestGlobalInstances:
         reset_markdown_validator()
         validator3 = get_markdown_validator()
         assert validator3 is not validator1
-
-
-# 🧪⚡🏗️✨
 
 # 🍽️📖🔚

@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -305,6 +305,5 @@ def parse_variadic_argument(func_schema: dict[str, Any]) -> str:
     description = variadic.get("description", "")
 
     return f"- `{variadic_name}` ({variadic_type}) - {description}"
-
 
 # 🍽️📖🔚
