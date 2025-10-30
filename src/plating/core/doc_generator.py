@@ -230,7 +230,11 @@ async def render_component_docs(
             schema_info = get_component_schema(component, component_type, provider_schema)
 
             # Extract component metadata by importing and inspecting the class
-            is_test_only, component_of = _extract_component_metadata(component, component_type, context.provider_name)
+            try:
+                is_test_only, component_of = _extract_component_metadata(component, component_type, context.provider_name)
+            except Exception as meta_e:
+                logger.warning(f"Could not extract metadata for {component.name}, using schema info only: {meta_e}")
+                is_test_only, component_of = False, None
 
             # Extract metadata for functions
             signature = None
