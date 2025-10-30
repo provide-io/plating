@@ -1,11 +1,11 @@
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
 
 """TODO: Add module docstring."""
 
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -42,6 +42,7 @@ async def dress_multiple_types():
     for component_type in ["resource", "data_source"]:
         count = results[component_type]
         if count > 0:
+            print(f"✅ Dressed {count} {component_type}(s)")
 
 
 # Run async functions
