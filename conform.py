@@ -1,4 +1,4 @@
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -28,7 +28,7 @@ def get_module_docstring_and_body_start(source):
         if len(tree.body) > node_index:
             body_node = tree.body[node_index]
             start_line = body_node.lineno - 1
-            if hasattr(body_node, 'decorator_list') and body_node.decorator_list:
+            if hasattr(body_node, "decorator_list") and body_node.decorator_list:
                 start_line = body_node.decorator_list[0].lineno - 1
             return docstring, start_line
         return docstring, -1
@@ -39,17 +39,17 @@ def get_module_docstring_and_body_start(source):
 def process_file(filepath):
     """Applies header/footer conformance to a single Python file."""
     try:
-        with open(filepath, encoding='utf-8') as f:
+        with open(filepath, encoding="utf-8") as f:
             content = f.read()
     except Exception as e:
         print(f"Error reading {filepath}: {e}", file=sys.stderr)
         return
 
-    lines = content.split('\n')
+    lines = content.split("\n")
     original_first_line = lines[0] if lines else ""
 
     # 1. Determine first line
-    is_executable = original_first_line.startswith('#!')
+    is_executable = original_first_line.startswith("#!")
     new_header_lines = [original_first_line] if is_executable else ["# "]
     new_header_lines.extend(HEADER_SPDX)
 
@@ -62,22 +62,20 @@ def process_file(filepath):
     core_body_lines = lines[body_start_line:] if body_start_line != -1 else []
 
     # 4. Strip old footers and trailing whitespace
-    body_content = '\n'.join(core_body_lines).rstrip()
+    body_content = "\n".join(core_body_lines).rstrip()
 
-    final_body_lines = [
-        line for line in body_content.split('\n')
-    ]
+    final_body_lines = [line for line in body_content.split("\n")]
 
     # 5. Construct final content
-    full_header = '\n'.join(new_header_lines)
-    final_body = '\n'.join(final_body_lines)
+    full_header = "\n".join(new_header_lines)
+    final_body = "\n".join(final_body_lines)
 
-    final_content = (full_header + '\n\n' + final_body).rstrip()
+    final_content = (full_header + "\n\n" + final_body).rstrip()
     final_content += f"\n\n{FOOTER}\n"
 
     # 6. Write back to file
     try:
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             f.write(final_content)
     except Exception as e:
         print(f"Error writing to {filepath}: {e}", file=sys.stderr)

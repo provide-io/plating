@@ -1,4 +1,4 @@
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -184,6 +184,7 @@ class TestModernAPI:
             mock_template_gen.return_value.generate_template = mock_generate_template
 
             from plating.types import PlatingContext
+
             api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
             result = await api.adorn(component_types=[ComponentType.RESOURCE])
 
@@ -213,6 +214,7 @@ class TestModernAPI:
         mock_discovery.return_value = mock_discovery_instance
 
         from plating.types import PlatingContext
+
         api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
 
         # Should have registry configured
@@ -273,6 +275,7 @@ Test resource for unit testing.
             output_dir = tmp_path / "docs_output"
 
             from plating.types import PlatingContext
+
             api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
             api.registry = mock_registry
 
@@ -316,6 +319,7 @@ Test resource for unit testing.
         pout(f"Testing validation in {docs_dir}", color="cyan")  # Foundation I/O
 
         from plating.types import PlatingContext
+
         api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
         result = await api.validate(docs_dir)
 
@@ -335,6 +339,7 @@ Test resource for unit testing.
         try:
             # Should handle registry creation errors gracefully
             from plating.types import PlatingContext
+
             api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
             # API should still be created but registry might have issues
             assert api is not None
@@ -359,5 +364,6 @@ Test resource for unit testing.
         assert ComponentType.RESOURCE is not None
         assert template_engine is not None
         assert plating_metrics is not None
+
 
 # 🍽️📖🔚

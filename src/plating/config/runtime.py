@@ -139,4 +139,5 @@ def set_config(config: PlatingConfig) -> None:
     global _config
     _config = config
 
+
 # 🍽️📖🔚

@@ -72,4 +72,5 @@ def get_output_directory(output_dir: Path | None, project_root: Path | None = No
     # Fallback to current directory/docs
     return Path.cwd() / "docs"
 
+
 # 🍽️📖🔚
