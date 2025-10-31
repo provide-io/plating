@@ -21,14 +21,14 @@ class TestPlatingAdorner:
         """Create a PlatingAdorner instance."""
         return PlatingAdorner("pyvider.components")
 
-    def test_initialization(self, adorner):
+    def test_initialization(self, adorner) -> None:
         """Test PlatingAdorner initialization."""
         assert adorner.plating_discovery is not None
         assert adorner.template_generator is not None
         assert adorner.component_finder is not None
 
     @pytest.mark.asyncio
-    async def test_adorn_missing_no_components(self, adorner, mock_foundation_hub):
+    async def test_adorn_missing_no_components(self, adorner, mock_foundation_hub) -> None:
         """Test adorn_missing when no components are found."""
         # Mock the hub discovery to return no components
         mock_foundation_hub.discover_components.return_value = None
@@ -49,7 +49,7 @@ class TestPlatingAdorner:
     @pytest.mark.asyncio
     async def test_adorn_missing_with_existing_bundles(
         self, adorner, mock_foundation_hub, mock_component_class
-    ):
+    ) -> None:
         """Test adorn_missing skips components with existing bundles."""
         # Mock components returned by hub
         mock_foundation_hub.discover_components.return_value = None
@@ -72,7 +72,7 @@ class TestPlatingAdorner:
             assert result == {"resource": 0, "data_source": 0, "function": 0}
 
     @pytest.mark.asyncio
-    async def test_adorn_missing_with_new_components(self, adorner, mock_component_class, mock_foundation_hub):
+    async def test_adorn_missing_with_new_components(self, adorner, mock_component_class, mock_foundation_hub) -> None:
         """Test adorn_missing dresses new components."""
         # Mock components returned by hub - only return component for resource dimension
         mock_foundation_hub.discover_components.return_value = None
@@ -102,7 +102,7 @@ class TestPlatingAdorner:
     @pytest.mark.asyncio
     async def test_adorn_missing_with_component_type_filter(
         self, adorner, mock_component_class, mock_foundation_hub
-    ):
+    ) -> None:
         """Test adorn_missing filters by component type."""
         # Mock foundation hub to return components for both resource and data_source dimensions
         mock_foundation_hub.discover_components.return_value = None
@@ -133,7 +133,7 @@ class TestPlatingAdorner:
                 assert result == {"resource": 1, "data_source": 0, "function": 0}
 
     @pytest.mark.asyncio
-    async def test_adorn_component_success(self, adorner, mock_component_class, tmp_path):
+    async def test_adorn_component_success(self, adorner, mock_component_class, tmp_path) -> None:
         """Test successful dressing of a component."""
         # Setup mock source file
         source_file = tmp_path / "test_component.py"
@@ -169,7 +169,7 @@ class TestPlatingAdorner:
                     assert example_file.read_text() == "# Example content"
 
     @pytest.mark.asyncio
-    async def test_adorn_component_no_source_file(self, adorner, mock_component_class):
+    async def test_adorn_component_no_source_file(self, adorner, mock_component_class) -> None:
         """Test dressing fails when source file cannot be found."""
         with patch.object(adorner.component_finder, "find_source") as mock_find:
             mock_find.return_value = None
@@ -179,7 +179,7 @@ class TestPlatingAdorner:
             assert result is False
 
     @pytest.mark.asyncio
-    async def test_adorn_component_handles_exceptions(self, adorner, mock_component_class):
+    async def test_adorn_component_handles_exceptions(self, adorner, mock_component_class) -> None:
         """Test dressing handles exceptions gracefully."""
         with patch.object(adorner.component_finder, "find_source") as mock_find:
             mock_find.side_effect = Exception("Test error")
@@ -205,7 +205,7 @@ class TestTemplateGenerator:
         return mock
 
     @pytest.mark.asyncio
-    async def test_generate_template_resource(self, generator, mock_component):
+    async def test_generate_template_resource(self, generator, mock_component) -> None:
         """Test generating template for a resource."""
         template = await generator.generate_template("test_resource", "resource", mock_component)
 
@@ -216,7 +216,7 @@ class TestTemplateGenerator:
         assert "terraform import" in template
 
     @pytest.mark.asyncio
-    async def test_generate_template_data_source(self, generator, mock_component):
+    async def test_generate_template_data_source(self, generator, mock_component) -> None:
         """Test generating template for a data source."""
         template = await generator.generate_template("test_data", "data_source", mock_component)
 
@@ -227,7 +227,7 @@ class TestTemplateGenerator:
         assert "terraform import" not in template
 
     @pytest.mark.asyncio
-    async def test_generate_template_function(self, generator, mock_component):
+    async def test_generate_template_function(self, generator, mock_component) -> None:
         """Test generating template for a function."""
         template = await generator.generate_template("test_func", "function", mock_component)
 
@@ -238,7 +238,7 @@ class TestTemplateGenerator:
         assert "{% if has_variadic %}" in template
 
     @pytest.mark.asyncio
-    async def test_generate_template_no_docstring(self, generator):
+    async def test_generate_template_no_docstring(self, generator) -> None:
         """Test generating template when component has no docstring."""
         mock_component = Mock()
         del mock_component.__doc__  # No docstring
@@ -248,7 +248,7 @@ class TestTemplateGenerator:
         assert "Terraform resource for test_resource" in template
 
     @pytest.mark.asyncio
-    async def test_generate_example_resource(self, generator):
+    async def test_generate_example_resource(self, generator) -> None:
         """Test generating example for a resource."""
         example = await generator.generate_example("test_resource", "resource")
 
@@ -257,7 +257,7 @@ class TestTemplateGenerator:
         assert "test_resource.example.id" in example
 
     @pytest.mark.asyncio
-    async def test_generate_example_data_source(self, generator):
+    async def test_generate_example_data_source(self, generator) -> None:
         """Test generating example for a data source."""
         example = await generator.generate_example("test_data", "data_source")
 
@@ -266,7 +266,7 @@ class TestTemplateGenerator:
         assert "data.test_data.example" in example
 
     @pytest.mark.asyncio
-    async def test_generate_example_function(self, generator):
+    async def test_generate_example_function(self, generator) -> None:
         """Test generating example for a function."""
         example = await generator.generate_example("test_func", "function")
 
@@ -275,7 +275,7 @@ class TestTemplateGenerator:
         assert "output" in example
 
     @pytest.mark.asyncio
-    async def test_generate_example_unknown_type(self, generator):
+    async def test_generate_example_unknown_type(self, generator) -> None:
         """Test generating example for unknown component type."""
         example = await generator.generate_example("test_unknown", "unknown")
 
@@ -291,7 +291,7 @@ class TestComponentFinder:
         return ComponentFinder()
 
     @pytest.mark.asyncio
-    async def test_find_source_success(self, finder, tmp_path):
+    async def test_find_source_success(self, finder, tmp_path) -> None:
         """Test finding source file successfully."""
         # Create a test file
         test_file = tmp_path / "test_component.py"
@@ -308,7 +308,7 @@ class TestComponentFinder:
             assert result == test_file
 
     @pytest.mark.asyncio
-    async def test_find_source_failure(self, finder):
+    async def test_find_source_failure(self, finder) -> None:
         """Test handling failure to find source file."""
         mock_component = Mock()
 
@@ -325,7 +325,7 @@ class TestAdornerAPI:
 
     @patch("plating.adorner.api.PlatingAdorner")
     @pytest.mark.asyncio
-    async def test_adorn_missing_components_async(self, MockDresser):
+    async def test_adorn_missing_components_async(self, MockDresser) -> None:
         """Test async adorn_missing_components function."""
         mock_adorner = MockDresser.return_value
         mock_adorner.adorn_missing = AsyncMock(return_value={"resource": 2})
@@ -337,7 +337,7 @@ class TestAdornerAPI:
         assert result == {"resource": 2}
 
     @patch("plating.adorner.api.asyncio.run")
-    def test_adorn_components_sync(self, mock_run):
+    def test_adorn_components_sync(self, mock_run) -> None:
         """Test sync adorn_components function."""
         mock_run.return_value = {"resource": 3}
 

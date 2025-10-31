@@ -23,7 +23,7 @@ class TestCLI:
         """Create CLI test runner."""
         return CliRunner()
 
-    def test_cli_help(self, runner):
+    def test_cli_help(self, runner) -> None:
         """Test that --help works."""
         result = runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
@@ -32,7 +32,7 @@ class TestCLI:
         assert "plate" in result.output
         assert "validate" in result.output
 
-    def test_adorn_help(self, runner):
+    def test_adorn_help(self, runner) -> None:
         """Test adorn --help."""
         result = runner.invoke(cli, ["adorn", "--help"])
         assert result.exit_code == 0
@@ -40,7 +40,7 @@ class TestCLI:
         assert "--component-type" in result.output
         assert "--provider-name" in result.output
 
-    def test_plate_help(self, runner):
+    def test_plate_help(self, runner) -> None:
         """Test plate --help."""
         result = runner.invoke(cli, ["plate", "--help"])
         assert result.exit_code == 0
@@ -48,20 +48,20 @@ class TestCLI:
         assert "--output-dir" in result.output
         assert "--force" in result.output
 
-    def test_validate_help(self, runner):
+    def test_validate_help(self, runner) -> None:
         """Test validate --help."""
         result = runner.invoke(cli, ["validate", "--help"])
         assert result.exit_code == 0
         assert "Validate generated documentation" in result.output
         assert "--output-dir" in result.output
 
-    def test_info_help(self, runner):
+    def test_info_help(self, runner) -> None:
         """Test info --help."""
         result = runner.invoke(cli, ["info", "--help"])
         assert result.exit_code == 0
         assert "Show registry information" in result.output
 
-    def test_stats_help(self, runner):
+    def test_stats_help(self, runner) -> None:
         """Test stats --help."""
         result = runner.invoke(cli, ["stats", "--help"])
         assert result.exit_code == 0
