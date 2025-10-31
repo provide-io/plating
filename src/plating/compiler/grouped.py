@@ -82,7 +82,7 @@ class GroupedExampleCompiler:
                 fixtures = self._load_group_fixtures(bundle, group_name)
 
                 # Check for fixture collisions
-                for fixture_path in fixtures.keys():
+                for fixture_path in fixtures:
                     if fixture_path in groups[group_name].fixtures:
                         # Collision detected
                         raise ValueError(

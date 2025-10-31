@@ -98,7 +98,7 @@ class AdorningError(PlatingError):
 
     def __init__(
         self, component_name: str, component_type: str, reason: str, template_path: Path | None = None
-    ):
+    ) -> None:
         self.component_name = component_name
         self.component_type = component_type
         self.reason = reason
@@ -157,7 +157,7 @@ class TemplateError(PlatingError):
         reason: str,
         line_number: int | None = None,
         template_context: str | None = None,
-    ):
+    ) -> None:
         self.template_path = template_path
         self.reason = reason
         self.line_number = line_number
@@ -270,7 +270,7 @@ class ValidationError(PlatingError):
         reason: str,
         file_path: Path | None = None,
         failures: list[str] | None = None,
-    ):
+    ) -> None:
         self.validation_name = validation_name
         self.reason = reason
         self.file_path = file_path

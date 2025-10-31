@@ -190,10 +190,7 @@ class SingleExampleCompiler:
 
         # Match function calls: provider::function_name()
         function_pattern = rf"{re.escape(self.provider_name)}::{re.escape(component_name)}\s*\("
-        if re.search(function_pattern, content):
-            return True
-
-        return False
+        return bool(re.search(function_pattern, content))
 
     def _is_test_only_component(self, bundle: PlatingBundle, component_type: ComponentType) -> bool:
         """Check if a component is marked as test_only.

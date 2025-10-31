@@ -32,7 +32,7 @@ async def dress_resources_only():
 
 
 # Dress multiple types
-async def dress_multiple_types():
+async def dress_multiple_types() -> None:
     """Dress resources and data sources."""
     adorner = PlatingAdorner()
 
