@@ -72,7 +72,9 @@ class TestPlatingAdorner:
             assert result == {"resource": 0, "data_source": 0, "function": 0}
 
     @pytest.mark.asyncio
-    async def test_adorn_missing_with_new_components(self, adorner, mock_component_class, mock_foundation_hub) -> None:
+    async def test_adorn_missing_with_new_components(
+        self, adorner, mock_component_class, mock_foundation_hub
+    ) -> None:
         """Test adorn_missing dresses new components."""
         # Mock components returned by hub - only return component for resource dimension
         mock_foundation_hub.discover_components.return_value = None

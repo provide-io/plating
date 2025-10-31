@@ -423,7 +423,9 @@ class TestSchemaProcessorWithCTY:
     @patch("pyvider.cty.CtyString")
     @patch("pyvider.cty.CtyNumber")
     @patch("pyvider.cty.CtyBool")
-    def test_format_type_string_with_cty(self, MockCtyBool, MockCtyNumber, MockCtyString, schema_processor) -> None:
+    def test_format_type_string_with_cty(
+        self, MockCtyBool, MockCtyNumber, MockCtyString, schema_processor
+    ) -> None:
         """Test _format_type_string with CTY objects."""
         # Test string type
         mock_string = Mock()
