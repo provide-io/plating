@@ -217,7 +217,7 @@ class SingleExampleCompiler:
         # Add test_mode config if needed
         provider_config = ""
         if is_test_only:
-            provider_config = """  test_mode = true
+            provider_config = """  provider_testmode = true
 """
 
         provider_content = f"""terraform {{
