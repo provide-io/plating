@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -72,6 +72,5 @@ class FunctionInfo:
     import_docs: str = ""
     colocated_notes: str = ""
     migration: str = ""
-
 
 # 🍽️📖🔚

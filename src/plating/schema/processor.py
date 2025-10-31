@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -67,12 +67,10 @@ class SchemaProcessor:
 
         try:
             self.hub.discover_components("pyvider.components")
-            pout("   ✅ Component discovery complete")
         except Exception as e:
             raise SchemaError(self.generator.provider_name, f"Component discovery failed: {e}") from e
 
         # Get components by dimension from foundation registry
-        pout("📦 Extracting component schemas...")
         providers = self._get_components_by_dimension("provider")
         resources = self._get_components_by_dimension("resource")
         data_sources = self._get_components_by_dimension("data_source")
@@ -93,7 +91,6 @@ class SchemaProcessor:
                 }
             }
         }
-        pout(f"✅ Extracted schemas for {total_components} components")
         return provider_schema
 
     def _get_components_by_dimension(self, dimension: str) -> dict[str, Any]:
@@ -160,7 +157,6 @@ class SchemaProcessor:
                 cwd=self.generator.provider_dir,
                 capture_output=True,
             )
-            pout("   ✅ Provider build complete")
         except ProcessError as e:
             logger.error(
                 "Provider build failed",
@@ -348,8 +344,5 @@ provider "{self.generator.provider_name}" {{}}
     def _parse_schema_to_markdown(self, schema: dict[str, Any]) -> str:
         """Parse schema to markdown (backward compatibility)."""
         return parse_schema_to_markdown(schema)
-
-
-# 🍲🥄📊🪄
 
 # 🍽️📖🔚

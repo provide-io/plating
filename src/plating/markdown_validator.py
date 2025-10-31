@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -226,8 +226,5 @@ def reset_markdown_validator() -> None:
     """Reset the global validator (primarily for testing)."""
     global _global_validator
     _global_validator = None
-
-
-# 📝✅🔍⚡
 
 # 🍽️📖🔚

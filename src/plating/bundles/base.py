@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -186,6 +186,5 @@ class PlatingBundle:
                 fixtures[str(rel_path)] = file_path
 
         return fixtures
-
 
 # 🍽️📖🔚

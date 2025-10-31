@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -31,7 +31,6 @@ class ErrorReporter:
     def report_file_error(path: Path, operation: str, error: Exception) -> None:
         """Report file operation errors consistently."""
         perr(f"❌ File operation failed: {operation}")
-        pout(f"📁 Path: {path}")
         perr(f"Error: {error}")
 
     @staticmethod
@@ -54,7 +53,6 @@ class ErrorReporter:
     @staticmethod
     def report_success(message: str, details: str | None = None) -> None:
         """Report success messages consistently."""
-        pout(f"✅ {message}")
         if details:
             pout(f"  {details}")
 
@@ -108,6 +106,5 @@ def handle_subprocess_execution(
             "Please ensure the required tool is installed",
         )
         raise
-
 
 # 🍽️📖🔚

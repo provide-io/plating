@@ -1,4 +1,11 @@
+# 
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
+
+"""TODO: Add module docstring."""
+
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -67,7 +74,6 @@ class PlatingAdorner:
             return {"resource": 0, "data_source": 0, "function": 0}
 
         # Find existing plating bundles
-        pout("📦 Finding existing .plating bundles...")
         existing_bundles = await asyncio.to_thread(self.plating_discovery.discover_bundles)
         existing_names = {bundle.name for bundle in existing_bundles}
         pout(f"   Found {len(existing_bundles)} existing bundles")
@@ -102,7 +108,6 @@ class PlatingAdorner:
 
         total_adorned = sum(adorned.values())
         if total_adorned > 0:
-            pout(f"\n✅ Successfully adorned {total_adorned} component(s)")
         else:
             pout("\nℹ️  No components needed adorning")
 
@@ -167,7 +172,6 @@ class PlatingAdorner:
             await asyncio.to_thread(example_file.write_text, example_content)
 
             logger.info(f"Successfully adorned {component_type}: {name}")
-            pout(f"   ✅ {name}")
             return True
 
         except AdorningError:
@@ -177,8 +181,5 @@ class PlatingAdorner:
             handle_error(error, logger)
             perr(f"   ❌ {name}: {e}")
             return False
-
-
-# 🍲🥄👗🪄
 
 # 🍽️📖🔚

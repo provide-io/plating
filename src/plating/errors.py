@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -390,6 +390,5 @@ def handle_error(error: Exception, logger: Any = None, reraise: bool = False) ->
         raise
 
     return error_msg
-
 
 # 🍽️📖🔚
