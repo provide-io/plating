@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -28,7 +28,6 @@ class TemplateProcessor:
         This method is kept for compatibility but .plating directories should contain
         all necessary templates and are discovered automatically.
         """
-        pout("📄 Using .plating bundles for templates (no template generation needed)")
 
     def render_templates(self):
         """Render all templates using plating bundles to generate documentation."""
@@ -222,8 +221,5 @@ provider "{{ provider.short_name }}" {
                     }
 
         return {}
-
-
-# 🍲🥄📄🪄
 
 # 🍽️📖🔚

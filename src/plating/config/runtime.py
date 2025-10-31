@@ -1,4 +1,4 @@
-#
+# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -138,6 +138,5 @@ def set_config(config: PlatingConfig) -> None:
     """Set the global configuration instance."""
     global _config
     _config = config
-
 
 # 🍽️📖🔚
