@@ -1,4 +1,4 @@
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -62,6 +62,9 @@ def get_component_schemas_from_hub(hub: Any, dimension: str) -> dict[str, Any]:
                     # Extract test_only metadata from component class
                     test_only = getattr(component, "_is_test_only", False)
                     schema_dict["test_only"] = test_only
+                    # Extract component_of metadata (parent capability)
+                    component_of = getattr(component, "_parent_capability", None)
+                    schema_dict["component_of"] = component_of
                     schemas[name] = schema_dict
                 except Exception as e:
                     logger.warning(f"Failed to get schema for {dimension} {name}: {e}")
@@ -102,6 +105,9 @@ def get_function_schemas_from_hub(hub: Any, dimension: str) -> dict[str, Any]:
                     # Extract test_only metadata from function
                     test_only = getattr(func, "_is_test_only", False)
                     schema_dict["test_only"] = test_only
+                    # Extract component_of metadata (parent capability)
+                    component_of = getattr(func, "_parent_capability", None)
+                    schema_dict["component_of"] = component_of
                     schemas[name] = schema_dict
                 except Exception as e:
                     logger.warning(f"Failed to get schema for function {name}: {e}")

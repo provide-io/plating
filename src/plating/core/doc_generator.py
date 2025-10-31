@@ -1,4 +1,4 @@
-# 
+#
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -23,10 +23,10 @@ from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingConte
 """Documentation generation utilities."""
 
 
-def _check_component_test_only(
+def _extract_component_metadata(
     bundle: PlatingBundle, component_type: ComponentType, provider_name: str | None
-) -> bool:
-    """Check if a component is marked as test_only by inspecting the component class.
+) -> tuple[bool, str | None]:
+    """Extract metadata from a component by inspecting the component class.
 
     Args:
         bundle: PlatingBundle for the component
@@ -34,7 +34,7 @@ def _check_component_test_only(
         provider_name: Provider name (used for constructing module paths)
 
     Returns:
-        True if component is test_only, False otherwise
+        Tuple of (is_test_only, component_of)
     """
     try:
         # Strip provider prefix from component name if present
@@ -61,22 +61,93 @@ def _check_component_test_only(
             module_name = f"pyvider.components.{type_dir}.{plating_dir_name}"
             module = importlib.import_module(module_name)
 
-        # Look for classes in the module that have _is_test_only attribute
+        # Look for classes in the module that have metadata attributes
         # and match the component's registered name
         full_component_name = bundle.name
         for attr_name in dir(module):
             attr = getattr(module, attr_name)
-            if isinstance(attr, type) and hasattr(attr, "_is_test_only"):
+            if isinstance(attr, type) and (hasattr(attr, "_is_test_only") or hasattr(attr, "_parent_capability")):
                 # Check if this is the right component by matching the registered name
                 if (
                     hasattr(attr, "_registered_name") and attr._registered_name == full_component_name
                 ) or not hasattr(attr, "_registered_name"):
-                    return bool(attr._is_test_only)
+                    is_test_only = bool(getattr(attr, "_is_test_only", False))
+                    component_of = getattr(attr, "_parent_capability", None)
+                    return is_test_only, component_of
 
-        return False
+        return False, None
     except (ImportError, AttributeError) as e:
-        logger.debug(f"Could not check test_only for {bundle.name}: {e}")
-        return False
+        logger.debug(f"Could not extract metadata for {bundle.name}: {e}")
+        return False, None
+
+
+def _determine_subcategory(
+    schema_info: SchemaInfo | None, is_test_only: bool, component_of: str | None = None
+) -> str:
+    """Determine the subcategory for a component based on its metadata.
+
+    Args:
+        schema_info: Schema information containing component_of metadata
+        is_test_only: Whether the component is marked as test_only
+        component_of: Component category from decorator (takes precedence over schema_info)
+
+    Returns:
+        Subcategory string: "Test Mode", "Lens", or "Utilities"
+    """
+    # Test Mode takes precedence
+    if is_test_only or (schema_info and schema_info.test_only):
+        return "Test Mode"
+
+    # Lens category for components with component_of="lens"
+    # Check direct parameter first, then schema_info
+    if component_of == "lens" or (schema_info and schema_info.component_of == "lens"):
+        return "Lens"
+
+    # Default to Utilities
+    return "Utilities"
+
+
+def _inject_subcategory(content: str, subcategory: str) -> str:
+    """Inject subcategory into YAML frontmatter if present.
+
+    Args:
+        content: Markdown content with optional YAML frontmatter
+        subcategory: Subcategory value to inject (e.g., "Test Mode", "Lens", "Utilities")
+
+    Returns:
+        Content with subcategory added to frontmatter
+    """
+    # Check if content starts with frontmatter (---)
+    if not content.startswith("---"):
+        # No frontmatter, add one with subcategory
+        return f"""---
+subcategory: "{subcategory}"
+---
+
+{content}"""
+
+    # Find end of frontmatter
+    lines = content.split("\n")
+    frontmatter_end = -1
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            frontmatter_end = i
+            break
+
+    if frontmatter_end == -1:
+        # Malformed frontmatter, just return original content
+        return content
+
+    # Check if subcategory already exists
+    has_subcategory = any(line.strip().startswith("subcategory:") for line in lines[1:frontmatter_end])
+
+    if has_subcategory:
+        # Already has subcategory, don't modify
+        return content
+
+    # Insert subcategory before the closing ---
+    lines.insert(frontmatter_end, f'subcategory: "{subcategory}"')
+    return "\n".join(lines)
 
 
 def _inject_test_mode_subcategory(content: str) -> str:
@@ -158,8 +229,12 @@ async def render_component_docs(
             # Get component schema if available
             schema_info = get_component_schema(component, component_type, provider_schema)
 
-            # Check if component is test_only by trying to import and inspect the class
-            is_test_only = _check_component_test_only(component, component_type, context.provider_name)
+            # Extract component metadata by importing and inspecting the class
+            try:
+                is_test_only, component_of = _extract_component_metadata(component, component_type, context.provider_name)
+            except Exception as meta_e:
+                logger.warning(f"Could not extract metadata for {component.name}, using schema info only: {meta_e}")
+                is_test_only, component_of = False, None
 
             # Extract metadata for functions
             signature = None
@@ -222,9 +297,9 @@ async def render_component_docs(
             # Render with template engine
             rendered_content = await template_engine.render(component, render_context)
 
-            # Add subcategory to frontmatter if test_only is True
-            if is_test_only or (schema_info and schema_info.test_only):
-                rendered_content = _inject_test_mode_subcategory(rendered_content)
+            # Determine and inject appropriate subcategory based on component metadata
+            subcategory = _determine_subcategory(schema_info, is_test_only, component_of)
+            rendered_content = _inject_subcategory(rendered_content, subcategory)
 
             # Write output
             output_file.write_text(rendered_content, encoding="utf-8")
@@ -234,7 +309,9 @@ async def render_component_docs(
             logger.info(f"Generated {component_type.value} docs: {output_file}")
 
         except Exception as e:
+            import traceback
             logger.error(f"Failed to render {component.name}: {e}")
+            logger.debug(f"Traceback: {traceback.format_exc()}")
 
 
 def generate_template(component: PlatingBundle, template_file: Path) -> None:
