@@ -306,4 +306,5 @@ def parse_variadic_argument(func_schema: dict[str, Any]) -> str:
 
     return f"- `{variadic_name}` ({variadic_type}) - {description}"
 
+
 # 🍽️📖🔚

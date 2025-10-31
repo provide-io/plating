@@ -273,4 +273,5 @@ class PlatingDiscovery:
         else:
             return "resource"
 
+
 # 🍽️📖🔚

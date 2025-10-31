@@ -21,4 +21,5 @@ class ComponentFinder:
         except Exception:
             return None
 
+
 # 🍽️📖🔚
