@@ -1,11 +1,4 @@
-# 
-# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
 #
-
-"""TODO: Add module docstring."""
-
-# 
 # SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -192,6 +185,7 @@ class Plating:
             )
             files_for_type = result.files_generated - files_before
             if files_for_type > 0:
+                logger.info(f"Generated {files_for_type} {component_type.value} documentation files")
 
         # Generate provider index page
         pout("📝 Generating provider index...")

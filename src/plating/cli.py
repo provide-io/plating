@@ -423,6 +423,7 @@ def plate_command(
             if actual_package_name:
                 pout(f"🔍 Filtering to package: {actual_package_name}")
             else:
+                pout(f"🔍 Discovering all packages")
 
             context = PlatingContext(provider_name=actual_provider_name)
             api = Plating(context, actual_package_name)
@@ -500,6 +501,7 @@ def validate_command(
         actual_package_name = get_package_name(package_name)
 
         if actual_package_name is None:
+            pout("🔍 Discovering all packages")
 
         context = PlatingContext(provider_name=actual_provider_name)
         api = Plating(context, actual_package_name)
@@ -517,6 +519,7 @@ def validate_command(
         pout(f"  • Duration: {result.duration_seconds:.2f}s")
 
         if result.success:
+            pout("✅ All validations passed")
         else:
             perr("❌ Validation failed:")
             if result.lint_errors:
@@ -555,6 +558,7 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
         if actual_package_name:
             pout(f"🔍 Filtering to package: {actual_package_name}")
         else:
+            pout(f"🔍 Discovering all packages")
 
         context = PlatingContext(provider_name=actual_provider_name)
         api = Plating(context, actual_package_name)
@@ -589,6 +593,7 @@ def stats_command(package_name: str | None) -> None:
         if actual_package_name:
             pout(f"🔍 Filtering to package: {actual_package_name}")
         else:
+            pout(f"🔍 Discovering all packages")
 
         # Stats command doesn't need provider context
         context = PlatingContext(provider_name="")
