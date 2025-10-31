@@ -146,6 +146,7 @@ This creates `.plating` bundles with template files for each component.
 
 Edit the generated templates in your `.plating/docs/` directories:
 
+{% raw %}
 ```markdown
 ---
 page_title: "Resource: my_resource"
@@ -166,6 +167,7 @@ Resources can be imported using:
 terraform import my_resource.example resource_id
 ```
 ```
+{% endraw %}
 
 ### Step 3: Plate Documentation
 
@@ -370,6 +372,8 @@ my_resource.plating/
 
 Plating provides powerful Jinja2 template functions:
 
+{% raw %}
+
 | Function | Description | Example |
 |----------|-------------|---------|
 | `schema()` | Render component schema as markdown table | `{{ schema() }}` |
@@ -377,8 +381,11 @@ Plating provides powerful Jinja2 template functions:
 | `include('file')` | Include static partial file | `{{ include('_intro.md') }}` |
 | `render('file')` | Render dynamic template with context | `{{ render('_advanced.md') }}` |
 
+{% endraw %}
+
 **Example Template:**
 
+{% raw %}
 ```markdown
 # my_resource
 
@@ -398,6 +405,7 @@ Plating provides powerful Jinja2 template functions:
 
 {{ render('_details.tmpl.md') }}
 ```
+{% endraw %}
 
 ---
 
