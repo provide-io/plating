@@ -18,6 +18,7 @@ import sys
 
 import click
 from provide.foundation import logger, perr, pout
+from provide.foundation.cli.decorators import logging_options
 
 from plating.errors import PlatingError
 from plating.plating import Plating
@@ -196,9 +197,26 @@ def get_package_name(provided_name: str | None) -> str | None:
 
 
 @click.group()
-def main() -> None:
+@logging_options
+@click.pass_context
+def main(ctx: click.Context, log_level: str | None, log_file: Path | None, log_format: str) -> None:
     """Plating - Modern async documentation generator with foundation integration."""
-    pass
+    # Configure logging if options provided
+    if log_level:
+        from provide.foundation import LoggingConfig, TelemetryConfig, get_hub
+        hub = get_hub()
+        updated_config = TelemetryConfig(
+            service_name="plating",
+            logging=LoggingConfig(default_level=log_level.upper()),
+        )
+        hub.initialize_foundation(config=updated_config)
+        logger.debug(f"Log level set to {log_level.upper()}")
+
+    # Store options in context for subcommands
+    ctx.ensure_object(dict)
+    ctx.obj['log_level'] = log_level
+    ctx.obj['log_file'] = log_file
+    ctx.obj['log_format'] = log_format
 
 
 @main.command("adorn")
