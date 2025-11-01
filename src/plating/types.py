@@ -197,6 +197,7 @@ class PlatingCLIContext(CLIContext):
         examples: dict[str, str] | None = None,
         signature: str | None = None,
         arguments: list[ArgumentInfo] | None = None,
+        global_partials_dir: Path | None = None,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
@@ -208,6 +209,7 @@ class PlatingCLIContext(CLIContext):
         self.examples = examples or {}
         self.signature = signature
         self.arguments = arguments
+        self.global_partials_dir = global_partials_dir
 
     def to_dict(self, include_sensitive: bool = False) -> dict[str, Any]:
         """Convert to dictionary for template rendering."""

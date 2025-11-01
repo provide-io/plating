@@ -346,25 +346,27 @@ class AsyncTemplateEngine:
             return False
 
     def _load_global_file(self, filename: str) -> str:
-        """Load global header/footer file from pyvider-components docs/_partials/.
+        """Load global header/footer file from configured directory.
 
         Args:
             filename: Name of the global file (e.g., '_global_header.md')
 
         Returns:
-            File content as string, or empty string if file not found
+            File content as string, or empty string if file not found or no directory configured
         """
-        # Try to find the global partials directory
-        # Starting from plating's location and going up to find provide-io root
-        try:
-            plating_path = Path(__file__).resolve().parent.parent.parent  # src/plating/
-            provide_io_root = plating_path.parent.parent  # provide-io/
-            global_file = provide_io_root / "pyvider-components" / "docs" / "_partials" / filename
+        if not hasattr(self.context, 'global_partials_dir') or not self.context.global_partials_dir:
+            logger.debug(f"No global_partials_dir configured, skipping {filename}")
+            return ""
 
+        try:
+            global_file = self.context.global_partials_dir / filename
             if global_file.exists():
+                logger.debug(f"Loaded global file: {global_file}")
                 return global_file.read_text(encoding="utf-8")
+            else:
+                logger.debug(f"Global file not found: {global_file}")
         except (OSError, ValueError) as e:
-            logger.debug(f"Failed to load global file {filename}: {e}")
+            logger.warning(f"Failed to load global file {filename}: {e}")
 
         return ""
 

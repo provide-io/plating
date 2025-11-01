@@ -496,7 +496,10 @@ def plate_command(
             else:
                 pout("🔍 Discovering all packages")
 
-            context = PlatingContext(provider_name=actual_provider_name)
+            context = PlatingContext(
+                provider_name=actual_provider_name,
+                global_partials_dir=global_partials_dir
+            )
             api = Plating(context, actual_package_name)
 
             # Convert string types to ComponentType enums
