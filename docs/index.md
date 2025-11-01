@@ -16,6 +16,18 @@ Plating is a modern documentation generator that transforms your Terraform provi
 - **📊 Registry Pattern**: Centralized component management and statistics
 - **🛡️ Enterprise Ready**: Production-grade resilience and observability
 
+---
+
+## Part of the provide.io Ecosystem
+
+This project is part of a larger ecosystem of tools for Python and Terraform development.
+
+**[View Ecosystem Overview →](https://docs.provide.io/provide-foundation/ecosystem/)**
+
+Understand how provide-foundation, pyvider, flavorpack, and other projects work together.
+
+---
+
 ## Quick Start
 
 ### Installation
