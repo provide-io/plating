@@ -25,7 +25,7 @@ from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingConte
 
 def _extract_component_metadata(
     bundle: PlatingBundle, component_type: ComponentType, provider_name: str | None
-) -> tuple[bool, str | None]:
+) -> bool:
     """Extract metadata from a component by inspecting the component class.
 
     Args:
@@ -34,7 +34,7 @@ def _extract_component_metadata(
         provider_name: Provider name (used for constructing module paths)
 
     Returns:
-        Tuple of (is_test_only, component_of)
+        Boolean indicating if component is test_only
     """
     try:
         # Strip provider prefix from component name if present
@@ -61,52 +61,47 @@ def _extract_component_metadata(
             module_name = f"pyvider.components.{type_dir}.{plating_dir_name}"
             module = importlib.import_module(module_name)
 
-        # Look for classes in the module that have metadata attributes
-        # and match the component's registered name
+        # Look for classes in the module that have test_only metadata
         full_component_name = bundle.name
         for attr_name in dir(module):
             attr = getattr(module, attr_name)
-            if isinstance(attr, type) and (
-                hasattr(attr, "_is_test_only") or hasattr(attr, "_parent_capability")
-            ):
+            if isinstance(attr, type) and hasattr(attr, "_is_test_only"):
                 # Check if this is the right component by matching the registered name
                 if (
                     hasattr(attr, "_registered_name") and attr._registered_name == full_component_name
                 ) or not hasattr(attr, "_registered_name"):
-                    is_test_only = bool(getattr(attr, "_is_test_only", False))
-                    component_of = getattr(attr, "_parent_capability", None)
-                    return is_test_only, component_of
+                    return bool(getattr(attr, "_is_test_only", False))
 
-        return False, None
+        return False
     except (ImportError, AttributeError) as e:
         logger.debug(f"Could not extract metadata for {bundle.name}: {e}")
-        return False, None
+        return False
 
 
 def _determine_subcategory(
-    schema_info: SchemaInfo | None, is_test_only: bool, component_of: str | None = None
-) -> str:
+    schema_info: SchemaInfo | None, is_test_only: bool
+) -> str | None:
     """Determine the subcategory for a component based on its metadata.
 
+    Subcategories are primarily defined in template frontmatter. This function
+    only handles special cases where subcategory is auto-determined:
+    - Test-only components get "Test Mode" subcategory
+
     Args:
-        schema_info: Schema information containing component_of metadata
+        schema_info: Schema information (currently unused - kept for compatibility)
         is_test_only: Whether the component is marked as test_only
-        component_of: Component category from decorator (takes precedence over schema_info)
 
     Returns:
-        Subcategory string: "Test Mode", "Lens", or "Utilities"
+        "Test Mode" for test-only components, None otherwise.
+        None means the component has no subcategory (will render first per
+        Terraform Registry standards).
     """
-    # Test Mode takes precedence
+    # Test Mode is automatically assigned to test-only components
     if is_test_only or (schema_info and schema_info.test_only):
         return "Test Mode"
 
-    # Lens category for components with component_of="lens"
-    # Check direct parameter first, then schema_info
-    if component_of == "lens" or (schema_info and schema_info.component_of == "lens"):
-        return "Lens"
-
-    # Default to Utilities
-    return "Utilities"
+    # All other subcategories come from template frontmatter
+    return None
 
 
 def group_components_by_capability(
@@ -122,19 +117,25 @@ def group_components_by_capability(
 
     for component, comp_type in components:
         # Extract subcategory from template frontmatter if present
-        # Default to "Utilities" if not specified
-        subcategory = _extract_subcategory_from_template(component) or "Utilities"
+        # If not present, use None (components with no subcategory render first per Terraform Registry standards)
+        subcategory = _extract_subcategory_from_template(component)
 
         # Store grouped components
         grouped[subcategory][comp_type].append((component, comp_type))
 
-    # Sort capabilities with "Test Mode" always last
+    # Sort capabilities: None (uncategorized) first, then alphabetically, "Test Mode" always last
     sorted_grouped = {}
-    test_mode_items = grouped.pop("Test Mode", None)
 
+    # Add uncategorized components (None key) first if they exist
+    if None in grouped:
+        sorted_grouped[None] = grouped.pop(None)
+
+    # Add categorized components alphabetically
+    test_mode_items = grouped.pop("Test Mode", None)
     for capability in sorted(grouped.keys()):
         sorted_grouped[capability] = grouped[capability]
 
+    # Add Test Mode last
     if test_mode_items:
         sorted_grouped["Test Mode"] = test_mode_items
 
@@ -174,16 +175,23 @@ def _extract_subcategory_from_template(component: PlatingBundle) -> str | None:
         return None
 
 
-def _inject_subcategory(content: str, subcategory: str) -> str:
-    """Inject subcategory into YAML frontmatter if present.
+def _inject_subcategory(content: str, subcategory: str | None) -> str:
+    """Inject subcategory into YAML frontmatter if needed.
+
+    Subcategories should come from template frontmatter. This function only
+    injects when a subcategory is explicitly provided (e.g., "Test Mode").
 
     Args:
         content: Markdown content with optional YAML frontmatter
-        subcategory: Subcategory value to inject (e.g., "Test Mode", "Lens", "Utilities")
+        subcategory: Subcategory value to inject, or None to skip injection
 
     Returns:
-        Content with subcategory added to frontmatter
+        Content with subcategory added to frontmatter (if subcategory is not None)
     """
+    # Skip injection if no subcategory specified
+    if subcategory is None:
+        return content
+
     # Check if content starts with frontmatter (---)
     if not content.startswith("---"):
         # No frontmatter, add one with subcategory
@@ -209,7 +217,7 @@ subcategory: "{subcategory}"
     has_subcategory = any(line.strip().startswith("subcategory:") for line in lines[1:frontmatter_end])
 
     if has_subcategory:
-        # Already has subcategory, don't modify
+        # Already has subcategory, don't modify (template wins)
         return content
 
     # Insert subcategory before the closing ---
@@ -298,14 +306,14 @@ async def render_component_docs(
 
             # Extract component metadata by importing and inspecting the class
             try:
-                is_test_only, component_of = _extract_component_metadata(
+                is_test_only = _extract_component_metadata(
                     component, component_type, context.provider_name
                 )
             except Exception as meta_e:
                 logger.warning(
                     f"Could not extract metadata for {component.name}, using schema info only: {meta_e}"
                 )
-                is_test_only, component_of = False, None
+                is_test_only = False
 
             # Extract metadata for functions
             signature = None
@@ -369,7 +377,8 @@ async def render_component_docs(
             rendered_content = await template_engine.render(component, render_context)
 
             # Determine and inject appropriate subcategory based on component metadata
-            subcategory = _determine_subcategory(schema_info, is_test_only, component_of)
+            # Most subcategories come from template frontmatter; only "Test Mode" is auto-determined here
+            subcategory = _determine_subcategory(schema_info, is_test_only)
             rendered_content = _inject_subcategory(rendered_content, subcategory)
 
             # Write output
