@@ -20,7 +20,14 @@ Plating is a modern documentation generator that transforms your Terraform provi
 
 ### Installation
 
-**Note:** Plating is currently in pre-release (v0.0.1000-0). Install from source:
+!!! info "Beta Status"
+    plating is in beta. Core build orchestration features are functional, but the API may evolve.
+
+    - **Current version:** v0.0.1026
+    - **Status:** Beta (Development Status: 4)
+    - **Installation:** Install from source (not yet on PyPI)
+
+**Installation:**
 
 <div class="termy">
 
