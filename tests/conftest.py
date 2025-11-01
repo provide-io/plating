@@ -223,6 +223,163 @@ def mock_generator():
     return generator
 
 
+@pytest.fixture
+def sample_component_with_subcategory(temp_directory):
+    """Create a sample PlatingBundle with subcategory in frontmatter."""
+    from plating.bundles import PlatingBundle
+
+    plating_dir = temp_directory / "test_resource.plating"
+    docs_dir = plating_dir / "docs"
+    docs_dir.mkdir(parents=True)
+
+    # Create template with subcategory
+    template_content = """---
+page_title: "Resource: test_resource"
+description: |-
+  Test resource
+subcategory: "Lens"
+---
+
+# test_resource (Resource)
+
+Test resource content
+"""
+    (docs_dir / "test_resource.tmpl.md").write_text(template_content)
+
+    return PlatingBundle(name="test_resource", plating_dir=plating_dir, component_type="resource")
+
+
+@pytest.fixture
+def sample_component_no_subcategory(temp_directory):
+    """Create a sample PlatingBundle without subcategory."""
+    from plating.bundles import PlatingBundle
+
+    plating_dir = temp_directory / "test_data.plating"
+    docs_dir = plating_dir / "docs"
+    docs_dir.mkdir(parents=True)
+
+    # Create template without subcategory
+    template_content = """---
+page_title: "Data Source: test_data"
+description: |-
+  Test data source
+---
+
+# test_data (Data Source)
+
+Test data source content
+"""
+    (docs_dir / "test_data.tmpl.md").write_text(template_content)
+
+    return PlatingBundle(name="test_data", plating_dir=plating_dir, component_type="data_source")
+
+
+@pytest.fixture
+def sample_components_mixed_types(temp_directory):
+    """Create multiple PlatingBundles with different types and subcategories."""
+    from plating.bundles import PlatingBundle
+    from plating.types import ComponentType
+
+    components = []
+
+    # Resource with Lens subcategory
+    resource_dir = temp_directory / "lens_resource.plating"
+    resource_docs = resource_dir / "docs"
+    resource_docs.mkdir(parents=True)
+    (resource_docs / "lens_resource.tmpl.md").write_text(
+        """---
+subcategory: "Lens"
+---
+# Lens Resource
+"""
+    )
+    components.append((PlatingBundle("lens_resource", resource_dir, "resource"), ComponentType.RESOURCE))
+
+    # Data source with Test Mode subcategory
+    data_dir = temp_directory / "test_data.plating"
+    data_docs = data_dir / "docs"
+    data_docs.mkdir(parents=True)
+    (data_docs / "test_data.tmpl.md").write_text(
+        """---
+subcategory: "Test Mode"
+---
+# Test Data Source
+"""
+    )
+    components.append((PlatingBundle("test_data", data_dir, "data_source"), ComponentType.DATA_SOURCE))
+
+    # Function with Utilities (default)
+    func_dir = temp_directory / "util_func.plating"
+    func_docs = func_dir / "docs"
+    func_docs.mkdir(parents=True)
+    (func_docs / "util_func.tmpl.md").write_text(
+        """---
+subcategory: "Utilities"
+---
+# Utility Function
+"""
+    )
+    components.append((PlatingBundle("util_func", func_dir, "function"), ComponentType.FUNCTION))
+
+    return components
+
+
+@pytest.fixture
+def mock_mkdocs_config(temp_directory):
+    """Create a temporary mkdocs.yml file."""
+    import yaml
+
+    mkdocs_file = temp_directory / "mkdocs.yml"
+    config = {
+        "site_name": "Test Provider",
+        "theme": {"name": "material"},
+        "nav": [{"Home": "index.md"}],
+    }
+    with open(mkdocs_file, "w") as f:
+        yaml.dump(config, f)
+
+    return mkdocs_file
+
+
+@pytest.fixture
+def sample_guides_directory(temp_directory):
+    """Create a sample guides directory with markdown files."""
+    guides_dir = temp_directory / "docs" / "guides"
+    guides_dir.mkdir(parents=True)
+
+    # Create guide files
+    (guides_dir / "getting_started.md").write_text("# Getting Started\n\nGuide content")
+    (guides_dir / "advanced_usage.md").write_text("# Advanced Usage\n\nAdvanced guide")
+    (guides_dir / "troubleshooting.md").write_text("# Troubleshooting\n\nTroubleshooting guide")
+    (guides_dir / "README.txt").write_text("Not a markdown file")
+
+    return guides_dir
+
+
+@pytest.fixture
+def sample_template_with_frontmatter():
+    """Sample template content with YAML frontmatter."""
+    return """---
+page_title: "Resource: test_resource"
+description: |-
+  Test resource description
+---
+
+# test_resource (Resource)
+
+Content here
+"""
+
+
+@pytest.fixture
+def sample_template_without_frontmatter():
+    """Sample template content without YAML frontmatter."""
+    return """# test_resource (Resource)
+
+Content without frontmatter
+"""
+
+
 # Re-export all testkit utilities for easy access in tests
 __all__ = [
     # Mock objects
