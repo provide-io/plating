@@ -12,6 +12,9 @@ Plating is a powerful documentation system that brings culinary elegance to tech
 - **🔍 Component Discovery** - Automatically find and document resources, data sources, and functions
 - **📝 Jinja2 Templates** - Flexible templating with custom functions and filters
 - **🔄 Schema Integration** - Extract and format provider schemas automatically
+- **🎯 Capability-First Organization** - Group documentation by feature (Math, Utilities, Lens) instead of just type
+- **📍 Smart Navigation** - Auto-generated mkdocs.yml with capability-first structure
+- **📚 Guide Support** - Built-in support for provider guides and tutorials
 
 ## 📦 Prerequisites
 
@@ -148,6 +151,106 @@ Plating provides powerful template functions:
 - `{{ "{{ example('name') }}" }}` - Include an example file in a terraform code block
 - `{{ "{{ include('filename') }}" }}` - Include a static partial file
 - `{{ "{{ render('filename') }}" }}` - Render a dynamic template partial with current context
+
+## 🎯 Capability-First Organization
+
+Plating now supports organizing documentation by **capability** (subcategory) instead of just by component type. This makes it easier to find related functionality across resource types.
+
+### How It Works
+
+1. **Add Subcategory to Templates**
+
+   Add a `subcategory` field to your component template frontmatter:
+
+   ```markdown
+   ---
+   page_title: "sqrt Function"
+   subcategory: "Math"
+   description: |-
+     Calculate square root of a number
+   ---
+   ```
+
+2. **Automatic Organization**
+
+   Components are automatically grouped by capability in generated documentation:
+
+   ```
+   ## Math
+   ### Functions
+   - add
+   - subtract
+   - multiply
+
+   ## String Utilities
+   ### Functions
+   - format
+   - join
+   - split
+
+   ## Utilities
+   ### Resources
+   - pyvider_file_content
+   ### Data Sources
+   - pyvider_env_variables
+   ```
+
+3. **MkDocs Navigation**
+
+   The `mkdocs.yml` navigation is automatically generated with capability-first structure:
+
+   ```yaml
+   nav:
+     - Overview: index.md
+     - Math:
+         Functions:
+           add: functions/add.md
+           subtract: functions/subtract.md
+     - String Utilities:
+         Functions:
+           format: functions/format.md
+           join: functions/join.md
+     - Utilities:
+         Resources:
+           file_content: resources/file_content.md
+   ```
+
+### Standard Subcategories
+
+- **Math** - Numeric operations (add, subtract, multiply, etc.)
+- **String Utilities** - String manipulation (format, join, split, etc.)
+- **Collections** - List/map operations (contains, length, lookup)
+- **Type Conversion** - Type casting functions
+- **Lens** - Data transformation components (JQ integration)
+- **Utilities** - General-purpose resources and data sources
+- **Test Mode** - Components for testing (always appears last)
+
+### Custom Subcategories
+
+You can use any custom subcategory name. Just add it to your template frontmatter:
+
+```markdown
+---
+page_title: "Custom Component"
+subcategory: "My Custom Category"
+---
+```
+
+### Guide Support
+
+Add provider-level guides in `.plating/guides/`:
+
+```
+.plating/
+├── guides/
+│   ├── getting-started.tmpl.md
+│   ├── authentication.tmpl.md
+│   └── troubleshooting.tmpl.md
+└── docs/
+    └── components.tmpl.md
+```
+
+Guides are automatically discovered and added to the documentation structure and navigation.
 
 ## 🔍 Validation
 
