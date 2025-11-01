@@ -464,6 +464,11 @@ def _print_plate_success(result: "PlateResult") -> None:
     type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
     help="Source directory for guide documentation (copied to output-dir/guides).",
 )
+@click.option(
+    "--global-partials-dir",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    help="Directory containing global partials (_global_header.md, _global_footer.md).",
+)
 def plate_command(
     output_dir: Path,
     component_type: tuple[str, ...],
@@ -476,6 +481,7 @@ def plate_command(
     examples_dir: Path,
     grouped_examples_dir: Path,
     guides_dir: Path | None,
+    global_partials_dir: Path | None,
     **kwargs
 ) -> None:
     """Generate documentation from plating bundles."""
