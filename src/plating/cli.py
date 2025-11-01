@@ -19,14 +19,45 @@ import sys
 import click
 from provide.foundation import logger, perr, pout
 from provide.foundation.cli.decorators import flexible_options, logging_options
+from provide.foundation.file.safe import safe_read_text
+from provide.foundation.serialization import toml_loads
 
 from plating.errors import PlatingError
 from plating.plating import Plating
 from plating.types import ComponentType, PlatingContext
 
 
+def _get_pyvider_component_packages(pyproject_path: Path) -> list[str] | None:
+    """Get component packages from [pyvider] section in pyproject.toml.
+
+    Args:
+        pyproject_path: Path to pyproject.toml file
+
+    Returns:
+        List of component package names if configured, None otherwise
+    """
+    try:
+        if not pyproject_path.exists():
+            return None
+
+        content = safe_read_text(pyproject_path)
+        pyproject = toml_loads(content)
+
+        if "pyvider" in pyproject:
+            component_packages = pyproject["pyvider"].get("component_packages")
+            if component_packages and isinstance(component_packages, list):
+                return component_packages
+    except Exception as e:
+        logger.debug(f"Failed to read [pyvider] section from pyproject.toml: {e}")
+
+    return None
+
+
 def auto_detect_package_name() -> str | None:
     """Auto-detect package name from pyproject.toml in current directory.
+
+    First checks [pyvider] section for component_packages.
+    Falls back to [project] section name if no pyvider config found.
 
     Returns:
         Package name if found, None otherwise
@@ -36,7 +67,14 @@ def auto_detect_package_name() -> str | None:
         if not pyproject_path.exists():
             return None
 
-        # Try tomllib (Python 3.11+) first, fall back to tomli
+        # First check for [pyvider] section with component_packages
+        component_packages = _get_pyvider_component_packages(pyproject_path)
+        if component_packages and len(component_packages) > 0:
+            # Return the first component package
+            logger.debug(f"Using component package from [pyvider] section: {component_packages[0]}")
+            return component_packages[0]
+
+        # Fall back to reading pyproject and getting package name
         try:
             import tomllib
         except ImportError:
@@ -49,7 +87,7 @@ def auto_detect_package_name() -> str | None:
         with pyproject_path.open("rb") as f:
             pyproject = tomllib.load(f)
 
-        # Try to get package name from [project] section
+        # Fall back to package name from [project] section
         if "project" in pyproject and "name" in pyproject["project"]:
             return pyproject["project"]["name"]
 
@@ -81,6 +119,8 @@ def _load_tomllib_module() -> type | None:
 def _get_provider_name_from_pyproject(pyproject_path: Path) -> str | None:
     """Get provider name from pyproject.toml if configured.
 
+    Checks [pyvider] section first, then [tool.plating] for backward compatibility.
+
     Args:
         pyproject_path: Path to pyproject.toml file
 
@@ -90,20 +130,22 @@ def _get_provider_name_from_pyproject(pyproject_path: Path) -> str | None:
     if not pyproject_path.exists():
         return None
 
-    tomllib = _load_tomllib_module()
-    if tomllib is None:
-        return None
-
     try:
-        with pyproject_path.open("rb") as f:
-            pyproject = tomllib.load(f)
+        content = safe_read_text(pyproject_path)
+        pyproject = toml_loads(content)
 
-        # Check for [tool.plating] provider_name
+        # First check for provider_name in [pyvider] section
+        if "pyvider" in pyproject:
+            provider_name = pyproject["pyvider"].get("name")
+            if provider_name:
+                return provider_name
+
+        # Fallback to [tool.plating] provider_name for backward compatibility
         if "tool" in pyproject and "plating" in pyproject["tool"]:
             if "provider_name" in pyproject["tool"]["plating"]:
                 return pyproject["tool"]["plating"]["provider_name"]
     except Exception as e:
-        logger.debug(f"Failed to read pyproject.toml: {e}")
+        logger.debug(f"Failed to read provider name from pyproject.toml: {e}")
 
     return None
 
