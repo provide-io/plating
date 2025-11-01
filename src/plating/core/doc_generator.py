@@ -109,6 +109,71 @@ def _determine_subcategory(
     return "Utilities"
 
 
+def group_components_by_capability(
+    components: list[tuple[PlatingBundle, ComponentType]]
+) -> dict[str, dict[str, list[tuple[PlatingBundle, ComponentType]]]]:
+    """Group components by capability (subcategory) and then by component type.
+
+    Returns a nested dictionary: {capability: {component_type: [components]}}
+    """
+    from collections import defaultdict
+
+    grouped = defaultdict(lambda: defaultdict(list))
+
+    for component, comp_type in components:
+        # Extract subcategory from template frontmatter if present
+        # Default to "Utilities" if not specified
+        subcategory = _extract_subcategory_from_template(component) or "Utilities"
+
+        # Store grouped components
+        grouped[subcategory][comp_type].append((component, comp_type))
+
+    # Sort capabilities with "Test Mode" always last
+    sorted_grouped = {}
+    test_mode_items = grouped.pop("Test Mode", None)
+
+    for capability in sorted(grouped.keys()):
+        sorted_grouped[capability] = grouped[capability]
+
+    if test_mode_items:
+        sorted_grouped["Test Mode"] = test_mode_items
+
+    return dict(sorted_grouped)
+
+
+def _extract_subcategory_from_template(component: PlatingBundle) -> str | None:
+    """Extract subcategory from component template frontmatter.
+
+    Returns the subcategory value if present, None otherwise.
+    """
+    try:
+        template_content = component.load_main_template()
+        if not template_content:
+            return None
+
+        # Extract frontmatter
+        if not template_content.startswith("---"):
+            return None
+
+        # Find end of frontmatter
+        lines = template_content.split("\n")
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                # Extract subcategory from frontmatter section
+                frontmatter = "\n".join(lines[1:i])
+                for line in frontmatter.split("\n"):
+                    if line.strip().startswith("subcategory:"):
+                        # Extract value: "subcategory: "Value"" -> "Value"
+                        value = line.split(":", 1)[1].strip().strip('"')
+                        return value
+                return None
+
+        return None
+    except Exception as e:
+        logger.debug(f"Could not extract subcategory from {component.name}: {e}")
+        return None
+
+
 def _inject_subcategory(content: str, subcategory: str) -> str:
     """Inject subcategory into YAML frontmatter if present.
 
