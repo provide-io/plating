@@ -514,7 +514,9 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
 
     # Generate capability-first sections
     for capability, types_dict in grouped.items():
-        index_content += f"## {capability}\n\n"
+        # Skip header for uncategorized (None) section - they render at top level
+        if capability is not None:
+            index_content += f"## {capability}\n\n"
 
         # Iterate through component types in order: resources, data_sources, functions
         type_order = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
