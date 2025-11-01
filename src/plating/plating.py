@@ -192,6 +192,26 @@ class Plating:
             final_output_dir, force, result, self.context, self._provider_schema or {}, self.registry
         )
 
+        # Generate mkdocs navigation if mkdocs.yml exists or should be created
+        try:
+            from plating.mkdocs import MkdocsNavGenerator
+
+            # Collect all components for mkdocs nav generation
+            all_components_for_nav = []
+            for component_type in component_types:
+                components = self.registry.get_components_with_templates(component_type)
+                for component in components:
+                    all_components_for_nav.append((component, component_type))
+
+            # Generate mkdocs navigation
+            if all_components_for_nav:
+                nav_generator = MkdocsNavGenerator(final_output_dir.parent)
+                nav_dict = nav_generator.generate_nav(all_components_for_nav, include_guides=True)
+                nav_generator.update_mkdocs_config(nav_dict)
+                logger.info("Generated mkdocs navigation structure")
+        except Exception as e:
+            logger.warning(f"Could not generate mkdocs navigation: {e}")
+
         # Update result with tracking info
         result.bundles_processed = len(processed_bundles)
         result.duration_seconds = time.monotonic() - start_time
