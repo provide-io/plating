@@ -8,13 +8,11 @@
 from __future__ import annotations
 
 import asyncio
-import re
-import yaml
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from jinja2 import DictLoader, Environment, TemplateError as Jinja2TemplateError, select_autoescape
 from provide.foundation import logger
+import yaml
 
 from plating.decorators import plating_metrics, with_metrics, with_timing
 from plating.errors import FileSystemError, TemplateError

@@ -9,9 +9,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
-import yaml
 
 from provide.foundation import logger
+import yaml
 
 from plating.bundles import PlatingBundle
 from plating.core.doc_generator import group_components_by_capability
@@ -21,7 +21,7 @@ from plating.types import ComponentType
 class MkdocsNavGenerator:
     """Generate mkdocs.yml navigation structure with capability-first organization."""
 
-    def __init__(self, base_path: Path):
+    def __init__(self, base_path: Path) -> None:
         """Initialize the generator.
 
         Args:
@@ -188,7 +188,7 @@ class MkdocsNavGenerator:
         """
         # Read existing mkdocs.yml if it exists
         if self.mkdocs_file.exists():
-            with open(self.mkdocs_file, "r") as f:
+            with open(self.mkdocs_file) as f:
                 config = yaml.safe_load(f) or {}
         else:
             config = {}

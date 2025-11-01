@@ -5,9 +5,6 @@
 
 """Test module for index merger functionality."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
 
 from plating.core.index_merger import IndexMerger
 
@@ -15,7 +12,7 @@ from plating.core.index_merger import IndexMerger
 class TestIndexMerger:
     """Test suite for IndexMerger class."""
 
-    def test_parse_custom_sections_no_markers(self):
+    def test_parse_custom_sections_no_markers(self) -> None:
         """Handle content without markers."""
         content = """# Provider Index
 
@@ -31,7 +28,7 @@ This is regular content without any custom markers.
 
         assert sections == {}, "Should return empty dict when no markers present"
 
-    def test_parse_custom_sections_single_section(self):
+    def test_parse_custom_sections_single_section(self) -> None:
         """Extract single marked section."""
         content = """# Provider Index
 
@@ -52,12 +49,12 @@ This is regular content without any custom markers.
         assert len(sections) == 1, "Should find one marked section"
         assert "AUTO_RESOURCES" in sections, "Should extract AUTO_RESOURCES section"
 
-        start, end, section_content = sections["AUTO_RESOURCES"]
+        _start, _end, section_content = sections["AUTO_RESOURCES"]
         assert "custom_resource_one" in section_content, "Should capture section content"
         assert "<!-- BEGIN: AUTO_RESOURCES -->" in section_content, "Should include begin marker"
         assert "<!-- END: AUTO_RESOURCES -->" in section_content, "Should include end marker"
 
-    def test_parse_custom_sections_multiple_sections(self):
+    def test_parse_custom_sections_multiple_sections(self) -> None:
         """Extract multiple marked sections."""
         content = """# Provider Index
 
@@ -96,7 +93,7 @@ Some content in between
         _, _, func_content = sections["AUTO_FUNCTIONS"]
         assert "function_one" in func_content, "Should capture functions content"
 
-    def test_parse_custom_sections_nested_markers(self):
+    def test_parse_custom_sections_nested_markers(self) -> None:
         """Handle section content with code blocks that might contain similar text."""
         content = """# Provider Index
 
@@ -124,7 +121,7 @@ resource "test" "example" {}
         _, _, content_text = sections["AUTO_RESOURCES"]
         assert "resource_one" in content_text, "Should include all content up to real end marker"
 
-    def test_merge_index_no_existing_content(self):
+    def test_merge_index_no_existing_content(self) -> None:
         """Return auto-generated when no existing content."""
         auto_generated = """# Provider Index
 
@@ -140,7 +137,7 @@ Auto-generated content here.
 
         assert merged == auto_generated, "Should return auto-generated content when no existing content"
 
-    def test_merge_index_with_custom_sections(self):
+    def test_merge_index_with_custom_sections(self) -> None:
         """Preserve marked sections from existing content."""
         auto_generated = """# Provider Index
 
@@ -175,7 +172,7 @@ Custom header content.
         # - Auto-generated sections are updated
         # - Overall structure is maintained
 
-    def test_merge_index_malformed_markers(self):
+    def test_merge_index_malformed_markers(self) -> None:
         """Handle malformed markers gracefully."""
         auto_generated = """# Provider Index
 
@@ -200,7 +197,7 @@ No end marker here!
         # Should not crash with malformed markers
         assert isinstance(merged, str), "Should return string even with malformed markers"
 
-    def test_parse_custom_sections_whitespace_handling(self):
+    def test_parse_custom_sections_whitespace_handling(self) -> None:
         """Handle various whitespace in markers."""
         content = """# Provider Index
 
@@ -223,7 +220,7 @@ Extra spacing
         # This test documents actual behavior
         assert "AUTO_DATA_SOURCES" in sections, "Should handle normal spacing"
 
-    def test_merge_index_empty_existing_content(self):
+    def test_merge_index_empty_existing_content(self) -> None:
         """Handle empty string as existing content."""
         auto_generated = """# Provider Index
 

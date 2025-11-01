@@ -7,8 +7,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
 from provide.foundation import logger
 
 
@@ -86,9 +84,9 @@ class IndexMerger:
             "Guides": "AUTO_GUIDES",
         }
 
-        for auto_section, custom_marker in section_mapping.items():
+        for _auto_section, custom_marker in section_mapping.items():
             if custom_marker in custom_sections:
-                _, _, custom_content = custom_sections[custom_marker]
+                _, _, _custom_content = custom_sections[custom_marker]
                 # Replace corresponding section in result (simplified)
                 logger.debug(f"Preserving custom {custom_marker} section")
 

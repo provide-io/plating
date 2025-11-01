@@ -5,9 +5,6 @@
 
 """Test module for MkDocs navigation generator."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
 import yaml
 
 from plating.bundles import PlatingBundle
@@ -18,14 +15,14 @@ from plating.types import ComponentType
 class TestMkdocsNavGenerator:
     """Test suite for MkdocsNavGenerator class."""
 
-    def test_mkdocs_nav_generator_initialization(self, temp_directory):
+    def test_mkdocs_nav_generator_initialization(self, temp_directory) -> None:
         """Test constructor initializes correctly."""
         generator = MkdocsNavGenerator(temp_directory)
 
         assert generator.base_path == temp_directory, "Should set base_path"
         assert generator.mkdocs_file == temp_directory / "mkdocs.yml", "Should set mkdocs_file path"
 
-    def test_generate_nav_with_capabilities(self, temp_directory, sample_components_mixed_types):
+    def test_generate_nav_with_capabilities(self, temp_directory, sample_components_mixed_types) -> None:
         """Generate nav with multiple capabilities."""
         generator = MkdocsNavGenerator(temp_directory)
         components = sample_components_mixed_types
@@ -51,7 +48,7 @@ class TestMkdocsNavGenerator:
         assert "Utilities" in capability_names, "Should have Utilities capability"
         assert "Test Mode" in capability_names, "Should have Test Mode capability"
 
-    def test_generate_nav_guides_detection(self, temp_directory, sample_components_mixed_types):
+    def test_generate_nav_guides_detection(self, temp_directory, sample_components_mixed_types) -> None:
         """Auto-detect and include guides."""
         # Create guides directory
         guides_dir = temp_directory / "docs" / "guides"
@@ -72,10 +69,8 @@ class TestMkdocsNavGenerator:
         guides_section = guides_sections[0]["Guides"]
         assert "Getting Started" in guides_section, "Should include getting started guide"
 
-    def test_generate_capability_section_resources(self, temp_directory):
+    def test_generate_capability_section_resources(self, temp_directory) -> None:
         """Generate resource sections."""
-        from plating.bundles import PlatingBundle
-        from plating.types import ComponentType
 
         # Create resource component
         resource_dir = temp_directory / "test_resource.plating"
@@ -95,10 +90,8 @@ class TestMkdocsNavGenerator:
         # Note: component name gets split on underscore, so "test_resource" becomes "resource"
         assert "resource" in section["Utilities"]["Resources"], "Should include component"
 
-    def test_generate_capability_section_data_sources(self, temp_directory):
+    def test_generate_capability_section_data_sources(self, temp_directory) -> None:
         """Generate data source sections."""
-        from plating.bundles import PlatingBundle
-        from plating.types import ComponentType
 
         # Create data source component
         data_dir = temp_directory / "test_data.plating"
@@ -118,10 +111,8 @@ class TestMkdocsNavGenerator:
         # Note: component name gets split on underscore, so "test_data" becomes "data"
         assert "data" in section["Utilities"]["Data Sources"], "Should include component"
 
-    def test_generate_capability_section_functions(self, temp_directory):
+    def test_generate_capability_section_functions(self, temp_directory) -> None:
         """Generate function sections."""
-        from plating.bundles import PlatingBundle
-        from plating.types import ComponentType
 
         # Create function component
         func_dir = temp_directory / "test_func.plating"
@@ -140,7 +131,7 @@ class TestMkdocsNavGenerator:
         assert "Functions" in section["Utilities"], "Should have Functions subsection"
         assert "test_func" in section["Utilities"]["Functions"], "Should include component"
 
-    def test_update_mkdocs_config_creates_file(self, temp_directory):
+    def test_update_mkdocs_config_creates_file(self, temp_directory) -> None:
         """Create mkdocs.yml if doesn't exist."""
         generator = MkdocsNavGenerator(temp_directory)
         mkdocs_file = temp_directory / "mkdocs.yml"
@@ -155,13 +146,13 @@ class TestMkdocsNavGenerator:
         assert mkdocs_file.exists(), "mkdocs.yml should be created"
 
         # Verify content
-        with open(mkdocs_file, "r") as f:
+        with open(mkdocs_file) as f:
             config = yaml.safe_load(f)
 
         assert "nav" in config, "Config should have nav key"
         assert config["nav"] == [{"Overview": "index.md"}], "Should write correct nav structure"
 
-    def test_update_mkdocs_config_preserves_other_settings(self, temp_directory):
+    def test_update_mkdocs_config_preserves_other_settings(self, temp_directory) -> None:
         """Don't overwrite other config sections."""
         generator = MkdocsNavGenerator(temp_directory)
         mkdocs_file = temp_directory / "mkdocs.yml"
@@ -181,7 +172,7 @@ class TestMkdocsNavGenerator:
         generator.update_mkdocs_config(new_nav)
 
         # Verify other settings preserved
-        with open(mkdocs_file, "r") as f:
+        with open(mkdocs_file) as f:
             updated_config = yaml.safe_load(f)
 
         assert updated_config["site_name"] == "Test Provider Docs", "Should preserve site_name"
@@ -193,7 +184,7 @@ class TestMkdocsNavGenerator:
         assert len(updated_config["nav"]) == 2, "Should have new nav structure"
         assert updated_config["nav"][0] == {"Overview": "index.md"}, "Should have new nav items"
 
-    def test_generate_guides_nav_no_guides_directory(self, temp_directory):
+    def test_generate_guides_nav_no_guides_directory(self, temp_directory) -> None:
         """Return empty when no guides directory exists."""
         generator = MkdocsNavGenerator(temp_directory)
 
@@ -201,7 +192,7 @@ class TestMkdocsNavGenerator:
 
         assert guides_nav == [], "Should return empty list when guides directory doesn't exist"
 
-    def test_generate_guides_nav_empty_guides_directory(self, temp_directory):
+    def test_generate_guides_nav_empty_guides_directory(self, temp_directory) -> None:
         """Return empty when guides directory has no markdown files."""
         guides_dir = temp_directory / "docs" / "guides"
         guides_dir.mkdir(parents=True)

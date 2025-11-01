@@ -5,15 +5,12 @@
 
 """Test module for capability grouping functionality."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
 
 from plating.bundles import PlatingBundle
 from plating.core.doc_generator import (
-    group_components_by_capability,
-    _extract_subcategory_from_template,
     _determine_subcategory,
+    _extract_subcategory_from_template,
+    group_components_by_capability,
 )
 from plating.types import ComponentType, SchemaInfo
 
@@ -21,7 +18,7 @@ from plating.types import ComponentType, SchemaInfo
 class TestCapabilityGrouping:
     """Test suite for capability grouping functionality."""
 
-    def test_group_components_by_capability_basic(self, sample_components_mixed_types):
+    def test_group_components_by_capability_basic(self, sample_components_mixed_types) -> None:
         """Test basic grouping by subcategory."""
         components = sample_components_mixed_types
 
@@ -39,10 +36,8 @@ class TestCapabilityGrouping:
         keys = list(grouped.keys())
         assert keys[-1] == "Test Mode", "Test Mode should be last"
 
-    def test_group_components_by_capability_test_mode_last(self, temp_directory):
+    def test_group_components_by_capability_test_mode_last(self, temp_directory) -> None:
         """Verify Test Mode always appears last in ordering."""
-        from plating.bundles import PlatingBundle
-        from plating.types import ComponentType
 
         components = []
 
@@ -77,10 +72,8 @@ subcategory: "{subcategory}"
         other_keys = keys[:-1]
         assert other_keys == sorted(other_keys), "Non-Test Mode categories should be alphabetically sorted"
 
-    def test_group_components_by_capability_mixed_types(self, temp_directory):
+    def test_group_components_by_capability_mixed_types(self, temp_directory) -> None:
         """Test with resources, data sources, and functions."""
-        from plating.bundles import PlatingBundle
-        from plating.types import ComponentType
 
         components = []
 
@@ -113,7 +106,7 @@ subcategory: "Lens"
         assert ComponentType.DATA_SOURCE in grouped["Lens"], "Lens should have data sources"
         assert ComponentType.FUNCTION in grouped["Lens"], "Lens should have functions"
 
-    def test_extract_subcategory_from_template_with_subcategory(self, sample_component_with_subcategory):
+    def test_extract_subcategory_from_template_with_subcategory(self, sample_component_with_subcategory) -> None:
         """Extract existing subcategory from template."""
         component = sample_component_with_subcategory
 
@@ -121,7 +114,7 @@ subcategory: "Lens"
 
         assert subcategory == "Lens", "Should extract 'Lens' subcategory from template"
 
-    def test_extract_subcategory_from_template_missing_subcategory(self, sample_component_no_subcategory):
+    def test_extract_subcategory_from_template_missing_subcategory(self, sample_component_no_subcategory) -> None:
         """Return None when subcategory is not present."""
         component = sample_component_no_subcategory
 
@@ -129,9 +122,8 @@ subcategory: "Lens"
 
         assert subcategory is None, "Should return None when subcategory not present"
 
-    def test_extract_subcategory_from_template_malformed_frontmatter(self, temp_directory):
+    def test_extract_subcategory_from_template_malformed_frontmatter(self, temp_directory) -> None:
         """Handle malformed templates gracefully."""
-        from plating.bundles import PlatingBundle
 
         plating_dir = temp_directory / "malformed.plating"
         docs_dir = plating_dir / "docs"
@@ -157,7 +149,7 @@ Content here
 
         assert subcategory is None, "Should return None for malformed frontmatter"
 
-    def test_determine_subcategory_test_only_components(self):
+    def test_determine_subcategory_test_only_components(self) -> None:
         """Test Mode detection for test_only components."""
         # Test with is_test_only=True
         subcategory = _determine_subcategory(schema_info=None, is_test_only=True)
@@ -168,7 +160,7 @@ Content here
         subcategory = _determine_subcategory(schema_info=schema_info, is_test_only=False)
         assert subcategory == "Test Mode", "Should return 'Test Mode' from schema_info"
 
-    def test_determine_subcategory_lens_components(self):
+    def test_determine_subcategory_lens_components(self) -> None:
         """Lens subcategory is no longer auto-determined - comes from template frontmatter."""
         # Lens category now comes from template frontmatter, not from component_of decorator
         # _determine_subcategory() only handles Test Mode auto-detection
@@ -180,7 +172,7 @@ Content here
         subcategory = _determine_subcategory(schema_info=schema_info, is_test_only=False)
         assert subcategory is None, "Should return None for regular components"
 
-    def test_determine_subcategory_default_none(self):
+    def test_determine_subcategory_default_none(self) -> None:
         """Regular components return None - subcategory comes from template frontmatter."""
         # Without special metadata (like test_only), return None
         # This allows components without subcategory to render first per Terraform Registry standards
@@ -192,10 +184,8 @@ Content here
         subcategory = _determine_subcategory(schema_info=schema_info, is_test_only=False)
         assert subcategory is None, "Should return None for regular components with schema_info"
 
-    def test_group_components_uncategorized_first(self, temp_directory):
+    def test_group_components_uncategorized_first(self, temp_directory) -> None:
         """Uncategorized components (None subcategory) render first."""
-        from plating.bundles import PlatingBundle
-        from plating.types import ComponentType
 
         components = []
 
