@@ -124,7 +124,7 @@ class PlatingDiscovery:
                         all_bundles.extend(sub_component_bundles)
                     else:
                         if bundle_component_type == "function":
-                            function_bundles = self._discover_function_templates(plating_dir)
+                            function_bundles = self._discover_component_templates(plating_dir, bundle_component_type)
                             if function_bundles:
                                 all_bundles.extend(function_bundles)
                             else:
