@@ -459,6 +459,11 @@ def _print_plate_success(result: "PlateResult") -> None:
     default=Path("examples/integration"),
     help="Directory for grouped/cross-component examples (default: examples/integration).",
 )
+@click.option(
+    "--guides-dir",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    help="Source directory for guide documentation (copied to output-dir/guides).",
+)
 def plate_command(
     output_dir: Path,
     component_type: tuple[str, ...],
@@ -470,6 +475,7 @@ def plate_command(
     generate_examples: bool,
     examples_dir: Path,
     grouped_examples_dir: Path,
+    guides_dir: Path | None,
     **kwargs
 ) -> None:
     """Generate documentation from plating bundles."""
@@ -492,6 +498,21 @@ def plate_command(
 
             # Handle output_dir default behavior - if not specified, let the API auto-detect
             final_output_dir = output_dir if output_dir != Path("docs") else None
+
+            # Copy guides from source directory if provided
+            if guides_dir:
+                import shutil
+                guides_output_dir = output_dir / "guides"
+                guides_output_dir.mkdir(parents=True, exist_ok=True)
+
+                # Copy all .md files from guides_dir to output_dir/guides/
+                guide_files = list(guides_dir.glob("*.md"))
+                if guide_files:
+                    pout(f"📚 Copying {len(guide_files)} guide(s) from {guides_dir} to {guides_output_dir}")
+                    for guide_file in guide_files:
+                        shutil.copy2(guide_file, guides_output_dir / guide_file.name)
+                else:
+                    pout(f"⚠️  No guide files (*.md) found in {guides_dir}")
 
             result = await api.plate(final_output_dir, types, force, validate, project_root)
 
