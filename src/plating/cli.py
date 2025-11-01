@@ -238,9 +238,7 @@ def main(ctx: click.Context, log_level: str | None, log_file: Path | None, log_f
     help="Filter to specific package (default: auto-detect from pyproject.toml).",
 )
 def adorn_command(
-    component_type: tuple[str, ...], provider_name: str | None, package_name: str | None,
-    log_level: str | None = None, log_file: Path | None = None, log_format: str = "key_value",
-    config: Path | None = None, profile: str | None = None,
+    component_type: tuple[str, ...], provider_name: str | None, package_name: str | None, **kwargs
 ) -> None:
     """Create missing documentation templates and examples."""
 
@@ -430,11 +428,7 @@ def plate_command(
     generate_examples: bool,
     examples_dir: Path,
     grouped_examples_dir: Path,
-    log_level: str | None = None,
-    log_file: Path | None = None,
-    log_format: str = "key_value",
-    config: Path | None = None,
-    profile: str | None = None,
+    **kwargs
 ) -> None:
     """Generate documentation from plating bundles."""
 
@@ -516,9 +510,7 @@ def plate_command(
     help="Filter to specific package (default: search all installed packages).",
 )
 def validate_command(
-    output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str | None,
-    log_level: str | None = None, log_file: Path | None = None, log_format: str = "key_value",
-    config: Path | None = None, profile: str | None = None,
+    output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str | None, **kwargs
 ) -> None:
     """Validate generated documentation."""
 
@@ -575,10 +567,7 @@ def validate_command(
     type=str,
     help="Filter to specific package (default: search all installed packages).",
 )
-def info_command(provider_name: str | None, package_name: str | None,
-    log_level: str | None = None, log_file: Path | None = None, log_format: str = "key_value",
-    config: Path | None = None, profile: str | None = None,
-) -> None:
+def info_command(provider_name: str | None, package_name: str | None, **kwargs) -> None:
     """Show registry information and statistics."""
 
     async def run() -> None:
@@ -615,10 +604,7 @@ def info_command(provider_name: str | None, package_name: str | None,
     type=str,
     help="Filter to specific package (default: search all installed packages).",
 )
-def stats_command(package_name: str | None,
-    log_level: str | None = None, log_file: Path | None = None, log_format: str = "key_value",
-    config: Path | None = None, profile: str | None = None,
-) -> None:
+def stats_command(package_name: str | None, **kwargs) -> None:
     """Show registry statistics."""
 
     async def run() -> None:
