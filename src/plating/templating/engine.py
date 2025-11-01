@@ -104,7 +104,7 @@ class AsyncTemplateEngine:
             async with plating_metrics.track_operation("template_render", bundle=bundle.name):
                 rendered = await template.render_async(**context_dict)
                 # Apply global header/footer injection
-                return self._apply_global_wrappers(rendered)
+                return self._apply_global_wrappers(rendered, context)
 
         except Jinja2TemplateError as e:
             # Extract line number if available
@@ -255,7 +255,7 @@ class AsyncTemplateEngine:
 
         return f"```terraform\n{example_content}\n```"
 
-    def _apply_global_wrappers(self, rendered_content: str) -> str:
+    def _apply_global_wrappers(self, rendered_content: str, context: PlatingContext) -> str:
         """Apply global header/footer to rendered markdown content.
 
         Checks frontmatter for opt-out flags and injects global header/footer
@@ -263,6 +263,7 @@ class AsyncTemplateEngine:
 
         Args:
             rendered_content: The rendered markdown content with frontmatter
+            context: The plating context containing global_partials_dir
 
         Returns:
             Modified markdown content with global header/footer injected
@@ -275,8 +276,8 @@ class AsyncTemplateEngine:
         skip_footer = self._should_skip_footer(frontmatter)
 
         # Load global header/footer content
-        global_header = self._load_global_file("_global_header.md")
-        global_footer = self._load_global_file("_global_footer.md")
+        global_header = self._load_global_file("_global_header.md", context)
+        global_footer = self._load_global_file("_global_footer.md", context)
 
         # Inject header into body if not skipped
         if not skip_header and global_header:
@@ -345,21 +346,22 @@ class AsyncTemplateEngine:
             logger.debug(f"Failed to parse frontmatter flag {flag_name}")
             return False
 
-    def _load_global_file(self, filename: str) -> str:
+    def _load_global_file(self, filename: str, context: PlatingContext) -> str:
         """Load global header/footer file from configured directory.
 
         Args:
             filename: Name of the global file (e.g., '_global_header.md')
+            context: The plating context containing global_partials_dir
 
         Returns:
             File content as string, or empty string if file not found or no directory configured
         """
-        if not hasattr(self.context, 'global_partials_dir') or not self.context.global_partials_dir:
+        if not hasattr(context, 'global_partials_dir') or not context.global_partials_dir:
             logger.debug(f"No global_partials_dir configured, skipping {filename}")
             return ""
 
         try:
-            global_file = self.context.global_partials_dir / filename
+            global_file = context.global_partials_dir / filename
             if global_file.exists():
                 logger.debug(f"Loaded global file: {global_file}")
                 return global_file.read_text(encoding="utf-8")
