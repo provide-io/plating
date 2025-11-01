@@ -18,7 +18,7 @@ import sys
 
 import click
 from provide.foundation import logger, perr, pout
-from provide.foundation.cli.decorators import logging_options
+from provide.foundation.cli.decorators import flexible_options, logging_options
 
 from plating.errors import PlatingError
 from plating.plating import Plating
@@ -220,6 +220,7 @@ def main(ctx: click.Context, log_level: str | None, log_file: Path | None, log_f
 
 
 @main.command("adorn")
+@flexible_options
 @click.option(
     "--component-type",
     type=click.Choice(["resource", "data_source", "function", "provider"]),
@@ -237,7 +238,9 @@ def main(ctx: click.Context, log_level: str | None, log_file: Path | None, log_f
     help="Filter to specific package (default: auto-detect from pyproject.toml).",
 )
 def adorn_command(
-    component_type: tuple[str, ...], provider_name: str | None, package_name: str | None
+    component_type: tuple[str, ...], provider_name: str | None, package_name: str | None,
+    log_level: str | None = None, log_file: Path | None = None, log_format: str = "key_value",
+    config: Path | None = None, profile: str | None = None,
 ) -> None:
     """Create missing documentation templates and examples."""
 
@@ -361,6 +364,7 @@ def _print_plate_success(result: "PlateResult") -> None:
 
 
 @main.command("plate")
+@flexible_options
 @click.option(
     "--output-dir",
     type=click.Path(path_type=Path),
@@ -426,6 +430,11 @@ def plate_command(
     generate_examples: bool,
     examples_dir: Path,
     grouped_examples_dir: Path,
+    log_level: str | None = None,
+    log_file: Path | None = None,
+    log_format: str = "key_value",
+    config: Path | None = None,
+    profile: str | None = None,
 ) -> None:
     """Generate documentation from plating bundles."""
 
@@ -483,6 +492,7 @@ def plate_command(
 
 
 @main.command("validate")
+@flexible_options
 @click.option(
     "--output-dir",
     type=click.Path(exists=True, path_type=Path),
@@ -506,7 +516,9 @@ def plate_command(
     help="Filter to specific package (default: search all installed packages).",
 )
 def validate_command(
-    output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str | None
+    output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str | None,
+    log_level: str | None = None, log_file: Path | None = None, log_format: str = "key_value",
+    config: Path | None = None, profile: str | None = None,
 ) -> None:
     """Validate generated documentation."""
 
@@ -552,6 +564,7 @@ def validate_command(
 
 
 @main.command("info")
+@flexible_options
 @click.option(
     "--provider-name",
     type=str,
@@ -562,7 +575,10 @@ def validate_command(
     type=str,
     help="Filter to specific package (default: search all installed packages).",
 )
-def info_command(provider_name: str | None, package_name: str | None) -> None:
+def info_command(provider_name: str | None, package_name: str | None,
+    log_level: str | None = None, log_file: Path | None = None, log_format: str = "key_value",
+    config: Path | None = None, profile: str | None = None,
+) -> None:
     """Show registry information and statistics."""
 
     async def run() -> None:
@@ -593,12 +609,16 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
 
 
 @main.command("stats")
+@flexible_options
 @click.option(
     "--package-name",
     type=str,
     help="Filter to specific package (default: search all installed packages).",
 )
-def stats_command(package_name: str | None) -> None:
+def stats_command(package_name: str | None,
+    log_level: str | None = None, log_file: Path | None = None, log_format: str = "key_value",
+    config: Path | None = None, profile: str | None = None,
+) -> None:
     """Show registry statistics."""
 
     async def run() -> None:
