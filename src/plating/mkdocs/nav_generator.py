@@ -76,16 +76,53 @@ class MkdocsNavGenerator:
         guides_nav = []
 
         # Find all .md files in guides directory
-        guide_files = sorted(guides_dir.glob("*.md"))
+        guide_files = list(guides_dir.glob("*.md"))
 
         if not guide_files:
             return []
 
-        guides_section = {}
+        # Extract metadata from guides and sort by guide_order
+        guides_with_order = []
         for guide_file in guide_files:
-            # Convert filename to navigation title
-            title = guide_file.stem.replace("_", " ").replace("-", " ").title()
-            rel_path = f"guides/{guide_file.name}"
+            guide_order = None
+            page_title = None
+
+            # Extract frontmatter if present
+            try:
+                content = guide_file.read_text(encoding="utf-8")
+                if content.startswith("---"):
+                    # Extract YAML frontmatter
+                    lines = content.split("\n")
+                    fm_end = -1
+                    for i in range(1, len(lines)):
+                        if lines[i].strip() == "---":
+                            fm_end = i
+                            break
+
+                    if fm_end > 0:
+                        fm_text = "\n".join(lines[1:fm_end])
+                        fm = yaml.safe_load(fm_text) or {}
+                        guide_order = fm.get("guide_order")
+                        page_title = fm.get("page_title")
+            except Exception as e:
+                logger.debug(f"Could not extract frontmatter from {guide_file}: {e}")
+
+            # Fallback to generated title if page_title not present
+            if not page_title:
+                page_title = guide_file.stem.replace("_", " ").replace("-", " ").title()
+
+            # Default guide_order to 999 if not specified (sorts last)
+            if guide_order is None:
+                guide_order = 999
+
+            guides_with_order.append((guide_order, page_title, guide_file.name))
+
+        # Sort by guide_order, then by filename
+        guides_with_order.sort(key=lambda x: (x[0], x[2]))
+
+        guides_section = {}
+        for _, title, filename in guides_with_order:
+            rel_path = f"guides/{filename}"
             guides_section[title] = rel_path
 
         if guides_section:
