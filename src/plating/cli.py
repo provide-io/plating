@@ -18,14 +18,46 @@ import sys
 
 import click
 from provide.foundation import logger, perr, pout
+from provide.foundation.cli.decorators import flexible_options, logging_options
+from provide.foundation.file.safe import safe_read_text
+from provide.foundation.serialization import toml_loads
 
 from plating.errors import PlatingError
 from plating.plating import Plating
 from plating.types import ComponentType, PlatingContext
 
 
+def _get_pyvider_component_packages(pyproject_path: Path) -> list[str] | None:
+    """Get component packages from [pyvider] section in pyproject.toml.
+
+    Args:
+        pyproject_path: Path to pyproject.toml file
+
+    Returns:
+        List of component package names if configured, None otherwise
+    """
+    try:
+        if not pyproject_path.exists():
+            return None
+
+        content = safe_read_text(pyproject_path)
+        pyproject = toml_loads(content)
+
+        if "pyvider" in pyproject:
+            component_packages = pyproject["pyvider"].get("component_packages")
+            if component_packages and isinstance(component_packages, list):
+                return component_packages
+    except Exception as e:
+        logger.debug(f"Failed to read [pyvider] section from pyproject.toml: {e}")
+
+    return None
+
+
 def auto_detect_package_name() -> str | None:
     """Auto-detect package name from pyproject.toml in current directory.
+
+    First checks [pyvider] section for component_packages.
+    Falls back to [project] section name if no pyvider config found.
 
     Returns:
         Package name if found, None otherwise
@@ -35,7 +67,14 @@ def auto_detect_package_name() -> str | None:
         if not pyproject_path.exists():
             return None
 
-        # Try tomllib (Python 3.11+) first, fall back to tomli
+        # First check for [pyvider] section with component_packages
+        component_packages = _get_pyvider_component_packages(pyproject_path)
+        if component_packages and len(component_packages) > 0:
+            # Return the first component package
+            logger.debug(f"Using component package from [pyvider] section: {component_packages[0]}")
+            return component_packages[0]
+
+        # Fall back to reading pyproject and getting package name
         try:
             import tomllib
         except ImportError:
@@ -48,7 +87,7 @@ def auto_detect_package_name() -> str | None:
         with pyproject_path.open("rb") as f:
             pyproject = tomllib.load(f)
 
-        # Try to get package name from [project] section
+        # Fall back to package name from [project] section
         if "project" in pyproject and "name" in pyproject["project"]:
             return pyproject["project"]["name"]
 
@@ -80,6 +119,8 @@ def _load_tomllib_module() -> type | None:
 def _get_provider_name_from_pyproject(pyproject_path: Path) -> str | None:
     """Get provider name from pyproject.toml if configured.
 
+    Checks [pyvider] section first, then [tool.plating] for backward compatibility.
+
     Args:
         pyproject_path: Path to pyproject.toml file
 
@@ -89,20 +130,22 @@ def _get_provider_name_from_pyproject(pyproject_path: Path) -> str | None:
     if not pyproject_path.exists():
         return None
 
-    tomllib = _load_tomllib_module()
-    if tomllib is None:
-        return None
-
     try:
-        with pyproject_path.open("rb") as f:
-            pyproject = tomllib.load(f)
+        content = safe_read_text(pyproject_path)
+        pyproject = toml_loads(content)
 
-        # Check for [tool.plating] provider_name
+        # First check for provider_name in [pyvider] section
+        if "pyvider" in pyproject:
+            provider_name = pyproject["pyvider"].get("name")
+            if provider_name:
+                return provider_name
+
+        # Fallback to [tool.plating] provider_name for backward compatibility
         if "tool" in pyproject and "plating" in pyproject["tool"]:
             if "provider_name" in pyproject["tool"]["plating"]:
                 return pyproject["tool"]["plating"]["provider_name"]
     except Exception as e:
-        logger.debug(f"Failed to read pyproject.toml: {e}")
+        logger.debug(f"Failed to read provider name from pyproject.toml: {e}")
 
     return None
 
@@ -196,12 +239,30 @@ def get_package_name(provided_name: str | None) -> str | None:
 
 
 @click.group()
-def main() -> None:
+@logging_options
+@click.pass_context
+def main(ctx: click.Context, log_level: str | None, log_file: Path | None, log_format: str) -> None:
     """Plating - Modern async documentation generator with foundation integration."""
-    pass
+    # Configure logging if options provided
+    if log_level:
+        from provide.foundation import LoggingConfig, TelemetryConfig, get_hub
+        hub = get_hub()
+        updated_config = TelemetryConfig(
+            service_name="plating",
+            logging=LoggingConfig(default_level=log_level.upper()),
+        )
+        hub.initialize_foundation(config=updated_config)
+        logger.debug(f"Log level set to {log_level.upper()}")
+
+    # Store options in context for subcommands
+    ctx.ensure_object(dict)
+    ctx.obj['log_level'] = log_level
+    ctx.obj['log_file'] = log_file
+    ctx.obj['log_format'] = log_format
 
 
 @main.command("adorn")
+@flexible_options
 @click.option(
     "--component-type",
     type=click.Choice(["resource", "data_source", "function", "provider"]),
@@ -219,7 +280,7 @@ def main() -> None:
     help="Filter to specific package (default: auto-detect from pyproject.toml).",
 )
 def adorn_command(
-    component_type: tuple[str, ...], provider_name: str | None, package_name: str | None
+    component_type: tuple[str, ...], provider_name: str | None, package_name: str | None, **kwargs
 ) -> None:
     """Create missing documentation templates and examples."""
 
@@ -343,6 +404,7 @@ def _print_plate_success(result: "PlateResult") -> None:
 
 
 @main.command("plate")
+@flexible_options
 @click.option(
     "--output-dir",
     type=click.Path(path_type=Path),
@@ -408,6 +470,7 @@ def plate_command(
     generate_examples: bool,
     examples_dir: Path,
     grouped_examples_dir: Path,
+    **kwargs
 ) -> None:
     """Generate documentation from plating bundles."""
 
@@ -465,6 +528,7 @@ def plate_command(
 
 
 @main.command("validate")
+@flexible_options
 @click.option(
     "--output-dir",
     type=click.Path(exists=True, path_type=Path),
@@ -488,7 +552,7 @@ def plate_command(
     help="Filter to specific package (default: search all installed packages).",
 )
 def validate_command(
-    output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str | None
+    output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str | None, **kwargs
 ) -> None:
     """Validate generated documentation."""
 
@@ -534,6 +598,7 @@ def validate_command(
 
 
 @main.command("info")
+@flexible_options
 @click.option(
     "--provider-name",
     type=str,
@@ -544,7 +609,7 @@ def validate_command(
     type=str,
     help="Filter to specific package (default: search all installed packages).",
 )
-def info_command(provider_name: str | None, package_name: str | None) -> None:
+def info_command(provider_name: str | None, package_name: str | None, **kwargs) -> None:
     """Show registry information and statistics."""
 
     async def run() -> None:
@@ -575,12 +640,13 @@ def info_command(provider_name: str | None, package_name: str | None) -> None:
 
 
 @main.command("stats")
+@flexible_options
 @click.option(
     "--package-name",
     type=str,
     help="Filter to specific package (default: search all installed packages).",
 )
-def stats_command(package_name: str | None) -> None:
+def stats_command(package_name: str | None, **kwargs) -> None:
     """Show registry statistics."""
 
     async def run() -> None:
