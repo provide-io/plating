@@ -8,6 +8,9 @@
 from __future__ import annotations
 
 import asyncio
+import re
+import yaml
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from jinja2 import DictLoader, Environment, TemplateError as Jinja2TemplateError, select_autoescape
@@ -99,7 +102,9 @@ class AsyncTemplateEngine:
             template = env.get_template("main.tmpl")
 
             async with plating_metrics.track_operation("template_render", bundle=bundle.name):
-                return await template.render_async(**context_dict)
+                rendered = await template.render_async(**context_dict)
+                # Apply global header/footer injection
+                return self._apply_global_wrappers(rendered)
 
         except Jinja2TemplateError as e:
             # Extract line number if available
@@ -249,6 +254,165 @@ class AsyncTemplateEngine:
             return ""
 
         return f"```terraform\n{example_content}\n```"
+
+    def _apply_global_wrappers(self, rendered_content: str) -> str:
+        """Apply global header/footer to rendered markdown content.
+
+        Checks frontmatter for opt-out flags and injects global header/footer
+        content at appropriate locations if not explicitly skipped.
+
+        Args:
+            rendered_content: The rendered markdown content with frontmatter
+
+        Returns:
+            Modified markdown content with global header/footer injected
+        """
+        # Parse frontmatter and body
+        frontmatter, body = self._parse_frontmatter(rendered_content)
+
+        # Check for opt-out flags
+        skip_header = self._should_skip_header(frontmatter)
+        skip_footer = self._should_skip_footer(frontmatter)
+
+        # Load global header/footer content
+        global_header = self._load_global_file("_global_header.md")
+        global_footer = self._load_global_file("_global_footer.md")
+
+        # Inject header into body if not skipped
+        if not skip_header and global_header:
+            body = self._inject_header_into_body(body, global_header)
+
+        # Append footer to body if not skipped
+        if not skip_footer and global_footer:
+            body = body.rstrip() + "\n\n" + global_footer.rstrip() + "\n"
+
+        # Reconstruct markdown with frontmatter and modified body
+        if frontmatter:
+            return frontmatter + "\n" + body
+        return body
+
+    def _parse_frontmatter(self, content: str) -> tuple[str, str]:
+        """Parse YAML frontmatter from markdown content.
+
+        Args:
+            content: Markdown content with optional YAML frontmatter
+
+        Returns:
+            Tuple of (frontmatter_with_delimiters, body_content)
+        """
+        if not content.startswith("---"):
+            return "", content
+
+        # Find closing delimiter
+        close_idx = content.find("---", 3)
+        if close_idx == -1:
+            return "", content
+
+        # Extract frontmatter section (including delimiters)
+        frontmatter_section = content[:close_idx + 3]
+        # Extract body (everything after closing delimiter)
+        body = content[close_idx + 3:].lstrip("\n")
+
+        return frontmatter_section, body
+
+    def _should_skip_header(self, frontmatter: str) -> bool:
+        """Check if skip_global_header flag is set in frontmatter."""
+        return self._check_frontmatter_flag(frontmatter, "skip_global_header")
+
+    def _should_skip_footer(self, frontmatter: str) -> bool:
+        """Check if skip_global_footer flag is set in frontmatter."""
+        return self._check_frontmatter_flag(frontmatter, "skip_global_footer")
+
+    def _check_frontmatter_flag(self, frontmatter: str, flag_name: str) -> bool:
+        """Check if a boolean flag is set to true in frontmatter."""
+        if not frontmatter:
+            return False
+
+        try:
+            # Extract YAML content between delimiters
+            lines = frontmatter.split("\n")
+            yaml_lines = [line for line in lines[1:-1] if line.strip()]  # Skip delimiters
+            yaml_content = "\n".join(yaml_lines)
+
+            if not yaml_content:
+                return False
+
+            data = yaml.safe_load(yaml_content)
+            if isinstance(data, dict):
+                return data.get(flag_name, False) is True
+            return False
+        except (yaml.YAMLError, AttributeError):
+            logger.debug(f"Failed to parse frontmatter flag {flag_name}")
+            return False
+
+    def _load_global_file(self, filename: str) -> str:
+        """Load global header/footer file from pyvider-components docs/_partials/.
+
+        Args:
+            filename: Name of the global file (e.g., '_global_header.md')
+
+        Returns:
+            File content as string, or empty string if file not found
+        """
+        # Try to find the global partials directory
+        # Starting from plating's location and going up to find provide-io root
+        try:
+            plating_path = Path(__file__).resolve().parent.parent.parent  # src/plating/
+            provide_io_root = plating_path.parent.parent  # provide-io/
+            global_file = provide_io_root / "pyvider-components" / "docs" / "_partials" / filename
+
+            if global_file.exists():
+                return global_file.read_text(encoding="utf-8")
+        except (OSError, ValueError) as e:
+            logger.debug(f"Failed to load global file {filename}: {e}")
+
+        return ""
+
+    def _inject_header_into_body(self, body: str, header: str) -> str:
+        """Inject global header into body after H1 heading and description.
+
+        Placement: After the H1 heading and the first paragraph/description.
+
+        Args:
+            body: The markdown body content
+            header: The header content to inject
+
+        Returns:
+            Modified body with header injected
+        """
+        lines = body.split("\n")
+
+        # Find H1 heading
+        h1_idx = -1
+        for i, line in enumerate(lines):
+            if line.startswith("# "):
+                h1_idx = i
+                break
+
+        if h1_idx == -1:
+            # No H1 found, prepend header
+            return header + "\n\n" + body
+
+        # Find the first non-empty line after H1 (the description)
+        desc_idx = -1
+        for i in range(h1_idx + 1, len(lines)):
+            if lines[i].strip():
+                desc_idx = i
+                break
+
+        if desc_idx == -1:
+            # No description found, insert after H1
+            insert_idx = h1_idx + 1
+        else:
+            # Insert after description
+            insert_idx = desc_idx + 1
+
+        # Insert header at the calculated position
+        lines.insert(insert_idx, "")  # Add blank line before header
+        lines.insert(insert_idx + 1, header)
+        lines.insert(insert_idx + 2, "")  # Add blank line after header
+
+        return "\n".join(lines)
 
     def clear_cache(self) -> None:
         """Clear template cache."""
