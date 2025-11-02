@@ -109,6 +109,71 @@ def _determine_subcategory(
     return "Utilities"
 
 
+def group_components_by_capability(
+    components: list[tuple[PlatingBundle, ComponentType]]
+) -> dict[str, dict[str, list[tuple[PlatingBundle, ComponentType]]]]:
+    """Group components by capability (subcategory) and then by component type.
+
+    Returns a nested dictionary: {capability: {component_type: [components]}}
+    """
+    from collections import defaultdict
+
+    grouped = defaultdict(lambda: defaultdict(list))
+
+    for component, comp_type in components:
+        # Extract subcategory from template frontmatter if present
+        # Default to "Utilities" if not specified
+        subcategory = _extract_subcategory_from_template(component) or "Utilities"
+
+        # Store grouped components
+        grouped[subcategory][comp_type].append((component, comp_type))
+
+    # Sort capabilities with "Test Mode" always last
+    sorted_grouped = {}
+    test_mode_items = grouped.pop("Test Mode", None)
+
+    for capability in sorted(grouped.keys()):
+        sorted_grouped[capability] = grouped[capability]
+
+    if test_mode_items:
+        sorted_grouped["Test Mode"] = test_mode_items
+
+    return dict(sorted_grouped)
+
+
+def _extract_subcategory_from_template(component: PlatingBundle) -> str | None:
+    """Extract subcategory from component template frontmatter.
+
+    Returns the subcategory value if present, None otherwise.
+    """
+    try:
+        template_content = component.load_main_template()
+        if not template_content:
+            return None
+
+        # Extract frontmatter
+        if not template_content.startswith("---"):
+            return None
+
+        # Find end of frontmatter
+        lines = template_content.split("\n")
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                # Extract subcategory from frontmatter section
+                frontmatter = "\n".join(lines[1:i])
+                for line in frontmatter.split("\n"):
+                    if line.strip().startswith("subcategory:"):
+                        # Extract value: "subcategory: "Value"" -> "Value"
+                        value = line.split(":", 1)[1].strip().strip('"')
+                        return value
+                return None
+
+        return None
+    except Exception as e:
+        logger.debug(f"Could not extract subcategory from {component.name}: {e}")
+        return None
+
+
 def _inject_subcategory(content: str, subcategory: str) -> str:
     """Inject subcategory into YAML frontmatter if present.
 
@@ -352,7 +417,7 @@ def generate_provider_index(
     provider_schema: dict[str, Any],
     registry: Any,
 ) -> None:
-    """Generate provider index page."""
+    """Generate provider index page with capability-first grouping."""
     index_file = output_dir / "index.md"
 
     if index_file.exists() and not force:
@@ -386,7 +451,7 @@ def generate_provider_index(
   # Configuration options
 }}'''
 
-    # Generate index content
+    # Generate index content with capability-first organization
     index_content = f'''---
 page_title: "{display_name} Provider"
 description: |-
@@ -407,8 +472,6 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
 
 {provider_schema_info.to_markdown() if provider_schema_info else "No provider configuration required."}
 
-## Resources
-
 '''
 
     # Helper function to strip provider prefix if present
@@ -419,77 +482,71 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
             return name[len(prefix_with_underscore) :]
         return name
 
-    # Helper function to check if component is test mode
-    def is_test_mode_component(component_name: str, component_type: ComponentType) -> bool:
-        """Check if component is a test mode component by reading its metadata."""
-        # Try to get the component schema which contains test_only metadata
-        schema_info = get_component_schema(
-            PlatingBundle(name=component_name, plating_dir=Path(), component_type=component_type.value),
-            component_type,
-            provider_schema,
-        )
-        if schema_info and schema_info.test_only:
-            return True
+    # Collect all components with their types
+    all_components = []
 
-        # Fallback to heuristic-based detection for components without schema
-        test_indicators = ["_test", "test_", "warning_example", "verifier"]
-        return any(indicator in component_name.lower() for indicator in test_indicators)
-
-    # Add links to resources (excluding test mode)
     resource_components = registry.get_components_with_templates(ComponentType.RESOURCE)
-    test_resources = []
     if resource_components:
-        for component in sorted(resource_components, key=lambda c: c.name):
-            clean_name = strip_provider_prefix(component.name, provider_name)
-            if is_test_mode_component(component.name, ComponentType.RESOURCE):
-                test_resources.append((component, clean_name))
-            else:
-                index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.RESOURCE.output_subdir}/{clean_name}.md)\n"
-    else:
-        index_content += "No resources available.\n"
+        for component in resource_components:
+            all_components.append((component, ComponentType.RESOURCE))
 
-    index_content += "\n## Data Sources\n\n"
-
-    # Add links to data sources (excluding test mode)
     data_source_components = registry.get_components_with_templates(ComponentType.DATA_SOURCE)
-    test_data_sources = []
     if data_source_components:
-        for component in sorted(data_source_components, key=lambda c: c.name):
-            clean_name = strip_provider_prefix(component.name, provider_name)
-            if is_test_mode_component(component.name, ComponentType.DATA_SOURCE):
-                test_data_sources.append((component, clean_name))
-            else:
-                index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.DATA_SOURCE.output_subdir}/{clean_name}.md)\n"
-    else:
-        index_content += "No data sources available.\n"
+        for component in data_source_components:
+            all_components.append((component, ComponentType.DATA_SOURCE))
 
-    index_content += "\n## Functions\n\n"
-
-    # Add links to functions
     function_components = registry.get_components_with_templates(ComponentType.FUNCTION)
     if function_components:
-        for component in sorted(function_components, key=lambda c: c.name):
-            index_content += (
-                f"- [`{component.name}`](./{ComponentType.FUNCTION.output_subdir}/{component.name}.md)\n"
-            )
-    else:
-        index_content += "No functions available.\n"
+        for component in function_components:
+            all_components.append((component, ComponentType.FUNCTION))
 
-    # Add Test Mode section if there are test components
-    if test_resources or test_data_sources:
-        index_content += "\n## Test Mode\n\n"
-        index_content += "_Test-only components for testing and development purposes._\n\n"
+    # Group components by capability
+    grouped = group_components_by_capability(all_components)
 
-        if test_resources:
-            index_content += "### Test Resources\n\n"
-            for component, clean_name in test_resources:
-                index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.RESOURCE.output_subdir}/{clean_name}.md)\n"
+    # Generate capability-first sections
+    for capability, types_dict in grouped.items():
+        index_content += f"## {capability}\n\n"
+
+        # Iterate through component types in order: resources, data_sources, functions
+        type_order = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
+
+        for comp_type in type_order:
+            if comp_type not in types_dict:
+                continue
+
+            components = types_dict[comp_type]
+            if not components:
+                continue
+
+            # Add subheader for component type (except for Test Mode which groups all types)
+            if capability != "Test Mode":
+                type_display = {
+                    ComponentType.RESOURCE: "Resources",
+                    ComponentType.DATA_SOURCE: "Data Sources",
+                    ComponentType.FUNCTION: "Functions",
+                }.get(comp_type, str(comp_type))
+                index_content += f"### {type_display}\n\n"
+            else:
+                # For Test Mode, show type subheaders
+                type_display = {
+                    ComponentType.RESOURCE: "Resources",
+                    ComponentType.DATA_SOURCE: "Data Sources",
+                    ComponentType.FUNCTION: "Functions",
+                }.get(comp_type, str(comp_type))
+                index_content += f"### Test {type_display}\n\n"
+
+            # Add component links
+            for component, _ in sorted(components, key=lambda x: x[0].name):
+                clean_name = strip_provider_prefix(component.name, provider_name)
+
+                if comp_type == ComponentType.FUNCTION:
+                    # Functions don't have provider prefix in their names
+                    index_content += f"- [`{component.name}`](./{comp_type.output_subdir}/{clean_name}.md)\n"
+                else:
+                    # Resources and data sources include provider prefix
+                    index_content += f"- [`{provider_name}_{clean_name}`](./{comp_type.output_subdir}/{clean_name}.md)\n"
+
             index_content += "\n"
-
-        if test_data_sources:
-            index_content += "### Test Data Sources\n\n"
-            for component, clean_name in test_data_sources:
-                index_content += f"- [`{provider_name}_{clean_name}`](./{ComponentType.DATA_SOURCE.output_subdir}/{clean_name}.md)\n"
 
     # Write the index file
     index_file.write_text(index_content, encoding="utf-8")
