@@ -3,15 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
-
-#!/usr/bin/env python3
-# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-#
-
-"""Modern CLI interface using the async Plating API with error handling."""
-
 import asyncio
 from pathlib import Path
 import sys
@@ -25,6 +16,8 @@ from provide.foundation.serialization import toml_loads
 from plating.errors import PlatingError
 from plating.plating import Plating
 from plating.types import ComponentType, PlatingContext
+
+"""Modern CLI interface using the async Plating API with error handling."""
 
 
 def _get_pyvider_component_packages(pyproject_path: Path) -> list[str] | None:
@@ -304,6 +297,8 @@ def adorn_command(
             result = await api.adorn(component_types=types)
 
             if result.success:
+                # Print success message with count
+                pout(f"✅ Generated {result.templates_generated} template(s)")
                 return 0
             else:
                 perr("❌ Adorn operation failed:")
@@ -396,6 +391,9 @@ def _print_plate_success(result: "PlateResult") -> None:
     Args:
         result: Plate operation result
     """
+    # Print summary with file count and duration
+    pout(f"✅ Generated {result.files_generated} files in {result.duration_seconds:.1f}s")
+
     if result.output_files:
         for file in result.output_files[:10]:  # Show first 10
             pout(f"  • {file}")

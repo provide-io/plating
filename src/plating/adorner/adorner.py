@@ -3,15 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
-
-#
-# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-#
-
-"""Core adorner implementation."""
-
 import asyncio
 from typing import Any
 
@@ -24,6 +15,8 @@ from plating.adorner.finder import ComponentFinder
 from plating.errors import AdorningError, handle_error
 import plating.registry
 from plating.templating.generator import TemplateGenerator
+
+"""Core adorner implementation."""
 
 
 class PlatingAdorner:
