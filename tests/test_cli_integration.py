@@ -300,7 +300,7 @@ class TestValidateCommand:
     """Test validate command execution."""
 
     @patch("plating.cli.helpers.auto_detect.auto_detect_provider_name", return_value="test_provider")
-    @patch("plating.cli.commands.plate.Plating")
+    @patch("plating.cli.commands.validate.Plating")
     def test_validate_success(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test successful validation."""
         mock_api = Mock()
@@ -320,7 +320,7 @@ class TestValidateCommand:
         mock_api.validate.assert_called_once()
 
     @patch("plating.cli.helpers.auto_detect.auto_detect_provider_name", return_value="test_provider")
-    @patch("plating.cli.commands.plate.Plating")
+    @patch("plating.cli.commands.validate.Plating")
     def test_validate_with_failures(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test validation with failures."""
         mock_api = Mock()
@@ -343,7 +343,7 @@ class TestValidateCommand:
         runner.assert_output_contains(result, "Validation failed")
 
     @patch("plating.cli.helpers.auto_detect.auto_detect_provider_name", return_value="test_provider")
-    @patch("plating.cli.commands.plate.Plating")
+    @patch("plating.cli.commands.validate.Plating")
     def test_validate_with_custom_output_dir(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test validation with custom output directory."""
         from pathlib import Path as PathlibPath
@@ -377,7 +377,7 @@ class TestInfoCommand:
     """Test info command execution."""
 
     @patch("plating.cli.helpers.auto_detect.auto_detect_provider_name", return_value="test_provider")
-    @patch("plating.cli.commands.plate.Plating")
+    @patch("plating.cli.commands.info.Plating")
     def test_info_basic(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test basic info command."""
         mock_api = Mock()
@@ -396,7 +396,7 @@ class TestInfoCommand:
         runner.assert_output_contains(result, "25")
         runner.assert_output_contains(result, "resource")
 
-    @patch("plating.cli.commands.plate.Plating")
+    @patch("plating.cli.commands.info.Plating")
     def test_info_with_provider_name(self, mock_plating_class, runner) -> None:
         """Test info command with --provider-name."""
         mock_api = Mock()
@@ -413,7 +413,7 @@ class TestInfoCommand:
         runner.assert_output_contains(result, "10")
 
     @patch("plating.cli.helpers.auto_detect.auto_detect_provider_name", return_value="test_provider")
-    @patch("plating.cli.commands.plate.Plating")
+    @patch("plating.cli.commands.info.Plating")
     def test_info_with_package_filter(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test info command with --package-name."""
         mock_api = Mock()
@@ -435,7 +435,7 @@ class TestStatsCommand:
     """Test stats command execution."""
 
     @patch("plating.cli.helpers.auto_detect.auto_detect_provider_name", return_value="test_provider")
-    @patch("plating.cli.commands.plate.Plating")
+    @patch("plating.cli.commands.stats.Plating")
     def test_stats_basic(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test basic stats command."""
         mock_api = Mock()
@@ -455,7 +455,7 @@ class TestStatsCommand:
         runner.assert_output_contains(result, "25")
 
     @patch("plating.cli.helpers.auto_detect.auto_detect_provider_name", return_value="test_provider")
-    @patch("plating.cli.commands.plate.Plating")
+    @patch("plating.cli.commands.stats.Plating")
     def test_stats_with_package_filter(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test stats with package filter."""
         mock_api = Mock()
