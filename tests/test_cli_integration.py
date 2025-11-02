@@ -522,7 +522,7 @@ class TestErrorHandling:
     """Test error handling and output."""
 
     @patch("plating.cli.helpers.auto_detect.auto_detect_provider_name", return_value="test_provider")
-    @patch("plating.cli.commands.plate.Plating")
+    @patch("plating.cli.commands.adorn.Plating")
     def test_unexpected_exception_handling(self, mock_plating_class, mock_auto_detect, runner) -> None:
         """Test handling of unexpected exceptions."""
         mock_api = Mock()
