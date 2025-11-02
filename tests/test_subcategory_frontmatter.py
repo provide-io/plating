@@ -198,5 +198,56 @@ Content here.
         assert "# Another comment" in result, "Should preserve second comment"
         assert 'subcategory: "Utilities"' in result, "Should add subcategory"
 
+    def test_inject_subcategory_with_none_skips_injection(self):
+        """When subcategory is None, skip injection entirely."""
+        content = """---
+page_title: "Resource: test_resource"
+description: |-
+  Test resource
+---
+
+# test_resource (Resource)
+
+Content here.
+"""
+
+        result = _inject_subcategory(content, None)
+
+        # Should return content unchanged when subcategory is None
+        assert result == content, "Should return unchanged content when subcategory is None"
+        assert "subcategory:" not in result, "Should not add any subcategory field"
+
+    def test_inject_subcategory_none_with_no_frontmatter(self):
+        """When subcategory is None and no frontmatter, return unchanged."""
+        content = """# test_resource (Resource)
+
+Content here without frontmatter.
+"""
+
+        result = _inject_subcategory(content, None)
+
+        assert result == content, "Should return unchanged content when subcategory is None"
+        assert "---" not in result, "Should not add frontmatter when subcategory is None"
+
+    def test_inject_subcategory_none_preserves_existing_frontmatter(self):
+        """When subcategory is None, preserve existing frontmatter as-is."""
+        content = """---
+page_title: "Resource: test_resource"
+subcategory: "Math"
+description: |-
+  Test resource
+---
+
+# test_resource (Resource)
+
+Content here.
+"""
+
+        result = _inject_subcategory(content, None)
+
+        # Should return unchanged, keeping the Math subcategory
+        assert result == content, "Should return unchanged content when subcategory is None"
+        assert 'subcategory: "Math"' in result, "Should preserve existing Math subcategory"
+
 
 # 🍽️📖🔚

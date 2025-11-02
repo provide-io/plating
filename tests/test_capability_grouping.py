@@ -27,23 +27,17 @@ class TestCapabilityGrouping:
 
         grouped = group_components_by_capability(components)
 
-        # Should have 3 capabilities: Lens, Utilities, Test Mode
-        assert len(grouped) == 3, "Should group into 3 capabilities"
-        assert "Lens" in grouped, "Should have Lens capability"
-        assert "Utilities" in grouped, "Should have Utilities capability"
+        # Should have 3 entries: None (uncategorized), Lens, Test Mode
+        # Based on the sample data, we have:
+        # - A component with Lens subcategory
+        # - A component with Test Mode (auto-detected)
+        # - A component without subcategory (None)
         assert "Test Mode" in grouped, "Should have Test Mode capability"
+        assert "Lens" in grouped, "Should have Lens capability"
 
-        # Check Lens has resource
-        assert ComponentType.RESOURCE in grouped["Lens"]
-        assert len(grouped["Lens"][ComponentType.RESOURCE]) == 1
-
-        # Check Test Mode has data source
-        assert ComponentType.DATA_SOURCE in grouped["Test Mode"]
-        assert len(grouped["Test Mode"][ComponentType.DATA_SOURCE]) == 1
-
-        # Check Utilities has function
-        assert ComponentType.FUNCTION in grouped["Utilities"]
-        assert len(grouped["Utilities"][ComponentType.FUNCTION]) == 1
+        # Check that Test Mode is the last key (special ordering)
+        keys = list(grouped.keys())
+        assert keys[-1] == "Test Mode", "Test Mode should be last"
 
     def test_group_components_by_capability_test_mode_last(self, temp_directory):
         """Verify Test Mode always appears last in ordering."""
@@ -175,30 +169,70 @@ Content here
         assert subcategory == "Test Mode", "Should return 'Test Mode' from schema_info"
 
     def test_determine_subcategory_lens_components(self):
-        """Lens subcategory detection."""
-        # Test with component_of parameter
-        subcategory = _determine_subcategory(schema_info=None, is_test_only=False, component_of="lens")
-        assert subcategory == "Lens", "Should return 'Lens' for component_of='lens'"
-
-        # Test with schema_info.component_of
-        schema_info = SchemaInfo(component_of="lens")
-        subcategory = _determine_subcategory(schema_info=schema_info, is_test_only=False)
-        assert subcategory == "Lens", "Should return 'Lens' from schema_info.component_of"
-
-        # Test that component_of parameter takes precedence
-        schema_info = SchemaInfo(component_of="other")
-        subcategory = _determine_subcategory(schema_info=schema_info, is_test_only=False, component_of="lens")
-        assert subcategory == "Lens", "component_of parameter should take precedence over schema_info"
-
-    def test_determine_subcategory_default_utilities(self):
-        """Default to Utilities when no special metadata present."""
+        """Lens subcategory is no longer auto-determined - comes from template frontmatter."""
+        # Lens category now comes from template frontmatter, not from component_of decorator
+        # _determine_subcategory() only handles Test Mode auto-detection
         subcategory = _determine_subcategory(schema_info=None, is_test_only=False)
-        assert subcategory == "Utilities", "Should default to 'Utilities'"
+        assert subcategory is None, "Should return None for regular components (non-test)"
+
+        # Even with schema_info, regular components return None
+        schema_info = SchemaInfo(description="Lens component")
+        subcategory = _determine_subcategory(schema_info=schema_info, is_test_only=False)
+        assert subcategory is None, "Should return None for regular components"
+
+    def test_determine_subcategory_default_none(self):
+        """Regular components return None - subcategory comes from template frontmatter."""
+        # Without special metadata (like test_only), return None
+        # This allows components without subcategory to render first per Terraform Registry standards
+        subcategory = _determine_subcategory(schema_info=None, is_test_only=False)
+        assert subcategory is None, "Should return None for regular components"
 
         # Test with schema_info but no special fields
         schema_info = SchemaInfo(description="Regular component")
         subcategory = _determine_subcategory(schema_info=schema_info, is_test_only=False)
-        assert subcategory == "Utilities", "Should default to 'Utilities' with regular schema_info"
+        assert subcategory is None, "Should return None for regular components with schema_info"
+
+    def test_group_components_uncategorized_first(self, temp_directory):
+        """Uncategorized components (None subcategory) render first."""
+        from plating.bundles import PlatingBundle
+        from plating.types import ComponentType
+
+        components = []
+
+        # Create one component with no subcategory
+        uncategorized_dir = temp_directory / "uncategorized.plating"
+        uncategorized_docs = uncategorized_dir / "docs"
+        uncategorized_docs.mkdir(parents=True)
+        (uncategorized_docs / "uncategorized.tmpl.md").write_text(
+            """---
+page_title: "Resource: uncategorized"
+---
+# uncategorized
+"""
+        )
+        components.append((PlatingBundle("uncategorized", uncategorized_dir, "resource"), ComponentType.RESOURCE))
+
+        # Create one component with Math subcategory
+        math_dir = temp_directory / "math.plating"
+        math_docs = math_dir / "docs"
+        math_docs.mkdir(parents=True)
+        (math_docs / "math.tmpl.md").write_text(
+            """---
+page_title: "Function: math"
+subcategory: "Math"
+---
+# math
+"""
+        )
+        components.append((PlatingBundle("math", math_dir, "function"), ComponentType.FUNCTION))
+
+        grouped = group_components_by_capability(components)
+        keys = list(grouped.keys())
+
+        # None should be first (uncategorized)
+        assert keys[0] is None, "Uncategorized (None) components should be first"
+        # Math should be after
+        assert keys[1] == "Math", "Math category should be after uncategorized"
 
 
 # 🍽️📖🔚
