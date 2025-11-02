@@ -157,19 +157,20 @@ class TestModernAPI:
         pout("API initialization test completed", color="green")
 
     @pytest.mark.asyncio
-    @patch("plating.registry.PlatingDiscovery")
-    async def test_adorn_operation(self, mock_discovery) -> None:
+    @patch("plating.plating.get_plating_registry")
+    async def test_adorn_operation(self, mock_get_registry) -> None:
         """Test adorn operation with type-safe API."""
-        # Mock the discovery and registry
+        # Mock the bundle
         mock_bundle = Mock()
         mock_bundle.name = "test_resource"
         mock_bundle.component_type = "resource"
         mock_bundle.has_main_template.return_value = False  # Needs template
         mock_bundle.plating_dir = Path("/mock/path")
 
-        mock_discovery_instance = Mock()
-        mock_discovery_instance.discover_bundles.return_value = [mock_bundle]
-        mock_discovery.return_value = mock_discovery_instance
+        # Mock the registry
+        mock_registry = Mock()
+        mock_registry.get_bundles_by_type.return_value = [mock_bundle]
+        mock_get_registry.return_value = mock_registry
 
         # Mock the template generator and file operations
         with (
