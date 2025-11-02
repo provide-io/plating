@@ -78,9 +78,7 @@ def _extract_component_metadata(
         return False
 
 
-def _determine_subcategory(
-    schema_info: SchemaInfo | None, is_test_only: bool
-) -> str | None:
+def _determine_subcategory(schema_info: SchemaInfo | None, is_test_only: bool) -> str | None:
     """Determine the subcategory for a component based on its metadata.
 
     Subcategories are primarily defined in template frontmatter. This function
@@ -105,7 +103,7 @@ def _determine_subcategory(
 
 
 def group_components_by_capability(
-    components: list[tuple[PlatingBundle, ComponentType]]
+    components: list[tuple[PlatingBundle, ComponentType]],
 ) -> dict[str, dict[str, list[tuple[PlatingBundle, ComponentType]]]]:
     """Group components by capability (subcategory) and then by component type.
 
@@ -306,9 +304,7 @@ async def render_component_docs(
 
             # Extract component metadata by importing and inspecting the class
             try:
-                is_test_only = _extract_component_metadata(
-                    component, component_type, context.provider_name
-                )
+                is_test_only = _extract_component_metadata(component, component_type, context.provider_name)
             except Exception as meta_e:
                 logger.warning(
                     f"Could not extract metadata for {component.name}, using schema info only: {meta_e}"
@@ -555,7 +551,9 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
                     index_content += f"- [`{component.name}`](./{comp_type.output_subdir}/{clean_name}.md)\n"
                 else:
                     # Resources and data sources include provider prefix
-                    index_content += f"- [`{provider_name}_{clean_name}`](./{comp_type.output_subdir}/{clean_name}.md)\n"
+                    index_content += (
+                        f"- [`{provider_name}_{clean_name}`](./{comp_type.output_subdir}/{clean_name}.md)\n"
+                    )
 
             index_content += "\n"
 

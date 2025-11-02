@@ -357,7 +357,7 @@ def sample_guides_directory(temp_directory):
 
 
 @pytest.fixture
-def sample_template_with_frontmatter():
+def sample_template_with_frontmatter() -> str:
     """Sample template content with YAML frontmatter."""
     return """---
 page_title: "Resource: test_resource"
@@ -372,7 +372,7 @@ Content here
 
 
 @pytest.fixture
-def sample_template_without_frontmatter():
+def sample_template_without_frontmatter() -> str:
     """Sample template content without YAML frontmatter."""
     return """# test_resource (Resource)
 

@@ -10,7 +10,7 @@ import asyncio
 from plating.adorner import PlatingAdorner
 
 
-async def dress_all_components():
+async def dress_all_components() -> None:
     """Dress all components missing .plating directories."""
     adorner = PlatingAdorner()
 
