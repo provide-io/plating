@@ -5,9 +5,6 @@
 
 """Test module for subcategory frontmatter injection and preservation."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
 
 from plating.core.doc_generator import _inject_subcategory, _inject_test_mode_subcategory
 
@@ -15,7 +12,7 @@ from plating.core.doc_generator import _inject_subcategory, _inject_test_mode_su
 class TestSubcategoryFrontmatter:
     """Test suite for subcategory injection and preservation."""
 
-    def test_inject_subcategory_creates_frontmatter(self):
+    def test_inject_subcategory_creates_frontmatter(self) -> None:
         """Add frontmatter if missing."""
         content = """# test_resource (Resource)
 
@@ -34,7 +31,7 @@ Some example here.
         assert "---\n\n#" in result, "Should have proper frontmatter end and content separation"
         assert "This is a resource without frontmatter" in result, "Should preserve original content"
 
-    def test_inject_subcategory_adds_to_existing_frontmatter(self):
+    def test_inject_subcategory_adds_to_existing_frontmatter(self) -> None:
         """Inject into existing frontmatter."""
         content = """---
 page_title: "Resource: test_resource"
@@ -61,7 +58,7 @@ Content here.
         closing_marker = next(i for i, line in enumerate(lines[1:], 1) if line.strip() == "---")
         assert subcategory_line < closing_marker, "Subcategory should be before closing marker"
 
-    def test_inject_subcategory_preserves_existing(self):
+    def test_inject_subcategory_preserves_existing(self) -> None:
         """Don't override existing subcategory."""
         content = """---
 page_title: "Resource: test_resource"
@@ -82,7 +79,7 @@ Content here.
         assert 'subcategory: "Test Mode"' not in result, "Should not add new subcategory"
         assert result.count("subcategory:") == 1, "Should have exactly one subcategory field"
 
-    def test_inject_subcategory_malformed_frontmatter(self):
+    def test_inject_subcategory_malformed_frontmatter(self) -> None:
         """Handle malformed gracefully."""
         # Missing closing ---
         content = """---
@@ -100,7 +97,7 @@ Content here.
         # Should return original content when frontmatter is malformed
         assert result == content, "Should return original content for malformed frontmatter"
 
-    def test_inject_test_mode_subcategory(self):
+    def test_inject_test_mode_subcategory(self) -> None:
         """Special handling for Test Mode."""
         content = """---
 page_title: "Resource: test_resource"
@@ -117,7 +114,7 @@ Content here.
 
         assert 'subcategory: "Test Mode"' in result, "Should inject Test Mode subcategory"
 
-    def test_inject_subcategory_multiple_fields(self):
+    def test_inject_subcategory_multiple_fields(self) -> None:
         """Preserve all frontmatter fields."""
         content = """---
 page_title: "Data Source: test_data"
@@ -144,7 +141,7 @@ Content here.
         assert "another_field: 123" in result, "Should preserve another_field"
         assert 'subcategory: "Lens"' in result, "Should add subcategory"
 
-    def test_inject_subcategory_empty_frontmatter(self):
+    def test_inject_subcategory_empty_frontmatter(self) -> None:
         """Handle empty frontmatter block."""
         content = """---
 ---
@@ -159,7 +156,7 @@ Content here.
         assert 'subcategory: "Utilities"' in result, "Should inject subcategory into empty frontmatter"
         assert "# test_resource (Resource)" in result, "Should preserve content"
 
-    def test_inject_test_mode_preserves_existing_subcategory(self):
+    def test_inject_test_mode_preserves_existing_subcategory(self) -> None:
         """Test Mode injection should not override existing subcategory."""
         content = """---
 page_title: "Resource: test_resource"
@@ -177,7 +174,7 @@ Content here.
         assert 'subcategory: "Lens"' in result, "Should preserve existing subcategory"
         assert 'subcategory: "Test Mode"' not in result, "Should not add Test Mode subcategory"
 
-    def test_inject_subcategory_with_comments(self):
+    def test_inject_subcategory_with_comments(self) -> None:
         """Preserve comments in frontmatter."""
         content = """---
 # This is a comment
@@ -198,7 +195,7 @@ Content here.
         assert "# Another comment" in result, "Should preserve second comment"
         assert 'subcategory: "Utilities"' in result, "Should add subcategory"
 
-    def test_inject_subcategory_with_none_skips_injection(self):
+    def test_inject_subcategory_with_none_skips_injection(self) -> None:
         """When subcategory is None, skip injection entirely."""
         content = """---
 page_title: "Resource: test_resource"
@@ -217,7 +214,7 @@ Content here.
         assert result == content, "Should return unchanged content when subcategory is None"
         assert "subcategory:" not in result, "Should not add any subcategory field"
 
-    def test_inject_subcategory_none_with_no_frontmatter(self):
+    def test_inject_subcategory_none_with_no_frontmatter(self) -> None:
         """When subcategory is None and no frontmatter, return unchanged."""
         content = """# test_resource (Resource)
 
@@ -229,7 +226,7 @@ Content here without frontmatter.
         assert result == content, "Should return unchanged content when subcategory is None"
         assert "---" not in result, "Should not add frontmatter when subcategory is None"
 
-    def test_inject_subcategory_none_preserves_existing_frontmatter(self):
+    def test_inject_subcategory_none_preserves_existing_frontmatter(self) -> None:
         """When subcategory is None, preserve existing frontmatter as-is."""
         content = """---
 page_title: "Resource: test_resource"

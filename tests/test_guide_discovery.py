@@ -5,9 +5,6 @@
 
 """Test module for guide discovery and rendering."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
 
 from plating.mkdocs.nav_generator import MkdocsNavGenerator
 
@@ -15,7 +12,7 @@ from plating.mkdocs.nav_generator import MkdocsNavGenerator
 class TestGuideDiscovery:
     """Test suite for guide discovery functionality."""
 
-    def test_generate_guides_nav_no_guides_directory(self, temp_directory):
+    def test_generate_guides_nav_no_guides_directory(self, temp_directory) -> None:
         """Return empty when no guides directory exists."""
         generator = MkdocsNavGenerator(temp_directory)
 
@@ -24,7 +21,7 @@ class TestGuideDiscovery:
 
         assert guides_nav == [], "Should return empty list when guides directory doesn't exist"
 
-    def test_generate_guides_nav_with_guides(self, temp_directory):
+    def test_generate_guides_nav_with_guides(self, temp_directory) -> None:
         """Find and list guide files."""
         # Create guides directory with files
         guides_dir = temp_directory / "docs" / "guides"
@@ -49,7 +46,7 @@ class TestGuideDiscovery:
         assert "Advanced Usage" in guide_titles, "Should have Advanced Usage guide"
         assert "Troubleshooting" in guide_titles, "Should have Troubleshooting guide"
 
-    def test_generate_guides_nav_converts_filenames(self, temp_directory):
+    def test_generate_guides_nav_converts_filenames(self, temp_directory) -> None:
         """Convert snake_case and kebab-case to Title Case."""
         guides_dir = temp_directory / "docs" / "guides"
         guides_dir.mkdir(parents=True)
@@ -72,7 +69,7 @@ class TestGuideDiscovery:
         assert guides_dict["Getting Started"] == "guides/getting_started.md", "Should have correct file path"
         assert guides_dict["Api Reference"] == "guides/api-reference.md", "Should preserve original filename in path"
 
-    def test_generate_guides_nav_ignores_non_markdown(self, temp_directory):
+    def test_generate_guides_nav_ignores_non_markdown(self, temp_directory) -> None:
         """Only include .md files."""
         guides_dir = temp_directory / "docs" / "guides"
         guides_dir.mkdir(parents=True)
@@ -93,7 +90,7 @@ class TestGuideDiscovery:
         assert len(guides_dict) == 1, "Should only include .md files"
         assert "Valid Guide" in guides_dict, "Should include the markdown file"
 
-    def test_generate_guides_nav_alphabetical_order(self, temp_directory):
+    def test_generate_guides_nav_alphabetical_order(self, temp_directory) -> None:
         """Sort guides alphabetically."""
         guides_dir = temp_directory / "docs" / "guides"
         guides_dir.mkdir(parents=True)
@@ -114,7 +111,7 @@ class TestGuideDiscovery:
         expected_order = ["Alpha", "Beta", "Middle", "Zebra"]
         assert guide_titles == expected_order, f"Should sort alphabetically: expected {expected_order}, got {guide_titles}"
 
-    def test_generate_guides_nav_empty_directory(self, temp_directory):
+    def test_generate_guides_nav_empty_directory(self, temp_directory) -> None:
         """Return empty when guides directory exists but is empty."""
         guides_dir = temp_directory / "docs" / "guides"
         guides_dir.mkdir(parents=True)
@@ -124,7 +121,7 @@ class TestGuideDiscovery:
 
         assert guides_nav == [], "Should return empty list when guides directory is empty"
 
-    def test_generate_guides_nav_subdirectories_ignored(self, temp_directory):
+    def test_generate_guides_nav_subdirectories_ignored(self, temp_directory) -> None:
         """Only process files in guides root, not subdirectories."""
         guides_dir = temp_directory / "docs" / "guides"
         guides_dir.mkdir(parents=True)

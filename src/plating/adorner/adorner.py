@@ -3,15 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
-
-#
-# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-#
-
-"""Core adorner implementation."""
-
 import asyncio
 from typing import Any
 
@@ -24,6 +15,8 @@ from plating.adorner.finder import ComponentFinder
 from plating.errors import AdorningError, handle_error
 import plating.registry
 from plating.templating.generator import TemplateGenerator
+
+"""Core adorner implementation."""
 
 
 class PlatingAdorner:
@@ -96,10 +89,11 @@ class PlatingAdorner:
                     # Get component class from components dict or from hub if available
                     component_class = components[name]
                     if component_class is None and hasattr(self.hub, "get_component"):
-                        try:
+                        from contextlib import suppress
+
+                        with suppress(Exception):
+                            # Fall back to None, _adorn_component will handle it
                             component_class = await asyncio.to_thread(self.hub.get_component, name)
-                        except Exception:
-                            pass  # Fall back to None, _adorn_component will handle it
                     success = await self._adorn_component(name, component_type, component_class)
                     if success:
                         adorned[component_type] += 1
