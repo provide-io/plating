@@ -203,7 +203,7 @@ def with_timing(func: F) -> F:
 
 
 @asynccontextmanager
-async def async_rate_limited(rate: float, burst: int = 10):
+async def async_rate_limited(rate: float, burst: int = 10) -> None:
     """Async context manager for rate limiting.
 
     Args:
@@ -225,7 +225,7 @@ class PlatingMetrics:
     """Centralized metrics collection for plating operations via structured logging."""
 
     @asynccontextmanager
-    async def track_operation(self, operation: str, **labels):
+    async def track_operation(self, operation: str, **labels) -> None:
         """Context manager for tracking operations with labels."""
         start = time.perf_counter()
 

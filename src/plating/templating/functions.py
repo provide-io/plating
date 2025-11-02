@@ -14,7 +14,7 @@ from provide.foundation import logger
 class SchemaRenderer:
     """Renders Pyvider schemas to markdown tables."""
 
-    def render_schema(self, schema) -> str:
+    def render_schema(self, schema: Any) -> str:
         """Render schema attributes and blocks to markdown table."""
         if not schema:
             return "No arguments available."
@@ -54,7 +54,7 @@ class SchemaRenderer:
 
         return "\n".join(lines)
 
-    def _format_type(self, type_info) -> str:
+    def _format_type(self, type_info: Any) -> str:
         """Format type information for display."""
         if isinstance(type_info, str):
             return type_info.title()
@@ -65,7 +65,7 @@ class SchemaRenderer:
         else:
             return str(type_info).title()
 
-    def _format_required(self, attr_def) -> str:
+    def _format_required(self, attr_def: Any) -> str:
         """Format required status for display."""
         if getattr(attr_def, "required", False):
             return "**Yes**"

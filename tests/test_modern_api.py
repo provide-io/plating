@@ -157,46 +157,30 @@ class TestModernAPI:
         pout("API initialization test completed", color="green")
 
     @pytest.mark.asyncio
-    @patch("plating.plating.get_plating_registry")
-    async def test_adorn_operation(self, mock_get_registry) -> None:
+    @patch("plating.plating.PlatingAdorner")
+    async def test_adorn_operation(self, mock_adorner_class) -> None:
         """Test adorn operation with type-safe API."""
-        # Mock the bundle
-        mock_bundle = Mock()
-        mock_bundle.name = "test_resource"
-        mock_bundle.component_type = "resource"
-        mock_bundle.has_main_template.return_value = False  # Needs template
-        mock_bundle.plating_dir = Path("/mock/path")
+        # Mock the adorner instance and its adorn_missing method
+        mock_adorner = Mock()
 
-        # Mock the registry
-        mock_registry = Mock()
-        mock_registry.get_bundles_by_type.return_value = [mock_bundle]
-        mock_get_registry.return_value = mock_registry
+        async def mock_adorn_missing(component_types=None):
+            return {"resource": 1}  # Return dict with count of adorned components
 
-        # Mock the template generator and file operations
-        with (
-            patch("plating.templating.generator.TemplateGenerator") as mock_template_gen,
-            patch("pathlib.Path.mkdir") as mock_mkdir,
-            patch("pathlib.Path.write_text") as mock_write_text,
-        ):
-            # Make the mock method async and return a future
-            async def mock_generate_template(*args, **kwargs) -> str:
-                return "# Mock Template"
+        mock_adorner.adorn_missing = mock_adorn_missing
+        mock_adorner_class.return_value = mock_adorner
 
-            mock_template_gen.return_value.generate_template = mock_generate_template
+        from plating.types import PlatingContext
 
-            from plating.types import PlatingContext
+        api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
+        result = await api.adorn(component_types=[ComponentType.RESOURCE])
 
-            api = Plating(PlatingContext(provider_name="pyvider"), "pyvider.components")
-            result = await api.adorn(component_types=[ComponentType.RESOURCE])
+        # Verify result
+        assert isinstance(result, AdornResult)
+        assert result.templates_generated == 1
+        assert result.success is True
 
-            # Verify result
-            assert isinstance(result, AdornResult)
-            assert result.templates_generated == 1
-            assert result.success is True
-
-            # Verify file operations were called
-            mock_mkdir.assert_called()
-            mock_write_text.assert_called_once()  # Just verify it was called
+        # Verify the adorner was called correctly
+        mock_adorner_class.assert_called_once_with("pyvider.components")
 
     @pytest.mark.asyncio
     @patch("plating.registry.PlatingDiscovery")

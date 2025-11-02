@@ -6,6 +6,7 @@
 import asyncio
 from pathlib import Path
 import sys
+from typing import Any
 
 import click
 from provide.foundation import logger, perr, pout
@@ -15,7 +16,7 @@ from provide.foundation.serialization import toml_loads
 
 from plating.errors import PlatingError
 from plating.plating import Plating
-from plating.types import ComponentType, PlatingContext
+from plating.types import ComponentType, PlatingContext, PlateResult
 
 """Modern CLI interface using the async Plating API with error handling."""
 
@@ -239,6 +240,7 @@ def main(ctx: click.Context, log_level: str | None, log_file: Path | None, log_f
     # Configure logging if options provided
     if log_level:
         from provide.foundation import LoggingConfig, TelemetryConfig, get_hub
+
         hub = get_hub()
         updated_config = TelemetryConfig(
             service_name="plating",
@@ -249,9 +251,9 @@ def main(ctx: click.Context, log_level: str | None, log_file: Path | None, log_f
 
     # Store options in context for subcommands
     ctx.ensure_object(dict)
-    ctx.obj['log_level'] = log_level
-    ctx.obj['log_file'] = log_file
-    ctx.obj['log_format'] = log_format
+    ctx.obj["log_level"] = log_level
+    ctx.obj["log_file"] = log_file
+    ctx.obj["log_format"] = log_format
 
 
 @main.command("adorn")
@@ -273,7 +275,7 @@ def main(ctx: click.Context, log_level: str | None, log_file: Path | None, log_f
     help="Filter to specific package (default: auto-detect from pyproject.toml).",
 )
 def adorn_command(
-    component_type: tuple[str, ...], provider_name: str | None, package_name: str | None, **kwargs
+    component_type: tuple[str, ...], provider_name: str | None, package_name: str | None, **kwargs: Any
 ) -> None:
     """Create missing documentation templates and examples."""
 
@@ -385,7 +387,7 @@ def _generate_examples_if_requested(
             perr(f"  • {error}")
 
 
-def _print_plate_success(result: "PlateResult") -> None:
+def _print_plate_success(result: PlateResult) -> None:
     """Print success message for plate operation.
 
     Args:
@@ -480,7 +482,7 @@ def plate_command(
     grouped_examples_dir: Path,
     guides_dir: Path | None,
     global_partials_dir: Path | None,
-    **kwargs
+    **kwargs: Any,
 ) -> None:
     """Generate documentation from plating bundles."""
 
@@ -495,8 +497,7 @@ def plate_command(
                 pout("🔍 Discovering all packages")
 
             context = PlatingContext(
-                provider_name=actual_provider_name,
-                global_partials_dir=global_partials_dir
+                provider_name=actual_provider_name, global_partials_dir=global_partials_dir
             )
             api = Plating(context, actual_package_name)
 
@@ -509,6 +510,7 @@ def plate_command(
             # Copy guides from source directory if provided
             if guides_dir:
                 import shutil
+
                 guides_output_dir = output_dir / "guides"
                 guides_output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -580,7 +582,11 @@ def plate_command(
     help="Filter to specific package (default: search all installed packages).",
 )
 def validate_command(
-    output_dir: Path, component_type: tuple[str, ...], provider_name: str | None, package_name: str | None, **kwargs
+    output_dir: Path,
+    component_type: tuple[str, ...],
+    provider_name: str | None,
+    package_name: str | None,
+    **kwargs,
 ) -> None:
     """Validate generated documentation."""
 

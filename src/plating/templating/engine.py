@@ -308,9 +308,9 @@ class AsyncTemplateEngine:
             return "", content
 
         # Extract frontmatter section (including delimiters)
-        frontmatter_section = content[:close_idx + 3]
+        frontmatter_section = content[: close_idx + 3]
         # Extract body (everything after closing delimiter)
-        body = content[close_idx + 3:].lstrip("\n")
+        body = content[close_idx + 3 :].lstrip("\n")
 
         return frontmatter_section, body
 
@@ -354,7 +354,7 @@ class AsyncTemplateEngine:
         Returns:
             File content as string, or empty string if file not found or no directory configured
         """
-        if not hasattr(context, 'global_partials_dir') or not context.global_partials_dir:
+        if not hasattr(context, "global_partials_dir") or not context.global_partials_dir:
             logger.debug(f"No global_partials_dir configured, skipping {filename}")
             return ""
 
