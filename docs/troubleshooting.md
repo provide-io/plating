@@ -188,6 +188,68 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 ```
 
+### 11. Inconsistent Headers/Footers Across Pages
+
+**Problem:** Global headers or footers appear on some pages but not others, or show different content than expected.
+
+**Symptoms:**
+- Some component types have headers/footers while others don't
+- Different pages show different versions of the same global content
+- Expected global content is missing from generated documentation
+- Headers/footers only appear after regenerating specific components
+
+**Root Cause:** Documentation files were generated at different times with different configurations, resulting in inconsistent global content injection.
+
+**Solution:**
+
+1. **Verify global partials are configured:**
+```bash
+# Check that global partials directory exists
+ls -la /path/to/global/partials/
+# Should contain: _global_header.md and/or _global_footer.md
+```
+
+2. **Ensure plating receives the configuration:**
+```bash
+# Pass global partials directory to plating
+plating plate --global-partials-dir /path/to/partials
+
+# Or configure in PlatingContext (Python API)
+context = PlatingContext(
+    provider_name="my_provider",
+    global_partials_dir=Path("/path/to/partials")
+)
+```
+
+3. **Clean and regenerate ALL documentation:**
+```bash
+# Remove all generated docs to ensure consistency
+rm -rf docs/resources/*.md docs/data-sources/*.md docs/functions/*.md
+
+# Regenerate everything together
+plating plate --global-partials-dir /path/to/partials --force
+```
+
+4. **Verify injection in logs:**
+```
+# During generation, look for:
+Loaded global file: /path/to/_global_header.md
+Loaded global file: /path/to/_global_footer.md
+```
+
+5. **Confirm complete coverage:**
+```bash
+# Verify all pages have the expected content
+grep -r "expected-content" docs/
+```
+
+**Important:** Global headers and footers are applied uniformly to ALL component types (resources, data sources, functions). If you see inconsistencies, it means some documentation is stale and needs regeneration.
+
+**Best Practice:** Always regenerate all documentation together when:
+- Updating global header/footer content
+- Adding or removing global partials configuration
+- Changing templates that affect page structure
+
 ## Debug Mode
 
 Enable verbose logging to troubleshoot issues:
