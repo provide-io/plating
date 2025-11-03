@@ -109,6 +109,11 @@ from plating.types import ComponentType, PlatingContext
     type=str,
     help="Provider namespace (e.g., 'local', 'hashicorp').",
 )
+@click.option(
+    "--flat-nav",
+    is_flag=True,
+    help="Generate flat registry-style navigation for link testing (default: grouped by capability).",
+)
 def plate_command(
     output_dir: Path,
     component_type: tuple[str, ...],
@@ -126,6 +131,7 @@ def plate_command(
     provider_source_remote: bool,
     registry_url: str | None,
     namespace: str | None,
+    flat_nav: bool,
     **kwargs: Any,
 ) -> None:
     """Generate documentation from plating bundles."""
@@ -210,7 +216,7 @@ def plate_command(
                 else:
                     pout(f"⚠️  No guide files (*.md) found in {actual_guides_dir}")
 
-            result = await api.plate(final_output_dir, types, force, validate, project_root)
+            result = await api.plate(final_output_dir, types, force, validate, project_root, flat_nav)
 
             if result.success:
                 print_plate_success(result)

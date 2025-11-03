@@ -108,6 +108,7 @@ class Plating:
         force: bool = False,
         validate_markdown: bool = True,
         project_root: Path | None = None,
+        flat_nav: bool = False,
     ) -> PlateResult:
         """Generate documentation from plating bundles.
 
@@ -117,6 +118,7 @@ class Plating:
             force: Overwrite existing files
             validate_markdown: Enable markdown validation
             project_root: Project root directory (auto-detected if not provided)
+            flat_nav: Generate flat registry-style navigation (default: grouped by capability)
 
         Returns:
             PlateResult with generation statistics
@@ -206,9 +208,14 @@ class Plating:
             # Generate mkdocs navigation
             if all_components_for_nav:
                 nav_generator = MkdocsNavGenerator(final_output_dir.parent)
-                nav_dict = nav_generator.generate_nav(all_components_for_nav, include_guides=True)
+                nav_dict = nav_generator.generate_nav(
+                    all_components_for_nav, include_guides=True, flat_layout=flat_nav
+                )
                 nav_generator.update_mkdocs_config(nav_dict)
-                logger.info("Generated mkdocs navigation structure")
+                if flat_nav:
+                    logger.info("Generated flat registry-style mkdocs navigation structure")
+                else:
+                    logger.info("Generated grouped mkdocs navigation structure")
         except Exception as e:
             logger.warning(f"Could not generate mkdocs navigation: {e}")
 
