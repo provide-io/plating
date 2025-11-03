@@ -200,21 +200,40 @@ def plate_command(
                     actual_guides_dir = default_guides_dir
                     pout(f"📚 Auto-detected guides directory: {actual_guides_dir}")
 
-            # Copy guides from source directory if provided or auto-detected
+            # Process guides and templates from source directory if provided or auto-detected
             if actual_guides_dir:
                 import shutil
+
+                from plating.core.guide_processor import GuideProcessingError, parse_template_file, process_template_file
 
                 guides_output_dir = output_dir / "guides"
                 guides_output_dir.mkdir(parents=True, exist_ok=True)
 
-                # Copy all .md files from actual_guides_dir to output_dir/guides/
-                guide_files = list(actual_guides_dir.glob("*.md"))
-                if guide_files:
-                    pout(f"📚 Copying {len(guide_files)} guide(s) from {actual_guides_dir} to {guides_output_dir}")
-                    for guide_file in guide_files:
-                        shutil.copy2(guide_file, guides_output_dir / guide_file.name)
+                # Find all markdown files
+                md_files = list(actual_guides_dir.glob("*.md"))
+                tmpl_files = list(actual_guides_dir.glob("*.tmpl.md"))
+                regular_guides = [f for f in md_files if not f.name.endswith(".tmpl.md")]
+
+                if md_files or tmpl_files:
+                    # Process template files first
+                    if tmpl_files:
+                        pout(f"📝 Processing {len(tmpl_files)} template file(s) from {actual_guides_dir}")
+                        for tmpl_file in tmpl_files:
+                            try:
+                                template = parse_template_file(tmpl_file)
+                                output_path = process_template_file(template, output_dir)
+                                pout(f"   ✓ {tmpl_file.name} → {output_path.relative_to(output_dir)}")
+                            except GuideProcessingError as e:
+                                perr(f"   ✗ {tmpl_file.name}: {e.to_user_message()}")
+                                return 1
+
+                    # Copy regular guide files
+                    if regular_guides:
+                        pout(f"📚 Copying {len(regular_guides)} guide(s) from {actual_guides_dir} to {guides_output_dir}")
+                        for guide_file in regular_guides:
+                            shutil.copy2(guide_file, guides_output_dir / guide_file.name)
                 else:
-                    pout(f"⚠️  No guide files (*.md) found in {actual_guides_dir}")
+                    pout(f"⚠️  No guide or template files found in {actual_guides_dir}")
 
             result = await api.plate(final_output_dir, types, force, validate, project_root, flat_nav)
 
