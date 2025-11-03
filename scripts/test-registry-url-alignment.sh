@@ -91,8 +91,8 @@ for component in "${components[@]}"; do
     registry_status=$(curl -s -o /dev/null -w "%{http_code}" "$REGISTRY_URL/docs/$component" 2>/dev/null || echo "000")
 
     # Test local URL (extract base path from site_url in mkdocs.yml)
-    # Assuming site_url format: https://registry.terraform.io/providers/provide-io/pyvider/latest
-    local_url="http://localhost:$LOCAL_PORT/providers/provide-io/pyvider/latest/$component/"
+    # Assuming site_url format: https://registry.terraform.io/providers/provide-io/pyvider/latest/docs
+    local_url="http://localhost:$LOCAL_PORT/providers/provide-io/pyvider/latest/docs/$component/"
     local_status=$(curl -s -o /dev/null -w "%{http_code}" "$local_url" 2>/dev/null || echo "000")
 
     if [ "$registry_status" = "200" ] && [ "$local_status" = "200" ]; then
@@ -117,11 +117,11 @@ if [ $FAIL_COUNT -eq 0 ]; then
     echo "All $TOTAL_COUNT tested components are accessible on both Registry and local server!"
     echo ""
     echo "Copy-Paste Workflow:"
-    echo "  1. Copy slug from Registry:"
+    echo "  1. Copy URL from Registry:"
     echo "     $REGISTRY_URL/docs/[SLUG]"
     echo ""
-    echo "  2. Paste into local (adjust path):"
-    echo "     http://localhost:$LOCAL_PORT/providers/provide-io/pyvider/latest/[SLUG]/"
+    echo "  2. Paste as local URL (change domain only):"
+    echo "     http://localhost:$LOCAL_PORT/providers/provide-io/pyvider/latest/docs/[SLUG]/"
     echo ""
     exit 0
 else
