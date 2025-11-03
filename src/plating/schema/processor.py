@@ -35,7 +35,13 @@ if TYPE_CHECKING:
 class SchemaProcessor:
     """Handles schema extraction and processing."""
 
-    def __init__(self, generator: "DocsGenerator") -> None:
+    def __init__(
+        self,
+        generator: "DocsGenerator",
+        provider_source: str | None = None,
+        registry_url: str | None = None,
+        namespace: str | None = None,
+    ) -> None:
         self.generator = generator
         # Set up retry policy for schema operations
         self.retry_policy = RetryPolicy(
@@ -48,6 +54,23 @@ class SchemaProcessor:
         self.retry_executor = RetryExecutor(self.retry_policy)
         # Initialize foundation hub for component discovery
         self.hub = Hub()
+
+        # Provider source configuration
+        self.provider_source = provider_source or "local"
+        self.registry_url = registry_url or "registry.terraform.io"
+        self.namespace = namespace or "local"
+
+    def get_registry_path(self) -> str:
+        """Build the registry path based on provider source configuration.
+
+        Returns:
+            Registry path string (e.g., "registry.terraform.io/local/providers/pyvider")
+        """
+        if self.provider_source == "local":
+            return f"{self.registry_url}/{self.namespace}/providers/{self.generator.provider_name}"
+        else:
+            # For remote providers
+            return f"{self.registry_url}/{self.namespace}/{self.generator.provider_name}"
 
     def extract_provider_schema(self) -> dict[str, Any]:
         """Extract provider schema using foundation's component discovery."""
@@ -81,9 +104,10 @@ class SchemaProcessor:
             f"   Found {len(resources)} resources, {len(data_sources)} data sources, {len(functions)} functions"
         )
 
+        registry_path = self.get_registry_path()
         provider_schema = {
             "provider_schemas": {
-                f"registry.terraform.io/local/providers/{self.generator.provider_name}": {
+                registry_path: {
                     "provider": self._get_provider_schema(providers),
                     "resource_schemas": self._get_component_schemas(resources),
                     "data_source_schemas": self._get_component_schemas(data_sources),
@@ -91,6 +115,7 @@ class SchemaProcessor:
                 }
             }
         }
+        logger.debug(f"Built provider schema with registry path: {registry_path}")
         return provider_schema
 
     def _get_components_by_dimension(self, dimension: str) -> dict[str, Any]:
@@ -259,9 +284,8 @@ provider "{self.generator.provider_name}" {{}}
             return
 
         # Create provider info
-        provider_schema = schema.get("provider_schemas", {}).get(
-            f"registry.terraform.io/local/providers/{self.generator.provider_name}", {}
-        )
+        registry_path = self.get_registry_path()
+        provider_schema = schema.get("provider_schemas", {}).get(registry_path, {})
         provider_config_schema = provider_schema.get("provider", {})
 
         self.generator.provider_info = ProviderInfo(

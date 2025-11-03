@@ -32,6 +32,7 @@ dependencies = [
     "provide-foundation[all]",
     "pymarkdownlnt>=0.9.32",
     "mkdocs-material>=9.6.20",
+    "tomli-w>=1.2.0",
 ]
 
 [dependency-groups]

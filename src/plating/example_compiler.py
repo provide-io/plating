@@ -39,19 +39,29 @@ class ExampleCompiler:
         self,
         provider_name: str,
         provider_version: str = "0.0.0-0",
+        provider_source: str | None = None,
+        registry_url: str | None = None,
+        namespace: str | None = None,
     ) -> None:
         """Initialize the example compiler.
 
         Args:
             provider_name: Name of the Terraform provider
             provider_version: Version of the provider
+            provider_source: Provider source type ('local' or 'remote')
+            registry_url: Registry URL (e.g., 'registry.terraform.io')
+            namespace: Provider namespace (e.g., 'local', 'provide-io')
         """
         self.provider_name = provider_name
         self.provider_version = provider_version
 
         # Initialize both compilers
-        self.single_compiler = SingleExampleCompiler(provider_name, provider_version)
-        self.grouped_compiler = GroupedExampleCompiler(provider_name, provider_version)
+        self.single_compiler = SingleExampleCompiler(
+            provider_name, provider_version, provider_source, registry_url, namespace
+        )
+        self.grouped_compiler = GroupedExampleCompiler(
+            provider_name, provider_version, provider_source, registry_url, namespace
+        )
 
     def compile_examples(
         self,

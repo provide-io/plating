@@ -4,8 +4,8 @@
 """Plate command implementation."""
 
 import asyncio
-import sys
 from pathlib import Path
+import sys
 from typing import Any
 
 import click
@@ -17,6 +17,7 @@ from plating.cli.helpers.examples import generate_examples_if_requested
 from plating.cli.helpers.output import print_plate_success
 from plating.errors import PlatingError
 from plating.plating import Plating
+from plating.resolution.source import resolve_provider_source
 from plating.types import ComponentType, PlatingContext
 
 
@@ -60,9 +61,9 @@ from plating.types import ComponentType, PlatingContext
     help="Project root directory (auto-detected if not provided).",
 )
 @click.option(
-    "--generate-examples",
-    is_flag=True,
-    help="Generate executable example files alongside documentation.",
+    "--generate-examples/--no-generate-examples",
+    default=True,
+    help="Generate executable example files alongside documentation (default: enabled).",
 )
 @click.option(
     "--examples-dir",
@@ -86,6 +87,28 @@ from plating.types import ComponentType, PlatingContext
     type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
     help="Directory containing global partials (_global_header.md, _global_footer.md).",
 )
+@click.option(
+    "--local",
+    "provider_source_local",
+    is_flag=True,
+    help="Use local provider source (overrides auto-detection).",
+)
+@click.option(
+    "--remote",
+    "provider_source_remote",
+    is_flag=True,
+    help="Use remote provider source (overrides auto-detection).",
+)
+@click.option(
+    "--registry-url",
+    type=str,
+    help="Provider registry URL (e.g., registry.terraform.io).",
+)
+@click.option(
+    "--namespace",
+    type=str,
+    help="Provider namespace (e.g., 'local', 'hashicorp').",
+)
 def plate_command(
     output_dir: Path,
     component_type: tuple[str, ...],
@@ -99,6 +122,10 @@ def plate_command(
     grouped_examples_dir: Path,
     guides_dir: Path | None,
     global_partials_dir: Path | None,
+    provider_source_local: bool,
+    provider_source_remote: bool,
+    registry_url: str | None,
+    namespace: str | None,
     **kwargs: Any,
 ) -> None:
     """Generate documentation from plating bundles."""
@@ -113,7 +140,44 @@ def plate_command(
             else:
                 pout("🔍 Discovering all packages")
 
-            context = PlatingContext(provider_name=actual_provider_name, global_partials_dir=global_partials_dir)
+            # Validate mutually exclusive flags
+            if provider_source_local and provider_source_remote:
+                perr("❌ Error: --local and --remote are mutually exclusive")
+                return 1
+
+            # Determine CLI source from flags
+            cli_source = None
+            if provider_source_local:
+                cli_source = "local"
+            elif provider_source_remote:
+                cli_source = "remote"
+
+            # Resolve provider source with precedence
+            resolution = resolve_provider_source(
+                provider_name=actual_provider_name,
+                package_name=actual_package_name,
+                cli_source=cli_source,
+                cli_registry_url=registry_url,
+                cli_namespace=namespace,
+            )
+
+            # Show resolution info
+            pout(f"📦 Provider source: {resolution.source}")
+            if resolution.source == "local":
+                pout(
+                    f"   Registry: {resolution.registry_url}/{resolution.namespace}/providers/{actual_provider_name}"
+                )
+            else:
+                pout(f"   Registry: {resolution.registry_url}/{resolution.namespace}/{actual_provider_name}")
+            logger.debug(f"Resolution path: {' → '.join(resolution.resolution_path)}")
+
+            context = PlatingContext(
+                provider_name=actual_provider_name,
+                global_partials_dir=global_partials_dir,
+                provider_source=resolution.source,
+                provider_registry_url=resolution.registry_url,
+                provider_namespace=resolution.namespace,
+            )
             api = Plating(context, actual_package_name)
 
             # Convert string types to ComponentType enums
@@ -122,21 +186,29 @@ def plate_command(
             # Handle output_dir default behavior - if not specified, let the API auto-detect
             final_output_dir = output_dir if output_dir != Path("docs") else None
 
-            # Copy guides from source directory if provided
-            if guides_dir:
+            # Auto-detect guides directory if not provided
+            actual_guides_dir = guides_dir
+            if actual_guides_dir is None:
+                default_guides_dir = Path("guides")
+                if default_guides_dir.exists() and default_guides_dir.is_dir():
+                    actual_guides_dir = default_guides_dir
+                    pout(f"📚 Auto-detected guides directory: {actual_guides_dir}")
+
+            # Copy guides from source directory if provided or auto-detected
+            if actual_guides_dir:
                 import shutil
 
                 guides_output_dir = output_dir / "guides"
                 guides_output_dir.mkdir(parents=True, exist_ok=True)
 
-                # Copy all .md files from guides_dir to output_dir/guides/
-                guide_files = list(guides_dir.glob("*.md"))
+                # Copy all .md files from actual_guides_dir to output_dir/guides/
+                guide_files = list(actual_guides_dir.glob("*.md"))
                 if guide_files:
-                    pout(f"📚 Copying {len(guide_files)} guide(s) from {guides_dir} to {guides_output_dir}")
+                    pout(f"📚 Copying {len(guide_files)} guide(s) from {actual_guides_dir} to {guides_output_dir}")
                     for guide_file in guide_files:
                         shutil.copy2(guide_file, guides_output_dir / guide_file.name)
                 else:
-                    pout(f"⚠️  No guide files (*.md) found in {guides_dir}")
+                    pout(f"⚠️  No guide files (*.md) found in {actual_guides_dir}")
 
             result = await api.plate(final_output_dir, types, force, validate, project_root)
 

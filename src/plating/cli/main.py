@@ -10,6 +10,7 @@ from provide.foundation import logger
 from provide.foundation.cli.decorators import logging_options
 
 from plating.cli.commands.adorn import adorn_command
+from plating.cli.commands.config import config_command
 from plating.cli.commands.info import info_command
 from plating.cli.commands.plate import plate_command
 from plating.cli.commands.stats import stats_command
@@ -46,6 +47,7 @@ main.add_command(plate_command)
 main.add_command(validate_command)
 main.add_command(info_command)
 main.add_command(stats_command)
+main.add_command(config_command)
 
 
 if __name__ == "__main__":

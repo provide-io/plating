@@ -198,6 +198,9 @@ class PlatingCLIContext(CLIContext):
         signature: str | None = None,
         arguments: list[ArgumentInfo] | None = None,
         global_partials_dir: Path | None = None,
+        provider_source: str | None = None,
+        provider_registry_url: str | None = None,
+        provider_namespace: str | None = None,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
@@ -210,6 +213,9 @@ class PlatingCLIContext(CLIContext):
         self.signature = signature
         self.arguments = arguments
         self.global_partials_dir = global_partials_dir
+        self.provider_source = provider_source
+        self.provider_registry_url = provider_registry_url
+        self.provider_namespace = provider_namespace
 
     def to_dict(self, include_sensitive: bool = False) -> dict[str, Any]:
         """Convert to dictionary for template rendering."""
@@ -236,6 +242,14 @@ class PlatingCLIContext(CLIContext):
         # Include global_partials_dir if set (needed for template rendering)
         if self.global_partials_dir:
             plating_dict["global_partials_dir"] = self.global_partials_dir
+
+        # Include provider source configuration if set
+        if self.provider_source:
+            plating_dict["provider_source"] = self.provider_source
+        if self.provider_registry_url:
+            plating_dict["provider_registry_url"] = self.provider_registry_url
+        if self.provider_namespace:
+            plating_dict["provider_namespace"] = self.provider_namespace
 
         return {**base_dict, **plating_dict}
 
@@ -275,6 +289,9 @@ class PlatingCLIContext(CLIContext):
         description = data.get("description", "")
         examples = data.get("examples", {})
         signature = data.get("signature")
+        provider_source = data.get("provider_source")
+        provider_registry_url = data.get("provider_registry_url")
+        provider_namespace = data.get("provider_namespace")
 
         # Handle component_type conversion
         component_type = ComponentType.RESOURCE  # default
@@ -328,6 +345,9 @@ class PlatingCLIContext(CLIContext):
             examples=examples,
             signature=signature,
             arguments=arguments,
+            provider_source=provider_source,
+            provider_registry_url=provider_registry_url,
+            provider_namespace=provider_namespace,
             **parent_kwargs,
         )
 
