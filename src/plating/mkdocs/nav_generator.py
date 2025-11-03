@@ -161,15 +161,21 @@ class MkdocsNavGenerator:
             for component, _ in sorted(components, key=lambda x: x[0].name):
                 # Create display name (without provider prefix for resources/data sources)
                 display_name = component.name
+                file_name = component.name  # For file path
+
                 if comp_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE]:
-                    # Strip provider prefix for cleaner display
-                    if "_" in display_name:
-                        parts = display_name.split("_", 1)
+                    # Strip provider prefix for cleaner display and file paths
+                    if "_" in component.name:
+                        parts = component.name.split("_", 1)
                         if len(parts) == 2:
                             display_name = parts[1]
+                            file_name = parts[1]  # File is also named without prefix
+                elif comp_type == ComponentType.FUNCTION:
+                    # Functions don't have provider prefix in the file name
+                    file_name = component.name
 
-                # Create file path
-                file_path = f"{comp_type.output_subdir}/{component.name}.md"
+                # Create file path using stripped name
+                file_path = f"{comp_type.output_subdir}/{file_name}.md"
                 component_links[display_name] = file_path
 
             if component_links:

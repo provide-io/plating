@@ -29,15 +29,40 @@ class SingleCompilationResult:
 class SingleExampleCompiler:
     """Compiles single-component executable Terraform examples."""
 
-    def __init__(self, provider_name: str, provider_version: str = "0.0.0-0") -> None:
+    def __init__(
+        self,
+        provider_name: str,
+        provider_version: str = "0.0.0-0",
+        provider_source: str | None = None,
+        registry_url: str | None = None,
+        namespace: str | None = None,
+    ) -> None:
         """Initialize the single example compiler.
 
         Args:
             provider_name: Name of the Terraform provider
             provider_version: Version of the provider
+            provider_source: Provider source type ('local' or 'remote')
+            registry_url: Registry URL (e.g., 'registry.terraform.io')
+            namespace: Provider namespace (e.g., 'local', 'provide-io')
         """
         self.provider_name = provider_name
         self.provider_version = provider_version
+        self.provider_source = provider_source or "local"
+        self.registry_url = registry_url or "registry.terraform.io"
+        self.namespace = namespace or "local"
+
+    def _build_provider_source_path(self) -> str:
+        """Build the provider source path based on configuration.
+
+        Returns:
+            Provider source path (e.g., 'local/providers/pyvider' or 'provide-io/pyvider')
+        """
+        if self.provider_source == "local":
+            return f"{self.namespace}/providers/{self.provider_name}"
+        else:
+            # Remote provider
+            return f"{self.namespace}/{self.provider_name}"
 
     def compile_examples(
         self,
@@ -221,10 +246,11 @@ class SingleExampleCompiler:
             provider_config = """  pyvider_testmode = true
 """
 
+        provider_source_path = self._build_provider_source_path()
         provider_content = f"""terraform {{
   required_providers {{
     {self.provider_name} = {{
-      source  = "local/providers/{self.provider_name}"
+      source  = "{provider_source_path}"
     }}
   }}
 }}

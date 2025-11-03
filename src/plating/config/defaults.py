@@ -47,6 +47,20 @@ ENV_PLATING_OUTPUT_DIR = "PLATING_OUTPUT_DIR"
 ENV_TF_PLUGIN_CACHE_DIR = "TF_PLUGIN_CACHE_DIR"
 
 # =================================
+# Provider source configuration
+# =================================
+DEFAULT_PROVIDER_SOURCE = "auto"  # Options: "auto", "local", "remote"
+DEFAULT_PROVIDER_REGISTRY_URL = "registry.terraform.io"
+DEFAULT_PROVIDER_NAMESPACE = "local"
+DEFAULT_AUTO_DETECT_ENABLED = True
+
+# Environment variable names for provider source
+ENV_PLATING_PROVIDER_SOURCE = "PLATING_PROVIDER_SOURCE"
+ENV_PLATING_REGISTRY_URL = "PLATING_REGISTRY_URL"
+ENV_PLATING_PROVIDER_NAMESPACE = "PLATING_PROVIDER_NAMESPACE"
+ENV_PLATING_AUTO_DETECT = "PLATING_AUTO_DETECT"
+
+# =================================
 # Package discovery defaults
 # =================================
 # Note: No default package name - must be specified explicitly

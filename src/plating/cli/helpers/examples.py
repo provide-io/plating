@@ -47,6 +47,9 @@ def generate_examples_if_requested(
     compiler = ExampleCompiler(
         provider_name=provider_name or "pyvider",
         provider_version="0.0.0-0",
+        provider_source=api.context.provider_source,
+        registry_url=api.context.provider_registry_url,
+        namespace=api.context.provider_namespace,
     )
 
     compilation_result = compiler.compile_examples(

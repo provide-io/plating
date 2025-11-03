@@ -12,19 +12,27 @@ from attrs import define
 from provide.foundation.config import RuntimeConfig, field
 
 from plating.config.defaults import (
+    DEFAULT_AUTO_DETECT_ENABLED,
     DEFAULT_DATA_SOURCES_DIR,
     DEFAULT_EXAMPLE_PLACEHOLDER,
     DEFAULT_FALLBACK_ARGUMENTS_MARKDOWN,
     DEFAULT_FALLBACK_SIGNATURE_FORMAT,
     DEFAULT_FUNCTIONS_DIR,
     DEFAULT_OUTPUT_DIR,
+    DEFAULT_PROVIDER_NAMESPACE,
+    DEFAULT_PROVIDER_REGISTRY_URL,
+    DEFAULT_PROVIDER_SOURCE,
     DEFAULT_RESOURCES_DIR,
     DEFAULT_TEST_PARALLEL,
     DEFAULT_TEST_TIMEOUT,
+    ENV_PLATING_AUTO_DETECT,
     ENV_PLATING_EXAMPLE_PLACEHOLDER,
     ENV_PLATING_FALLBACK_ARGUMENTS,
     ENV_PLATING_FALLBACK_SIGNATURE,
     ENV_PLATING_OUTPUT_DIR,
+    ENV_PLATING_PROVIDER_NAMESPACE,
+    ENV_PLATING_PROVIDER_SOURCE,
+    ENV_PLATING_REGISTRY_URL,
     ENV_PLATING_TEST_PARALLEL,
     ENV_PLATING_TEST_TIMEOUT,
     ENV_PLATING_TF_BINARY,
@@ -63,6 +71,28 @@ class PlatingConfig(RuntimeConfig):
         default=None,
         description="Terraform plugin cache directory",
         env_var=ENV_TF_PLUGIN_CACHE_DIR,
+    )
+
+    # Provider source configuration
+    provider_source: str = field(
+        default=DEFAULT_PROVIDER_SOURCE,
+        description="Provider source type: 'auto', 'local', or 'remote'",
+        env_var=ENV_PLATING_PROVIDER_SOURCE,
+    )
+    provider_registry_url: str = field(
+        default=DEFAULT_PROVIDER_REGISTRY_URL,
+        description="Provider registry URL for remote providers",
+        env_var=ENV_PLATING_REGISTRY_URL,
+    )
+    provider_namespace: str = field(
+        default=DEFAULT_PROVIDER_NAMESPACE,
+        description="Provider namespace (e.g., 'local', 'hashicorp')",
+        env_var=ENV_PLATING_PROVIDER_NAMESPACE,
+    )
+    auto_detect_enabled: bool = field(
+        default=DEFAULT_AUTO_DETECT_ENABLED,
+        description="Enable auto-detection of provider source",
+        env_var=ENV_PLATING_AUTO_DETECT,
     )
 
     # Test execution configuration

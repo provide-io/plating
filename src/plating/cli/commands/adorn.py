@@ -14,6 +14,7 @@ from provide.foundation.cli.decorators import flexible_options
 from plating.cli.helpers.auto_detect import get_package_name, get_provider_name
 from plating.errors import PlatingError
 from plating.plating import Plating
+from plating.resolution.source import resolve_provider_source
 from plating.types import ComponentType, PlatingContext
 
 
@@ -35,8 +36,37 @@ from plating.types import ComponentType, PlatingContext
     type=str,
     help="Filter to specific package (default: auto-detect from pyproject.toml).",
 )
+@click.option(
+    "--local",
+    "provider_source_local",
+    is_flag=True,
+    help="Use local provider source (overrides auto-detection).",
+)
+@click.option(
+    "--remote",
+    "provider_source_remote",
+    is_flag=True,
+    help="Use remote provider source (overrides auto-detection).",
+)
+@click.option(
+    "--registry-url",
+    type=str,
+    help="Provider registry URL (e.g., registry.terraform.io).",
+)
+@click.option(
+    "--namespace",
+    type=str,
+    help="Provider namespace (e.g., 'local', 'hashicorp').",
+)
 def adorn_command(
-    component_type: tuple[str, ...], provider_name: str | None, package_name: str | None, **kwargs: Any
+    component_type: tuple[str, ...],
+    provider_name: str | None,
+    package_name: str | None,
+    provider_source_local: bool,
+    provider_source_remote: bool,
+    registry_url: str | None,
+    namespace: str | None,
+    **kwargs: Any,
 ) -> None:
     """Create missing documentation templates and examples."""
 
@@ -50,7 +80,36 @@ def adorn_command(
                     "Could not auto-detect package name. Please provide --package-name or run from a directory with pyproject.toml"
                 )
 
-            context = PlatingContext(provider_name=actual_provider_name)
+            # Validate mutually exclusive flags
+            if provider_source_local and provider_source_remote:
+                perr("❌ Error: --local and --remote are mutually exclusive")
+                return 1
+
+            # Determine CLI source from flags
+            cli_source = None
+            if provider_source_local:
+                cli_source = "local"
+            elif provider_source_remote:
+                cli_source = "remote"
+
+            # Resolve provider source with precedence
+            resolution = resolve_provider_source(
+                provider_name=actual_provider_name,
+                package_name=actual_package_name,
+                cli_source=cli_source,
+                cli_registry_url=registry_url,
+                cli_namespace=namespace,
+            )
+
+            logger.debug(f"Provider source: {resolution.source}")
+            logger.debug(f"Resolution path: {' → '.join(resolution.resolution_path)}")
+
+            context = PlatingContext(
+                provider_name=actual_provider_name,
+                provider_source=resolution.source,
+                provider_registry_url=resolution.registry_url,
+                provider_namespace=resolution.namespace,
+            )
             api = Plating(context, actual_package_name)
 
             # Convert string types to ComponentType enums
