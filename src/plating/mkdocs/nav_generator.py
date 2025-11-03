@@ -34,12 +34,14 @@ class MkdocsNavGenerator:
         self,
         components: list[tuple[PlatingBundle, ComponentType]],
         include_guides: bool = True,
+        flat_layout: bool = False,
     ) -> dict[str, Any]:
-        """Generate navigation structure grouped by capability.
+        """Generate navigation structure grouped by capability or flat.
 
         Args:
             components: List of (component, component_type) tuples
             include_guides: Whether to include guides section
+            flat_layout: If True, generate flat registry-style navigation
 
         Returns:
             Navigation dictionary suitable for mkdocs.yml
@@ -55,14 +57,24 @@ class MkdocsNavGenerator:
             if guides_nav:
                 nav.extend(guides_nav)
 
-        # Group components by capability
-        grouped = group_components_by_capability(components)
+        # Generate navigation based on layout mode
+        if flat_layout:
+            # Flat registry-style layout
+            flat_nav = self._generate_flat_nav(components)
+            nav.extend(flat_nav)
+        else:
+            # Grouped capability layout
+            grouped = group_components_by_capability(components)
 
-        # Generate navigation for each capability
-        for capability, types_dict in grouped.items():
-            capability_nav = self._generate_capability_section(capability, types_dict)
-            if capability_nav:
-                nav.append(capability_nav)
+            # Generate navigation for each capability
+            for capability, types_dict in grouped.items():
+                capability_nav = self._generate_capability_section(capability, types_dict)
+                if capability_nav:
+                    # capability_nav can be a list (for None capability) or dict (for named capability)
+                    if isinstance(capability_nav, list):
+                        nav.extend(capability_nav)
+                    else:
+                        nav.append(capability_nav)
 
         return {"nav": nav}
 
@@ -132,10 +144,14 @@ class MkdocsNavGenerator:
 
     def _generate_capability_section(
         self,
-        capability: str,
+        capability: str | None,
         types_dict: dict[ComponentType, list[tuple[PlatingBundle, ComponentType]]],
-    ) -> dict[str, Any] | None:
-        """Generate navigation section for a capability."""
+    ) -> dict[str, Any] | list[dict[str, Any]] | None:
+        """Generate navigation section for a capability.
+
+        For None capability (uncategorized components), returns a list of top-level sections.
+        For named capabilities, returns a single dict with the capability as key.
+        """
         section = {}
 
         # Order: resources, data sources, functions
@@ -181,10 +197,82 @@ class MkdocsNavGenerator:
             if component_links:
                 section[type_display] = component_links
 
-        if section:
-            return {capability: section}
+        if not section:
+            return None
 
-        return None
+        # Handle None capability: return top-level sections (no category wrapper)
+        if capability is None:
+            # Return list of top-level sections, one for each component type
+            result = []
+            for type_display, component_links in section.items():
+                result.append({type_display: component_links})
+            return result
+
+        # Named capability: return wrapped in capability key
+        return {capability: section}
+
+    def _generate_flat_nav(
+        self,
+        components: list[tuple[PlatingBundle, ComponentType]],
+    ) -> list[dict[str, Any]]:
+        """Generate flat registry-style navigation.
+
+        Merges ALL components into flat A-Z lists by type, ignoring capability grouping.
+        Returns: [Resources, Data Sources, Functions] sections with all components merged.
+        """
+        from collections import defaultdict
+
+        # Group all components by type only (ignore capability)
+        by_type: dict[ComponentType, list[PlatingBundle]] = defaultdict(list)
+
+        for component, comp_type in components:
+            by_type[comp_type].append(component)
+
+        # Generate flat sections
+        nav = []
+        type_order = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
+
+        for comp_type in type_order:
+            if comp_type not in by_type:
+                continue
+
+            components_list = by_type[comp_type]
+            if not components_list:
+                continue
+
+            # Get display name for component type
+            type_display = {
+                ComponentType.RESOURCE: "Resources",
+                ComponentType.DATA_SOURCE: "Data Sources",
+                ComponentType.FUNCTION: "Functions",
+            }.get(comp_type, str(comp_type))
+
+            # Create component links (sorted A-Z)
+            component_links = {}
+            for component in sorted(components_list, key=lambda x: x.name):
+                # Create display name (without provider prefix for resources/data sources)
+                display_name = component.name
+                file_name = component.name
+
+                if comp_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE]:
+                    # Strip provider prefix for cleaner display and file paths
+                    if "_" in component.name:
+                        parts = component.name.split("_", 1)
+                        if len(parts) == 2:
+                            display_name = parts[1]
+                            file_name = parts[1]
+                elif comp_type == ComponentType.FUNCTION:
+                    # Functions don't have provider prefix
+                    file_name = component.name
+
+                # Create file path
+                file_path = f"{comp_type.output_subdir}/{file_name}.md"
+                component_links[display_name] = file_path
+
+            if component_links:
+                nav.append({type_display: component_links})
+
+        return nav
 
     def update_mkdocs_config(self, nav: dict[str, Any]) -> None:
         """Update mkdocs.yml with generated navigation.
