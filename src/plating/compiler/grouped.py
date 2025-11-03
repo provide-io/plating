@@ -37,7 +37,7 @@ class ExampleGroup:
 class GroupedExampleCompiler:
     """Compiles grouped (cross-component) examples from plating bundles."""
 
-    def __init__(self, provider_name: str, provider_version: str = "0.0.5") -> None:
+    def __init__(self, provider_name: str, provider_version: str = "0.0.0-0") -> None:
         """Initialize the grouped example compiler.
 
         Args:
@@ -212,8 +212,7 @@ class GroupedExampleCompiler:
 
   required_providers {{
     {self.provider_name} = {{
-      source = "hashicorp/{self.provider_name}"
-      version = "{self.provider_version}"
+      source = "local/providers/{self.provider_name}"
     }}
   }}
 }}
