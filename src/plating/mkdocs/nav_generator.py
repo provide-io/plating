@@ -129,8 +129,8 @@ class MkdocsNavGenerator:
 
             guides_with_order.append((guide_order, page_title, guide_file.name))
 
-        # Sort by guide_order, then by filename
-        guides_with_order.sort(key=lambda x: (x[0], x[2]))
+        # Sort by guide_order, then by page_title (alphabetically)
+        guides_with_order.sort(key=lambda x: (x[0], x[1]))
 
         guides_section = {}
         for _, title, filename in guides_with_order:
