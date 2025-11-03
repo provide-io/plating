@@ -38,7 +38,7 @@ class ExampleCompiler:
     def __init__(
         self,
         provider_name: str,
-        provider_version: str = "0.0.5",
+        provider_version: str = "0.0.0-0",
     ) -> None:
         """Initialize the example compiler.
 

@@ -29,7 +29,7 @@ class SingleCompilationResult:
 class SingleExampleCompiler:
     """Compiles single-component executable Terraform examples."""
 
-    def __init__(self, provider_name: str, provider_version: str = "0.0.5") -> None:
+    def __init__(self, provider_name: str, provider_version: str = "0.0.0-0") -> None:
         """Initialize the single example compiler.
 
         Args:
@@ -218,14 +218,13 @@ class SingleExampleCompiler:
         # Add test_mode config if needed
         provider_config = ""
         if is_test_only:
-            provider_config = """  provider_testmode = true
+            provider_config = """  pyvider_testmode = true
 """
 
         provider_content = f"""terraform {{
   required_providers {{
     {self.provider_name} = {{
       source  = "local/providers/{self.provider_name}"
-      version = ">= {self.provider_version}"
     }}
   }}
 }}

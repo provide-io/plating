@@ -46,7 +46,7 @@ def generate_examples_if_requested(
 
     compiler = ExampleCompiler(
         provider_name=provider_name or "pyvider",
-        provider_version="0.0.5",
+        provider_version="0.0.0-0",
     )
 
     compilation_result = compiler.compile_examples(
