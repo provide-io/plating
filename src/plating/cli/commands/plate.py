@@ -219,7 +219,11 @@ def plate_command(
             if actual_guides_dir:
                 import shutil
 
-                from plating.core.guide_processor import GuideProcessingError, parse_template_file, process_template_file
+                from plating.core.guide_processor import (
+                    GuideProcessingError,
+                    parse_template_file,
+                    process_template_file,
+                )
 
                 guides_output_dir = output_dir / "guides"
                 guides_output_dir.mkdir(parents=True, exist_ok=True)
@@ -259,7 +263,9 @@ def plate_command(
 
                     # Copy regular guide files
                     if regular_guides:
-                        pout(f"📚 Copying {len(regular_guides)} guide(s) from {actual_guides_dir} to {guides_output_dir}")
+                        pout(
+                            f"📚 Copying {len(regular_guides)} guide(s) from {actual_guides_dir} to {guides_output_dir}"
+                        )
                         for guide_file in regular_guides:
                             shutil.copy2(guide_file, guides_output_dir / guide_file.name)
                 else:
