@@ -177,9 +177,18 @@ def plate_command(
                 pout(f"   Registry: {resolution.registry_url}/{resolution.namespace}/{actual_provider_name}")
             logger.debug(f"Resolution path: {' → '.join(resolution.resolution_path)}")
 
+            # Auto-detect global partials directory if not provided
+            actual_global_partials_dir = global_partials_dir
+            if actual_global_partials_dir is None:
+                # Try new plating/partials structure first
+                plating_partials_dir = Path("plating/partials")
+                if plating_partials_dir.exists() and plating_partials_dir.is_dir():
+                    actual_global_partials_dir = plating_partials_dir
+                    pout(f"📝 Auto-detected partials directory: {actual_global_partials_dir}")
+
             context = PlatingContext(
                 provider_name=actual_provider_name,
-                global_partials_dir=global_partials_dir,
+                global_partials_dir=actual_global_partials_dir,
                 provider_source=resolution.source,
                 provider_registry_url=resolution.registry_url,
                 provider_namespace=resolution.namespace,
@@ -195,9 +204,15 @@ def plate_command(
             # Auto-detect guides directory if not provided
             actual_guides_dir = guides_dir
             if actual_guides_dir is None:
-                default_guides_dir = Path("guides")
-                if default_guides_dir.exists() and default_guides_dir.is_dir():
-                    actual_guides_dir = default_guides_dir
+                # Try new plating/guides structure first, fall back to legacy guides/
+                plating_guides_dir = Path("plating/guides")
+                legacy_guides_dir = Path("guides")
+
+                if plating_guides_dir.exists() and plating_guides_dir.is_dir():
+                    actual_guides_dir = plating_guides_dir
+                    pout(f"📚 Auto-detected guides directory: {actual_guides_dir}")
+                elif legacy_guides_dir.exists() and legacy_guides_dir.is_dir():
+                    actual_guides_dir = legacy_guides_dir
                     pout(f"📚 Auto-detected guides directory: {actual_guides_dir}")
 
             # Process guides and templates from source directory if provided or auto-detected
@@ -209,15 +224,30 @@ def plate_command(
                 guides_output_dir = output_dir / "guides"
                 guides_output_dir.mkdir(parents=True, exist_ok=True)
 
-                # Find all markdown files
+                # Find all markdown files in guides directory
                 md_files = list(actual_guides_dir.glob("*.md"))
-                tmpl_files = list(actual_guides_dir.glob("*.tmpl.md"))
+                tmpl_files_from_guides = list(actual_guides_dir.glob("*.tmpl.md"))
                 regular_guides = [f for f in md_files if not f.name.endswith(".tmpl.md")]
+
+                # Also check plating/templates/ directory if it exists
+                templates_dir = Path("plating/templates")
+                tmpl_files_from_templates = []
+                if templates_dir.exists() and templates_dir.is_dir():
+                    tmpl_files_from_templates = list(templates_dir.glob("*.tmpl.md"))
+
+                # Combine template files from both locations
+                tmpl_files = tmpl_files_from_guides + tmpl_files_from_templates
 
                 if md_files or tmpl_files:
                     # Process template files first
                     if tmpl_files:
-                        pout(f"📝 Processing {len(tmpl_files)} template file(s) from {actual_guides_dir}")
+                        template_sources = []
+                        if tmpl_files_from_guides:
+                            template_sources.append(f"{actual_guides_dir}")
+                        if tmpl_files_from_templates:
+                            template_sources.append("plating/templates")
+                        sources_str = " and ".join(template_sources)
+                        pout(f"📝 Processing {len(tmpl_files)} template file(s) from {sources_str}")
                         for tmpl_file in tmpl_files:
                             try:
                                 template = parse_template_file(tmpl_file)
