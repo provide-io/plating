@@ -39,3 +39,6 @@ target/
 docs/.shared-theme/
 bf-*
 bf-*
+
+# Extracted provide.io tooling artifacts
+.provide/
