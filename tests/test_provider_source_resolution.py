@@ -120,9 +120,7 @@ namespace = "hashicorp"
         project_config = {"provider": {"registry_url": "registry.terraform.io"}}
 
         # Get pyvider-specific config
-        pyvider_config = ConfigManager.get_provider_config(
-            "pyvider", global_config, project_config
-        )
+        pyvider_config = ConfigManager.get_provider_config("pyvider", global_config, project_config)
 
         # Should merge: project default > global pyvider-specific > project-default > global-default
         assert pyvider_config["source"] == "local"  # From global pyvider-specific
@@ -237,9 +235,7 @@ class TestProviderSourceResolver(FoundationTestCase):
 
     def test_registry_path_remote(self) -> None:
         """Test registry path construction for remote provider."""
-        resolution = resolve_provider_source(
-            "pyvider", cli_source="remote", cli_namespace="provide-io"
-        )
+        resolution = resolve_provider_source("pyvider", cli_source="remote", cli_namespace="provide-io")
 
         # Remote providers should NOT have /providers/ in path
         assert resolution.registry_url == "registry.terraform.io"
@@ -324,9 +320,7 @@ class TestEndToEndIntegration(FoundationTestCase):
     def test_remote_provider_explicit(self) -> None:
         """Test explicit remote provider configuration."""
         # Force remote provider
-        resolution = resolve_provider_source(
-            "pyvider", cli_source="remote", cli_namespace="provide-io"
-        )
+        resolution = resolve_provider_source("pyvider", cli_source="remote", cli_namespace="provide-io")
 
         assert resolution.source == "remote"
         assert resolution.namespace == "provide-io"

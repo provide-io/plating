@@ -137,7 +137,9 @@ Test mode function content
                 assert test_mode_pos > utilities_pos, "Test Mode should appear after Utilities"
 
     @pytest.mark.asyncio
-    async def test_plate_workflow_creates_mkdocs_nav(self, temp_directory, sample_components_mixed_types) -> None:
+    async def test_plate_workflow_creates_mkdocs_nav(
+        self, temp_directory, sample_components_mixed_types
+    ) -> None:
         """Full workflow creates mkdocs.yml with correct navigation structure."""
         output_dir = temp_directory / "docs"
         output_dir.mkdir(parents=True)
@@ -189,7 +191,9 @@ Test mode function content
         assert "Troubleshooting" in guides_dict, "Should include troubleshooting guide"
 
     @pytest.mark.asyncio
-    async def test_plate_workflow_respects_force_flag(self, temp_directory, mock_registry, plating_context) -> None:
+    async def test_plate_workflow_respects_force_flag(
+        self, temp_directory, mock_registry, plating_context
+    ) -> None:
         """Force regeneration works correctly."""
         output_dir = temp_directory / "docs"
         output_dir.mkdir(parents=True)
@@ -255,7 +259,9 @@ Test mode function content
                 assert isinstance(result, object), "Should return result object"
 
     @pytest.mark.asyncio
-    async def test_plate_workflow_component_grouping(self, temp_directory, mock_registry, plating_context) -> None:
+    async def test_plate_workflow_component_grouping(
+        self, temp_directory, mock_registry, plating_context
+    ) -> None:
         """Verify components are correctly grouped by capability."""
         from plating.core.doc_generator import group_components_by_capability
 

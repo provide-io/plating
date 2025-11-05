@@ -168,7 +168,9 @@ class TestMkdocsNavGenerator:
             yaml.dump(initial_config, f)
 
         # Update with new nav
-        new_nav = {"nav": [{"Overview": "index.md"}, {"Guides": {"Getting Started": "guides/getting_started.md"}}]}
+        new_nav = {
+            "nav": [{"Overview": "index.md"}, {"Guides": {"Getting Started": "guides/getting_started.md"}}]
+        }
         generator.update_mkdocs_config(new_nav)
 
         # Verify other settings preserved
