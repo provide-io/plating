@@ -117,7 +117,10 @@ class ProviderSourceResolver:
             return cli_source  # type: ignore
 
         # 2. Environment variables
-        if self.config.provider_source not in ("auto", "") and self.config.provider_source in ("local", "remote"):
+        if self.config.provider_source not in ("auto", "") and self.config.provider_source in (
+            "local",
+            "remote",
+        ):
             resolution_path.append(f"Environment: {self.config.provider_source}")
             return self.config.provider_source  # type: ignore
 

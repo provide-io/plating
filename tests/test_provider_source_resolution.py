@@ -8,13 +8,12 @@
 from __future__ import annotations
 
 import os
-import tempfile
 from pathlib import Path
+import tempfile
 
-import pytest
 from provide.testkit import FoundationTestCase
 
-from plating.config.defaults import DEFAULT_PROVIDER_SOURCE, DEFAULT_PROVIDER_NAMESPACE
+from plating.config.defaults import DEFAULT_PROVIDER_NAMESPACE, DEFAULT_PROVIDER_SOURCE
 from plating.config.manager import ConfigManager
 from plating.config.runtime import PlatingConfig
 from plating.detection.provider_source import ProviderSourceDetector, detect_provider_source

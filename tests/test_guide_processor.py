@@ -3,8 +3,9 @@
 
 """Tests for guide template processing functionality."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from plating.core.guide_processor import (
     GuideProcessingError,

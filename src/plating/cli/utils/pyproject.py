@@ -81,7 +81,11 @@ def get_provider_name_from_pyproject(pyproject_path: Path) -> str | None:
                 return provider_name
 
         # Fallback to [tool.plating] provider_name for backward compatibility
-        if "tool" in pyproject and "plating" in pyproject["tool"] and "provider_name" in pyproject["tool"]["plating"]:
+        if (
+            "tool" in pyproject
+            and "plating" in pyproject["tool"]
+            and "provider_name" in pyproject["tool"]["plating"]
+        ):
             return pyproject["tool"]["plating"]["provider_name"]
     except Exception as e:
         logger.debug(f"Failed to read provider name from pyproject.toml: {e}")
