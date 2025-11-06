@@ -6,10 +6,10 @@
 from pathlib import Path
 from typing import NamedTuple
 
-import yaml
 from provide.foundation import logger
 from provide.foundation.file import atomic_write_text, ensure_parent_dir
 from provide.foundation.file.safe import safe_read_text
+import yaml
 
 from plating.errors import PlatingError
 
@@ -187,7 +187,7 @@ def parse_template_file(file_path: Path) -> TemplateFile:
     """
     try:
         content = safe_read_text(file_path)
-    except (OSError, IOError) as e:
+    except OSError as e:
         raise GuideProcessingError(
             f"Failed to read template file: {e}",
             file_path=file_path,
@@ -245,7 +245,7 @@ def process_template_file(template: TemplateFile, output_dir: Path) -> Path:
         logger.debug(f"Wrote template {template.source_path.name} to {output_path}")
         return output_path
 
-    except (OSError, IOError) as e:
+    except OSError as e:
         raise GuideProcessingError(
             f"Failed to write template output: {e}",
             file_path=template.source_path,
