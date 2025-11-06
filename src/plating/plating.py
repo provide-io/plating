@@ -16,10 +16,12 @@ from provide.foundation import logger, pout
 from provide.foundation.resilience import BackoffStrategy, RetryPolicy
 
 from plating.adorner import PlatingAdorner
+from plating.config import get_config
+from plating.core.content_merger import ContentMerger
 from plating.core.doc_generator import generate_provider_index, render_component_docs
 from plating.core.project_utils import find_project_root, get_output_directory
 from plating.decorators import with_metrics, with_retry, with_timing
-from plating.errors import FileSystemError
+from plating.errors import FileSystemError, PlatingContentCollisionError
 from plating.registry import get_plating_registry
 from plating.schema.helpers import extract_provider_schema
 from plating.types import AdornResult, ComponentType, PlateResult, PlatingContext, ValidationResult
@@ -153,6 +155,35 @@ class Plating:
                 operation="write",
                 reason="Directory is not writable (check permissions)",
             )
+
+        # Content merging from component packages (before component generation)
+        config = get_config(project_root=project_root)
+        if config.merge_content_from:
+            logger.info("Starting content merge from component packages")
+            try:
+                merger = ContentMerger(config)
+
+                # Discover content sources
+                sources = await merger.discover_content_sources()
+                if sources:
+                    logger.info(f"Discovered {len(sources)} content source(s)")
+
+                    # Collect all content files
+                    await merger.collect_content_files()
+
+                    # Merge to output directory (raises on collision)
+                    await merger.merge_content(final_output_dir)
+
+                    logger.info("Content merge completed successfully")
+                else:
+                    logger.debug("No content sources discovered for merging")
+
+            except PlatingContentCollisionError as e:
+                logger.error("Content collision detected during merge", error=str(e))
+                raise
+            except Exception as e:
+                logger.error("Unexpected error during content merge", error=str(e))
+                raise
 
         if not component_types:
             component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]

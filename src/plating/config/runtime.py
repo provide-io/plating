@@ -128,6 +128,20 @@ class PlatingConfig(RuntimeConfig):
         description="Directory containing function definitions",
     )
 
+    # Content merging configuration
+    provides_content: bool = field(
+        default=False,
+        description="Indicates this package provides mergeable content in plating/",
+    )
+    merge_content_from: list[str] = field(
+        factory=list,
+        description="List of package names to merge content from",
+    )
+    exclude_from_merge: list[str] = field(
+        factory=list,
+        description="Directories to exclude from content merging (e.g., ['templates', 'partials'])",
+    )
+
     def __attrs_post_init__(self) -> None:
         """Initialize derived configuration values."""
         super().__attrs_post_init__()
@@ -156,11 +170,44 @@ class PlatingConfig(RuntimeConfig):
 _config: PlatingConfig | None = None
 
 
-def get_config() -> PlatingConfig:
-    """Get the global configuration instance."""
+def get_config(project_root: Path | None = None) -> PlatingConfig:
+    """Get the global configuration instance.
+
+    Loads configuration from pyproject.toml [tool.plating] section if available,
+    then merges with environment variables (env vars take precedence).
+
+    Args:
+        project_root: Optional project root directory to search for pyproject.toml
+
+    Returns:
+        PlatingConfig instance
+    """
     global _config
     if _config is None:
+        # Import here to avoid circular dependency
+        from plating.cli.utils.pyproject import get_plating_config_from_pyproject
+
+        # Load from pyproject.toml if available
+        pyproject_path = None
+        if project_root:
+            pyproject_path = project_root / "pyproject.toml"
+        else:
+            pyproject_path = Path.cwd() / "pyproject.toml"
+
+        plating_config = get_plating_config_from_pyproject(pyproject_path)
+
+        # Start with env-based config (takes precedence)
         _config = PlatingConfig.from_env()
+
+        # Merge pyproject.toml config (only for fields not set by env)
+        if plating_config:
+            if "merge_content_from" in plating_config and not _config.merge_content_from:
+                _config.merge_content_from = plating_config["merge_content_from"]
+            if "exclude_from_merge" in plating_config and not _config.exclude_from_merge:
+                _config.exclude_from_merge = plating_config["exclude_from_merge"]
+            if "provides_content" in plating_config:
+                _config.provides_content = plating_config["provides_content"]
+
     return _config
 
 

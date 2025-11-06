@@ -203,6 +203,7 @@ def plate_command(
 
             # Auto-detect guides directory if not provided
             actual_guides_dir = guides_dir
+            regular_guides = []  # Initialize for later use after api.plate()
             if actual_guides_dir is None:
                 # Try new plating/guides structure first, fall back to legacy guides/
                 plating_guides_dir = Path("plating/guides")
@@ -261,17 +262,24 @@ def plate_command(
                                 perr(f"   ✗ {tmpl_file.name}: {e.to_user_message()}")
                                 return 1
 
-                    # Copy regular guide files
-                    if regular_guides:
-                        pout(
-                            f"📚 Copying {len(regular_guides)} guide(s) from {actual_guides_dir} to {guides_output_dir}"
-                        )
-                        for guide_file in regular_guides:
-                            shutil.copy2(guide_file, guides_output_dir / guide_file.name)
+                    # Note: Regular guide files will be copied AFTER api.plate()
+                    # so local content takes precedence over merged content
                 else:
                     pout(f"⚠️  No guide or template files found in {actual_guides_dir}")
 
             result = await api.plate(final_output_dir, types, force, validate, project_root, flat_nav)
+
+            # Copy local guide files AFTER content merge (local takes precedence)
+            if actual_guides_dir and regular_guides:
+                import shutil
+
+                guides_output_dir = output_dir / "guides"
+                guides_output_dir.mkdir(parents=True, exist_ok=True)
+                pout(
+                    f"📚 Copying {len(regular_guides)} local guide(s) from {actual_guides_dir} to {guides_output_dir}"
+                )
+                for guide_file in regular_guides:
+                    shutil.copy2(guide_file, guides_output_dir / guide_file.name)
 
             if result.success:
                 print_plate_success(result)
