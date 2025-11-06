@@ -175,22 +175,22 @@ class MkdocsNavGenerator:
             # Create component links
             component_links = []
             for component, _ in sorted(components, key=lambda x: x[0].name):
-                # Create display name (without provider prefix for resources/data sources)
+                # Create display name and file name
                 display_name = component.name
                 file_name = component.name  # For file path
 
                 if comp_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE]:
-                    # Strip provider prefix for cleaner display and file paths
+                    # Strip provider prefix (e.g., "pyvider_") per Terraform Registry convention
                     if "_" in component.name:
                         parts = component.name.split("_", 1)
                         if len(parts) == 2:
                             display_name = parts[1]
-                            file_name = parts[1]  # File is also named without prefix
+                            file_name = parts[1]
                 elif comp_type == ComponentType.FUNCTION:
-                    # Functions don't have provider prefix in the file name
+                    # Functions keep their full name
                     file_name = component.name
 
-                # Create file path using stripped name
+                # Create file path
                 file_path = f"{comp_type.output_subdir}/{file_name}.md"
                 component_links.append({display_name: file_path})
 
@@ -247,19 +247,19 @@ class MkdocsNavGenerator:
             # Create component links (sorted A-Z)
             component_links = []
             for component in sorted(components_list, key=lambda x: x.name):
-                # Create display name (without provider prefix for resources/data sources)
+                # Create display name and file name
                 display_name = component.name
                 file_name = component.name
 
                 if comp_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE]:
-                    # Strip provider prefix for cleaner display and file paths
+                    # Strip provider prefix (e.g., "pyvider_") per Terraform Registry convention
                     if "_" in component.name:
                         parts = component.name.split("_", 1)
                         if len(parts) == 2:
                             display_name = parts[1]
                             file_name = parts[1]
                 elif comp_type == ComponentType.FUNCTION:
-                    # Functions don't have provider prefix
+                    # Functions keep their full name
                     file_name = component.name
 
                 # Create file path
