@@ -111,3 +111,30 @@ def extract_provider_from_package_name(package_name: str) -> str | None:
         return package_name.replace("-provider", "")
 
     return None
+
+
+def get_plating_config_from_pyproject(pyproject_path: Path | None = None) -> dict[str, Any]:
+    """Get plating configuration from [tool.plating] section in pyproject.toml.
+
+    Args:
+        pyproject_path: Path to pyproject.toml file (defaults to current directory)
+
+    Returns:
+        Dictionary with plating configuration, empty dict if not found
+    """
+    if pyproject_path is None:
+        pyproject_path = Path.cwd() / "pyproject.toml"
+
+    if not pyproject_path.exists():
+        return {}
+
+    try:
+        content = safe_read_text(pyproject_path)
+        pyproject = toml_loads(content)
+
+        if "tool" in pyproject and "plating" in pyproject["tool"]:
+            return pyproject["tool"]["plating"]
+    except Exception as e:
+        logger.debug(f"Failed to read [tool.plating] section from pyproject.toml: {e}")
+
+    return {}

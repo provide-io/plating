@@ -350,6 +350,59 @@ class FileSystemError(PlatingError):
         }
 
 
+class PlatingContentCollisionError(PlatingError):
+    """Raised when content files collide across packages.
+
+    Attributes:
+        relative_path: The colliding file path
+        sources: List of package names with the file
+    """
+
+    def __init__(
+        self,
+        relative_path: Path,
+        sources: list[str],
+        message: str | None = None,
+    ) -> None:
+        """Initialize collision error.
+
+        Args:
+            relative_path: Path that collides
+            sources: Package names containing the file
+            message: Optional custom message
+        """
+        self.relative_path = relative_path
+        self.sources = sources
+
+        if message is None:
+            sources_str = ", ".join(sources)
+            message = (
+                f"Content collision detected: '{relative_path}' exists in "
+                f"multiple packages: {sources_str}. "
+                f"Each file path must be unique across all merged packages."
+            )
+
+        super().__init__(message)
+
+    def to_user_message(self) -> str:
+        """Convert to user-friendly message with actionable guidance."""
+        msg = str(self)
+        msg += "\n\n💡 How to fix:"
+        msg += "\n  • Rename the file in one of the conflicting packages"
+        msg += "\n  • Move the file to a different subdirectory (e.g., guides/advanced/)"
+        msg += "\n  • Remove the file from all but one package"
+        msg += "\n  • Use different file names that clearly indicate the source package"
+        return msg
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to structured dict for logging."""
+        return {
+            "error_type": "PlatingContentCollisionError",
+            "relative_path": str(self.relative_path),
+            "sources": self.sources,
+        }
+
+
 def handle_error(error: Exception, logger: Any = None, reraise: bool = False) -> str:
     """
     Handle an error with proper logging and optional re-raising.
