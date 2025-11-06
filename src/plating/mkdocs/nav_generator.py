@@ -132,10 +132,10 @@ class MkdocsNavGenerator:
         # Sort by guide_order, then by page_title (alphabetically)
         guides_with_order.sort(key=lambda x: (x[0], x[1]))
 
-        guides_section = {}
+        guides_section = []
         for _, title, filename in guides_with_order:
             rel_path = f"guides/{filename}"
-            guides_section[title] = rel_path
+            guides_section.append({title: rel_path})
 
         if guides_section:
             guides_nav.append({"Guides": guides_section})
@@ -152,7 +152,7 @@ class MkdocsNavGenerator:
         For None capability (uncategorized components), returns a list of top-level sections.
         For named capabilities, returns a single dict with the capability as key.
         """
-        section = {}
+        section = []
 
         # Order: resources, data sources, functions
         type_order = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
@@ -173,7 +173,7 @@ class MkdocsNavGenerator:
             }.get(comp_type, str(comp_type))
 
             # Create component links
-            component_links = {}
+            component_links = []
             for component, _ in sorted(components, key=lambda x: x[0].name):
                 # Create display name (without provider prefix for resources/data sources)
                 display_name = component.name
@@ -192,21 +192,18 @@ class MkdocsNavGenerator:
 
                 # Create file path using stripped name
                 file_path = f"{comp_type.output_subdir}/{file_name}.md"
-                component_links[display_name] = file_path
+                component_links.append({display_name: file_path})
 
             if component_links:
-                section[type_display] = component_links
+                section.append({type_display: component_links})
 
         if not section:
             return None
 
         # Handle None capability: return top-level sections (no category wrapper)
         if capability is None:
-            # Return list of top-level sections, one for each component type
-            result = []
-            for type_display, component_links in section.items():
-                result.append({type_display: component_links})
-            return result
+            # section is already a list of top-level sections
+            return section
 
         # Named capability: return wrapped in capability key
         return {capability: section}
@@ -248,7 +245,7 @@ class MkdocsNavGenerator:
             }.get(comp_type, str(comp_type))
 
             # Create component links (sorted A-Z)
-            component_links = {}
+            component_links = []
             for component in sorted(components_list, key=lambda x: x.name):
                 # Create display name (without provider prefix for resources/data sources)
                 display_name = component.name
@@ -267,7 +264,7 @@ class MkdocsNavGenerator:
 
                 # Create file path
                 file_path = f"{comp_type.output_subdir}/{file_name}.md"
-                component_links[display_name] = file_path
+                component_links.append({display_name: file_path})
 
             if component_links:
                 nav.append({type_display: component_links})
