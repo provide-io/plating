@@ -1,5 +1,5 @@
 INHERIT: .provide/foundry/base-mkdocs.yml
-site_name: Plating Documentation
+site_name: Plating
 site_description: Documentation and code generation templates
 site_author: provide.io
 site_url: https://foundry.provide.io/plating/
