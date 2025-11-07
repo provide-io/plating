@@ -2,19 +2,8 @@
 
 Get up and running with Plating in 5 minutes.
 
-## Installation
-
-Plating requires Python 3.11+ and uses UV for package management.
-
-```bash
-# Install UV (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install Plating
-git clone https://github.com/provide-io/plating.git
-cd plating
-uv sync
-```
+!!! tip "Installation Required"
+    If you haven't installed Plating yet, see the [Installation Guide](getting-started/installation.md) first.
 
 ## Basic Usage
 
