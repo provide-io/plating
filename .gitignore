@@ -34,3 +34,9 @@ helpers/bin/
 *.pspf
 *.psp
 target/
+
+# MkDocs build output
+site/
+
+# Provide tooling artifacts
+.provide/foundry/
