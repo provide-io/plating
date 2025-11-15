@@ -40,3 +40,11 @@ site/
 
 # Provide tooling artifacts
 .provide/foundry/
+
+# Terraform state (sensitive)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+.mypy_cache/
+.ruff_cache/
