@@ -1,349 +1,61 @@
-# 🍽️ Plating
+# 🍲 Garnish
 
-> A sophisticated documentation generation system for Terraform/OpenTofu providers
+> Beautiful documentation generation for Terraform/OpenTofu providers
 
-Plating is a powerful documentation system that brings culinary elegance to technical documentation. Just as a chef carefully plates a dish, Plating helps you present your Terraform provider documentation beautifully.
+## What is Garnish?
 
-## ✨ Features
+Garnish is a modern documentation generation system specifically designed for Terraform and OpenTofu providers. It transforms your provider code into comprehensive, well-structured documentation with minimal effort.
 
-- **🎯 Automatic Documentation Generation** - Generate comprehensive docs from your provider code
-- **✨ Smart Component Adorning** - Automatically create documentation templates for undocumented components
-- **🍽️ Beautiful Plating** - Render documentation with examples, schemas, and rich formatting
-- **🔍 Component Discovery** - Automatically find and document resources, data sources, and functions
-- **📝 Jinja2 Templates** - Flexible templating with custom functions and filters
-- **🔄 Schema Integration** - Extract and format provider schemas automatically
-- **🎯 Capability-First Organization** - Group documentation by feature (Math, Utilities, Lens) instead of just type
-- **📍 Smart Navigation** - Auto-generated mkdocs.yml with capability-first structure
-- **📚 Guide Support** - Built-in support for provider guides and tutorials
+## Value Proposition
 
-## 📦 Prerequisites
+**Problem:** Provider documentation is often incomplete, inconsistent, or outdated. Existing tools require significant manual effort and don't integrate well with modern development workflows.
 
-> **Important:** This project uses `uv` for Python environment and package management.
+**Solution:** Garnish automates documentation generation while giving developers full control over presentation. It discovers your provider components, generates smart templates, and renders beautiful documentation that stays in sync with your code.
 
-### Install UV
+## Key Features
 
-Visit [UV Documentation](https://github.com/astral-sh/uv) for more information.
+- **🎯 Automatic Discovery** - Finds all resources, data sources, and functions in your provider
+- **📝 Smart Templates** - Generates Jinja2 templates with examples and schemas
+- **🍽️ Beautiful Output** - Renders Terraform Registry-compliant documentation
+- **🧪 Built-in Testing** - Validates examples and documentation integrity
+- **📦 Bundle System** - Co-locates docs, examples, and tests with components
 
-```bash
-# On macOS and Linux.
-curl -LsSf https://astral.sh/uv/install.sh | sh
+## Comparison with Other Tools
 
-# On Windows.
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+### vs tfplugindocs
+- **tfplugindocs:** Official HashiCorp tool, rigid structure, limited customization
+- **Garnish:** Flexible templating, smart defaults, richer formatting options
 
-# Using pipx (if you prefer)
-pipx install uv
+### vs terraform-docs
+- **terraform-docs:** Module documentation only, not for providers
+- **Garnish:** Provider-focused, understands schemas and component types
 
-# Update UV to latest version
-uv self update
-```
+### vs Manual Documentation
+- **Manual:** Time-consuming, prone to drift, inconsistent formatting
+- **Garnish:** Automated generation, stays in sync, enforces consistency
 
-## 🚀 Getting Started
-
-### Installation
-
-**Note:** Plating is currently in pre-release. Install from source for now.
-
-> **Version Info:** The version `0.0.1000-0` is a pre-release identifier indicating active development. Expect the API and features to evolve as the project matures.
+## Quick Example
 
 ```bash
-# Clone the repository
-git clone https://github.com/provide-io/plating.git
-cd plating
+# Install garnish
+pip install garnish
 
-# Create virtual environment
-uv venv
+# Generate documentation templates
+garnish dress
 
-# Activate virtual environment
-source .venv/bin/activate  # On Linux/macOS
-# or
-.venv\Scripts\activate     # On Windows
-
-# Install dependencies
-uv sync
+# Customize templates as needed
+# Then render final documentation
+garnish plate
 ```
 
-**Coming soon to PyPI:**
-```bash
-# PyPI installation (not yet available)
-# uv add plating
-```
+## Learn More
 
-### Quick Install from Git
+Full documentation and source code available in the `develop` branch.
 
-```bash
-# Install directly from GitHub
-uv add git+https://github.com/provide-io/plating.git
-```
-
-## 📚 Usage Examples
-
-### 1. Adorn Your Components
-
-First, create `.plating` bundles for your undocumented components:
-
-```bash
-# Adorn all missing components
-plating adorn
-
-# Adorn only resources
-plating adorn --component-type resource
-```
-
-### 2. Customize Templates
-
-Edit the generated templates in `.plating/docs/`:
-
-```markdown
----
-page_title: "Resource: my_resource"
----
-
-# my_resource
-
-{{ "{{ example('basic') }}" }}
-
-## Schema
-
-{{ "{{ schema() }}" }}
-```
-
-### 3. Generate Documentation
-
-Render your documentation:
-
-```bash
-# Generate docs in ./docs directory
-plating plate
-
-# Custom output directory
-plating plate --output-dir ./documentation
-```
-
-## 📂 Bundle Structure
-
-Each component has a `.plating` bundle:
-
-```
-my_resource.plating/
-├── docs/
-│   ├── my_resource.tmpl.md    # Main template
-│   └── _partial.md             # Reusable partials (optional)
-├── examples/
-│   ├── basic.tf                # Example configurations
-│   ├── advanced.tf             # (optional)
-│   └── full_stack/             # Grouped examples (optional)
-│       └── main.tf             # Required entry point
-└── fixtures/                   # Test fixtures (optional)
-    └── data.json               # Test data files
-```
-
-**Note:** The `examples/` directory can contain:
-- `.tf` files for resources/data sources (flat examples)
-- `.py` files for Python API examples
-- Subdirectories with `main.tf` for grouped examples that combine multiple components
-
-## 🎨 Template Functions
-
-Plating provides powerful template functions:
-
-- `{{ "{{ schema() }}" }}` - Render component schema as markdown table
-- `{{ "{{ example('name') }}" }}` - Include an example file in a terraform code block
-- `{{ "{{ include('filename') }}" }}` - Include a static partial file
-- `{{ "{{ render('filename') }}" }}` - Render a dynamic template partial with current context
-
-## 🎯 Capability-First Organization
-
-Plating now supports organizing documentation by **capability** (subcategory) instead of just by component type. This makes it easier to find related functionality across resource types.
-
-### How It Works
-
-1. **Add Subcategory to Templates**
-
-   Add a `subcategory` field to your component template frontmatter:
-
-   ```markdown
-   ---
-   page_title: "sqrt Function"
-   subcategory: "Math"
-   description: |-
-     Calculate square root of a number
-   ---
-   ```
-
-2. **Automatic Organization**
-
-   Components are automatically grouped by capability in generated documentation:
-
-   ```
-   ## Math
-   ### Functions
-   - add
-   - subtract
-   - multiply
-
-   ## String Utilities
-   ### Functions
-   - format
-   - join
-   - split
-
-   ## Utilities
-   ### Resources
-   - pyvider_file_content
-   ### Data Sources
-   - pyvider_env_variables
-   ```
-
-3. **MkDocs Navigation**
-
-   The `mkdocs.yml` navigation is automatically generated with capability-first structure:
-
-   ```yaml
-   nav:
-     - Overview: index.md
-     - Math:
-         Functions:
-           add: functions/add.md
-           subtract: functions/subtract.md
-     - String Utilities:
-         Functions:
-           format: functions/format.md
-           join: functions/join.md
-     - Utilities:
-         Resources:
-           file_content: resources/file_content.md
-   ```
-
-### Standard Subcategories
-
-- **Math** - Numeric operations (add, subtract, multiply, etc.)
-- **String Utilities** - String manipulation (format, join, split, etc.)
-- **Collections** - List/map operations (contains, length, lookup)
-- **Type Conversion** - Type casting functions
-- **Lens** - Data transformation components (JQ integration)
-- **Utilities** - General-purpose resources and data sources
-- **Test Mode** - Components for testing (always appears last)
-
-### Custom Subcategories
-
-You can use any custom subcategory name. Just add it to your template frontmatter:
-
-```markdown
----
-page_title: "Custom Component"
-subcategory: "My Custom Category"
----
-```
-
-### Guide Support
-
-Add provider-level guides in `.plating/guides/`:
-
-```
-.plating/
-├── guides/
-│   ├── getting-started.tmpl.md
-│   ├── authentication.tmpl.md
-│   └── troubleshooting.tmpl.md
-└── docs/
-    └── components.tmpl.md
-```
-
-Guides are automatically discovered and added to the documentation structure and navigation.
-
-## 🔍 Validation
-
-Validate your generated documentation:
-
-```bash
-# Validate all documentation
-plating validate
-
-# Validate in custom directory
-plating validate --output-dir ./documentation
-```
-
-## 🛡️ Foundation Integration
-
-Plating is built on provide.foundation patterns for enterprise-grade reliability:
-
-- **🔄 Automatic Retries**: Built-in retry policies with exponential backoff for I/O operations
-- **📊 Metrics & Observability**: Integrated performance tracking and operation metrics
-- **⚡ Circuit Breakers**: Prevents cascading failures in distributed systems
-- **📝 Structured Logging**: Foundation logger integration with contextual information
-- **🚀 Async-First Design**: High-performance async operations throughout
-
-## 🔧 Advanced Usage
-
-### Filter to Specific Package
-
-By default, Plating searches all installed packages for components. You can filter to a specific package:
-
-```bash
-plating adorn --package-name pyvider.components
-plating plate --package-name pyvider.components
-```
-
-### Generate Executable Examples
-
-Generate standalone executable Terraform examples alongside documentation:
-
-```bash
-plating plate --generate-examples
-```
-
-Customize example output directories:
-
-```bash
-plating plate --generate-examples \
-  --examples-dir examples/ \
-  --grouped-examples-dir examples/integration/
-```
-
-## 🔧 Configuration
-
-Configure Plating in your `pyproject.toml`:
-
-```toml
-[tool.plating]
-# Provider name (auto-detected if not specified)
-provider_name = "my_provider"
-```
-
-**Note:** Currently only `provider_name` can be configured in `pyproject.toml`. Other options like `output_dir` and `component_types` must be passed as CLI flags:
-
-```bash
-plating plate --output-dir docs --component-type resource
-```
-
-## 🏗️ Architecture
-
-Plating follows a modular architecture:
-
-- **PlatingBundle** - Represents documentation bundles
-- **PlatingPlater** - Renders documentation
-- **PlatingAdorner** - Creates documentation templates
-- **PlatingDiscovery** - Finds components and bundles
-- **SchemaProcessor** - Extracts provider schemas
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📜 License
+## License
 
 Apache 2.0
 
-## 🙏 Acknowledgments
-
-Built with ❤️ using:
-- [attrs](https://www.attrs.org/) - Python classes without boilerplate
-- [Jinja2](https://jinja.palletsprojects.com/) - Powerful templating
-- [pyvider](https://github.com/provide-io/pyvider) - Terraform provider framework
-- [click](https://click.palletsprojects.com/) - Command line interface
-- [rich](https://rich.readthedocs.io/) - Beautiful terminal output
-
 ---
 
-*Plating - Making documentation as delightful as a well-plated dish* 🍽️
+*Garnish - Making provider documentation as delightful as a well-plated dish* 🍽️
