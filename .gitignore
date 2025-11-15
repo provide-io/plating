@@ -27,6 +27,12 @@ reports/
 .idea/
 .vscode/
 
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
 # Local Build Artifacts
 # Compiled helper binaries should not be version controlled.
 # They are built from source via `./helpers/build.sh`.
@@ -37,6 +43,7 @@ target/
 
 # MkDocs build output
 site/
+docs/.shared-theme/
 
 # Provide tooling artifacts
 .provide/foundry/
