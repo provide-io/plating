@@ -1,71 +1,90 @@
-"""
-Tests for the garnish CLI.
-"""
-import pytest
+#
+# SPDX-FileCopyrightText: Copyright (c) 2025 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+"""Tests for CLI commands.
+
+Note: These tests currently cover CLI help text and basic structure.
+More comprehensive integration tests with async mocking are needed for full coverage.
+See QUALITY_IMPROVEMENTS.md for details."""
+
 from click.testing import CliRunner
-from unittest.mock import patch, MagicMock
+import pytest
 
-from garnish.cli import main
+from plating.cli import main as cli
 
 
-class TestGarnishCli:
-    """Tests for the garnish CLI."""
+class TestCLI:
+    """Test CLI command interface and help text."""
 
     @pytest.fixture
-    def runner(self) -> CliRunner:
+    def runner(self):
+        """Create CLI test runner."""
         return CliRunner()
 
-    def test_garnish_command_exists(self, runner: CliRunner):
-        """Test that the garnish command exists and shows help."""
-        result = runner.invoke(main, ["--help"])
+    def test_cli_help(self, runner) -> None:
+        """Test that --help works."""
+        result = runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
-        assert "Garnish - Documentation generator" in result.output
-        assert "dress" in result.output
+        assert "Plating" in result.output
+        assert "adorn" in result.output
         assert "plate" in result.output
-        assert "test" in result.output
+        assert "validate" in result.output
 
-    def test_dress_command_exists(self, runner: CliRunner):
-        """Test that the dress subcommand exists."""
-        result = runner.invoke(main, ["dress", "--help"])
+    def test_adorn_help(self, runner) -> None:
+        """Test adorn --help."""
+        result = runner.invoke(cli, ["adorn", "--help"])
         assert result.exit_code == 0
-        assert "Dress" in result.output
+        assert "Create missing documentation templates" in result.output
+        assert "--component-type" in result.output
+        assert "--provider-name" in result.output
 
-    def test_plate_command_exists(self, runner: CliRunner):
-        """Test that the plate subcommand exists."""
-        result = runner.invoke(main, ["plate", "--help"])
+    def test_plate_help(self, runner) -> None:
+        """Test plate --help."""
+        result = runner.invoke(cli, ["plate", "--help"])
         assert result.exit_code == 0
-        assert "Plate" in result.output
+        assert "Generate documentation" in result.output
+        assert "--output-dir" in result.output
+        assert "--force" in result.output
 
-    def test_test_command_exists(self, runner: CliRunner):
-        """Test that the test subcommand exists."""
-        result = runner.invoke(main, ["test", "--help"])
+    def test_validate_help(self, runner) -> None:
+        """Test validate --help."""
+        result = runner.invoke(cli, ["validate", "--help"])
         assert result.exit_code == 0
-        assert "Run all garnish example files" in result.output
+        assert "Validate generated documentation" in result.output
+        assert "--output-dir" in result.output
 
-    @patch("garnish.cli.dress_components")
-    def test_dress_invokes_correct_logic(self, mock_dress, runner: CliRunner):
-        """Test that dress command invokes the dressing logic."""
-        mock_dress.return_value = {"resource": 1}
-        result = runner.invoke(main, ["dress"])
+    def test_info_help(self, runner) -> None:
+        """Test info --help."""
+        result = runner.invoke(cli, ["info", "--help"])
         assert result.exit_code == 0
-        mock_dress.assert_called_once()
-        assert "Dressed 1 components" in result.output
+        assert "Show registry information" in result.output
 
-    @patch("garnish.cli.generate_docs")
-    def test_plate_invokes_correct_logic(self, mock_render, runner: CliRunner):
-        """Test that plate command invokes the plating logic."""
-        result = runner.invoke(main, ["plate", "--force"])
+    def test_stats_help(self, runner) -> None:
+        """Test stats --help."""
+        result = runner.invoke(cli, ["stats", "--help"])
         assert result.exit_code == 0
-        mock_render.assert_called_once()
-        assert "Documentation plated successfully!" in result.output
-
-    def test_render_backward_compatibility(self, runner: CliRunner):
-        """Test that render command still works but shows deprecation."""
-        with patch("garnish.cli.generate_docs"):
-            result = runner.invoke(main, ["render", "--force"])
-            assert result.exit_code == 0
-            assert "'render' is deprecated" in result.output
-            assert "use 'plate' instead" in result.output
+        assert "Show registry statistics" in result.output
 
 
-# 🥄🧪🪄
+# TODO: Add comprehensive integration tests
+# The following test categories need to be added:
+#
+# 1. TestAdornCommand - Test adorn command execution with mocked Plating API
+# 2. TestPlateCommand - Test plate command with various flags
+# 3. TestValidateCommand - Test validation with pass/fail scenarios
+# 4. TestInfoCommand - Test info output formatting
+# 5. TestStatsCommand - Test stats output formatting
+# 6. TestAutoDetectProviderName - Test provider name detection
+# 7. TestErrorHandling - Test error scenarios and output
+#
+# Challenges:
+# - Need proper async mocking for Click commands that use asyncio.run()
+# - Need to mock Plating API and its async methods properly
+# - Need to test output formatting with actual terminal colors/emojis
+# - Click's CliRunner needs special handling for async commands
+#
+# See: https://click.palletsprojects.com/en/8.1.x/testing/
+
+# 🍽️📖🔚

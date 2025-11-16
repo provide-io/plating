@@ -53,5 +53,10 @@ docs/.shared-theme/
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
+
+# Cache directories
 .mypy_cache/
 .ruff_cache/
+
+# Bundled files
+bf-*
