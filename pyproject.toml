@@ -15,13 +15,6 @@ authors = [
 maintainers = [
     { name = "provide.io", email = "code@provide.io" },
 ]
-
-[project.urls]
-Homepage = "https://foundry.provide.io/plating/"
-Documentation = "https://foundry.provide.io/plating/"
-Repository = "https://foundry.provide.io/plating/repo"
-Issues = "https://foundry.provide.io/plating/issues"
-
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -40,6 +33,12 @@ dependencies = [
     "pymarkdownlnt>=0.9.32",
     "mkdocs-material>=9.6.20",
 ]
+
+[project.urls]
+Homepage = "https://foundry.provide.io/plating/"
+Documentation = "https://foundry.provide.io/plating/"
+Repository = "https://foundry.provide.io/plating/repo"
+Issues = "https://foundry.provide.io/plating/issues"
 
 [dependency-groups]
 dev = [
