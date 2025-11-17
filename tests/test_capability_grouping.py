@@ -5,7 +5,6 @@
 
 """Test module for capability grouping functionality."""
 
-
 from plating.bundles import PlatingBundle
 from plating.core.doc_generator import (
     _determine_subcategory,
@@ -93,7 +92,9 @@ subcategory: "Lens"
 # Lens Component
 """
             )
-            components.append((PlatingBundle(f"lens_{comp_type_str}", comp_dir, comp_type_str), comp_type_enum))
+            components.append(
+                (PlatingBundle(f"lens_{comp_type_str}", comp_dir, comp_type_str), comp_type_enum)
+            )
 
         grouped = group_components_by_capability(components)
 
@@ -106,7 +107,9 @@ subcategory: "Lens"
         assert ComponentType.DATA_SOURCE in grouped["Lens"], "Lens should have data sources"
         assert ComponentType.FUNCTION in grouped["Lens"], "Lens should have functions"
 
-    def test_extract_subcategory_from_template_with_subcategory(self, sample_component_with_subcategory) -> None:
+    def test_extract_subcategory_from_template_with_subcategory(
+        self, sample_component_with_subcategory
+    ) -> None:
         """Extract existing subcategory from template."""
         component = sample_component_with_subcategory
 
@@ -114,7 +117,9 @@ subcategory: "Lens"
 
         assert subcategory == "Lens", "Should extract 'Lens' subcategory from template"
 
-    def test_extract_subcategory_from_template_missing_subcategory(self, sample_component_no_subcategory) -> None:
+    def test_extract_subcategory_from_template_missing_subcategory(
+        self, sample_component_no_subcategory
+    ) -> None:
         """Return None when subcategory is not present."""
         component = sample_component_no_subcategory
 
@@ -200,7 +205,9 @@ page_title: "Resource: uncategorized"
 # uncategorized
 """
         )
-        components.append((PlatingBundle("uncategorized", uncategorized_dir, "resource"), ComponentType.RESOURCE))
+        components.append(
+            (PlatingBundle("uncategorized", uncategorized_dir, "resource"), ComponentType.RESOURCE)
+        )
 
         # Create one component with Math subcategory
         math_dir = temp_directory / "math.plating"

@@ -65,7 +65,7 @@ def _extract_component_metadata(
         full_component_name = bundle.name
         for attr_name in dir(module):
             attr = getattr(module, attr_name)
-            if isinstance(attr, type) and hasattr(attr, "_is_test_only"):
+            if isinstance(attr, type) and hasattr(attr, "_is_test_only"):  # noqa: SIM102
                 # Check if this is the right component by matching the registered name
                 if (
                     hasattr(attr, "_registered_name") and attr._registered_name == full_component_name
@@ -265,7 +265,7 @@ subcategory: "Test Mode"
     return "\n".join(lines)
 
 
-async def render_component_docs(
+async def render_component_docs(  # noqa: C901
     components: list[PlatingBundle],
     component_type: ComponentType,
     output_dir: Path,
@@ -414,7 +414,7 @@ Terraform {component.component_type} for {component.name}
     template_file.write_text(template_content, encoding="utf-8")
 
 
-def generate_provider_index(
+def generate_provider_index(  # noqa: C901
     output_dir: Path,
     force: bool,
     result: PlateResult,

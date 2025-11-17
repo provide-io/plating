@@ -350,7 +350,7 @@ class FileSystemError(PlatingError):
         }
 
 
-def handle_error(error: Exception, logger: Any = None, reraise: bool = False) -> str:
+def handle_error(error: Exception, logger: Any = None, reraise: bool = False) -> str:  # noqa: C901
     """
     Handle an error with proper logging and optional re-raising.
 

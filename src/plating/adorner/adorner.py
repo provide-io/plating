@@ -98,13 +98,13 @@ class PlatingAdorner:
                     if success:
                         adorned[component_type] += 1
             else:
-                pout(f"ℹ️  All {component_type}s already have .plating bundles")
+                pout(f"ℹ️  All {component_type}s already have .plating bundles")  # noqa: RUF001
 
         total_adorned = sum(adorned.values())
         if total_adorned > 0:
             pout(f"\n✅ Successfully adorned {total_adorned} component(s)")
         else:
-            pout("\nℹ️  No components needed adorning")
+            pout("\nℹ️  No components needed adorning")  # noqa: RUF001
 
         return adorned
 

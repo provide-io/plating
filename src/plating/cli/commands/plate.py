@@ -4,8 +4,8 @@
 """Plate command implementation."""
 
 import asyncio
-import sys
 from pathlib import Path
+import sys
 from typing import Any
 
 import click
@@ -86,7 +86,7 @@ from plating.types import ComponentType, PlatingContext
     type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
     help="Directory containing global partials (_global_header.md, _global_footer.md).",
 )
-def plate_command(
+def plate_command(  # noqa: C901
     output_dir: Path,
     component_type: tuple[str, ...],
     provider_name: str | None,
@@ -113,7 +113,9 @@ def plate_command(
             else:
                 pout("🔍 Discovering all packages")
 
-            context = PlatingContext(provider_name=actual_provider_name, global_partials_dir=global_partials_dir)
+            context = PlatingContext(
+                provider_name=actual_provider_name, global_partials_dir=global_partials_dir
+            )
             api = Plating(context, actual_package_name)
 
             # Convert string types to ComponentType enums

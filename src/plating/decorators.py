@@ -56,17 +56,17 @@ def with_retry(
         if asyncio.iscoroutinefunction(func):
 
             @functools.wraps(func)
-            async def async_wrapper(*args, **kwargs):
+            async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
                 return await retry_executor.execute_async(func, *args, **kwargs)
 
-            return async_wrapper
+            return async_wrapper  # type: ignore[return-value]
         else:
 
             @functools.wraps(func)
-            def sync_wrapper(*args, **kwargs):
+            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
                 return retry_executor.execute_sync(func, *args, **kwargs)
 
-            return sync_wrapper
+            return sync_wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -92,17 +92,17 @@ def with_circuit_breaker(
         if asyncio.iscoroutinefunction(func):
 
             @functools.wraps(func)
-            async def async_wrapper(*args, **kwargs):
+            async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
                 return await circuit.call_async(func, *args, **kwargs)
 
-            return async_wrapper
+            return async_wrapper  # type: ignore[return-value]
         else:
 
             @functools.wraps(func)
-            def sync_wrapper(*args, **kwargs):
+            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
                 return circuit.call(func, *args, **kwargs)
 
-            return sync_wrapper
+            return sync_wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -118,7 +118,7 @@ def with_metrics(operation_name: str) -> Callable[[F], F]:
         if asyncio.iscoroutinefunction(func):
 
             @functools.wraps(func)
-            async def async_wrapper(*args, **kwargs):
+            async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
                 start = time.perf_counter()
                 try:
                     result = await func(*args, **kwargs)
@@ -141,11 +141,11 @@ def with_metrics(operation_name: str) -> Callable[[F], F]:
                     )
                     raise
 
-            return async_wrapper
+            return async_wrapper  # type: ignore[return-value]
         else:
 
             @functools.wraps(func)
-            def sync_wrapper(*args, **kwargs):
+            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
                 start = time.perf_counter()
                 try:
                     result = func(*args, **kwargs)
@@ -168,7 +168,7 @@ def with_metrics(operation_name: str) -> Callable[[F], F]:
                     )
                     raise
 
-            return sync_wrapper
+            return sync_wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -181,25 +181,25 @@ def with_timing(func: F) -> F:
     if asyncio.iscoroutinefunction(func):
 
         @functools.wraps(func)
-        async def async_wrapper(*args, **kwargs):
+        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             from provide.foundation.utils import timed_block
 
             operation_name = f"{func.__module__}.{func.__name__}"
             with timed_block(logger, operation_name):
                 return await func(*args, **kwargs)
 
-        return async_wrapper
+        return async_wrapper  # type: ignore[return-value]
     else:
 
         @functools.wraps(func)
-        def sync_wrapper(*args, **kwargs):
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             from provide.foundation.utils import timed_block
 
             operation_name = f"{func.__module__}.{func.__name__}"
             with timed_block(logger, operation_name):
                 return func(*args, **kwargs)
 
-        return sync_wrapper
+        return sync_wrapper  # type: ignore[return-value]
 
 
 @asynccontextmanager
@@ -225,7 +225,7 @@ class PlatingMetrics:
     """Centralized metrics collection for plating operations via structured logging."""
 
     @asynccontextmanager
-    async def track_operation(self, operation: str, **labels) -> None:
+    async def track_operation(self, operation: str, **labels: Any) -> Any:
         """Context manager for tracking operations with labels."""
         start = time.perf_counter()
 

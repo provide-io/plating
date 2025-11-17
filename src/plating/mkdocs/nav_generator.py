@@ -66,7 +66,7 @@ class MkdocsNavGenerator:
 
         return {"nav": nav}
 
-    def _generate_guides_nav(self) -> list[dict[str, Any]]:
+    def _generate_guides_nav(self) -> list[dict[str, Any]]:  # noqa: C901
         """Generate guides navigation if guides directory exists."""
         guides_dir = self.base_path / "docs" / "guides"
 
@@ -161,7 +161,7 @@ class MkdocsNavGenerator:
             for component, _ in sorted(components, key=lambda x: x[0].name):
                 # Create display name (without provider prefix for resources/data sources)
                 display_name = component.name
-                if comp_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE]:
+                if comp_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE]:  # noqa: SIM102
                     # Strip provider prefix for cleaner display
                     if "_" in display_name:
                         parts = display_name.split("_", 1)
@@ -188,7 +188,7 @@ class MkdocsNavGenerator:
         """
         # Read existing mkdocs.yml if it exists
         if self.mkdocs_file.exists():
-            with open(self.mkdocs_file) as f:
+            with self.mkdocs_file.open() as f:
                 config = yaml.safe_load(f) or {}
         else:
             config = {}
@@ -197,7 +197,7 @@ class MkdocsNavGenerator:
         config["nav"] = nav.get("nav", [])
 
         # Write back to file
-        with open(self.mkdocs_file, "w") as f:
+        with self.mkdocs_file.open("w") as f:
             yaml.dump(config, f, default_flow_style=False, sort_keys=False)
 
         logger.info(f"Updated mkdocs navigation: {self.mkdocs_file}")

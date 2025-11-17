@@ -5,7 +5,6 @@
 
 """Test module for guide discovery and rendering."""
 
-
 from plating.mkdocs.nav_generator import MkdocsNavGenerator
 
 
@@ -67,7 +66,9 @@ class TestGuideDiscovery:
 
         # Check file paths are correct
         assert guides_dict["Getting Started"] == "guides/getting_started.md", "Should have correct file path"
-        assert guides_dict["Api Reference"] == "guides/api-reference.md", "Should preserve original filename in path"
+        assert guides_dict["Api Reference"] == "guides/api-reference.md", (
+            "Should preserve original filename in path"
+        )
 
     def test_generate_guides_nav_ignores_non_markdown(self, temp_directory) -> None:
         """Only include .md files."""
@@ -109,7 +110,9 @@ class TestGuideDiscovery:
 
         # Check that guides are sorted alphabetically
         expected_order = ["Alpha", "Beta", "Middle", "Zebra"]
-        assert guide_titles == expected_order, f"Should sort alphabetically: expected {expected_order}, got {guide_titles}"
+        assert guide_titles == expected_order, (
+            f"Should sort alphabetically: expected {expected_order}, got {guide_titles}"
+        )
 
     def test_generate_guides_nav_empty_directory(self, temp_directory) -> None:
         """Return empty when guides directory exists but is empty."""
