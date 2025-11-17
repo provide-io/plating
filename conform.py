@@ -6,6 +6,7 @@
 """This script enforces header and footer conformance on Python source files."""
 
 import ast
+from pathlib import Path
 import sys
 
 HEADER_SPDX = [
@@ -14,9 +15,10 @@ HEADER_SPDX = [
     "#",
 ]
 PLACEHOLDER_DOCSTRING = '"""TODO: Add module docstring."""'
+FOOTER = "# 🍽️📖🔚"
 
 
-def get_module_docstring_and_body_start(source):
+def get_module_docstring_and_body_start(source: str) -> tuple[str | None, int]:
     """
     Safely extracts the module docstring and the start line of the main code body.
     """
@@ -36,10 +38,11 @@ def get_module_docstring_and_body_start(source):
         return None, 0
 
 
-def process_file(filepath) -> None:
+def process_file(filepath: str | Path) -> None:
     """Applies header/footer conformance to a single Python file."""
+    filepath = Path(filepath)
     try:
-        with open(filepath, encoding="utf-8") as f:
+        with filepath.open(encoding="utf-8") as f:
             content = f.read()
     except Exception as e:
         print(f"Error reading {filepath}: {e}", file=sys.stderr)
@@ -64,7 +67,7 @@ def process_file(filepath) -> None:
     # 4. Strip old footers and trailing whitespace
     body_content = "\n".join(core_body_lines).rstrip()
 
-    final_body_lines = [line for line in body_content.split("\n")]
+    final_body_lines = list(body_content.split("\n"))
 
     # 5. Construct final content
     full_header = "\n".join(new_header_lines)
@@ -75,7 +78,7 @@ def process_file(filepath) -> None:
 
     # 6. Write back to file
     try:
-        with open(filepath, "w", encoding="utf-8") as f:
+        with filepath.open("w", encoding="utf-8") as f:
             f.write(final_content)
     except Exception as e:
         print(f"Error writing to {filepath}: {e}", file=sys.stderr)
