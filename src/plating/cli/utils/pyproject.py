@@ -4,7 +4,6 @@
 """Utilities for reading and parsing pyproject.toml files."""
 
 from pathlib import Path
-from typing import Any
 
 from provide.foundation import logger
 from provide.foundation.file.safe import safe_read_text
