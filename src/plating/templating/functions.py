@@ -162,7 +162,7 @@ class TemplateEngine:
             return f"<!-- Error rendering partial '{filename}': {e} -->"
 
 
-def create_template_context(component, bundle) -> dict[str, Any]:
+def create_template_context(component: Any, bundle: Any) -> dict[str, Any]:
     """Create template rendering context from component and bundle."""
     context = {
         "name": bundle.name,
@@ -197,7 +197,7 @@ def _format_component_type(component_type: str) -> str:
     return type_mapping.get(component_type, component_type.title())
 
 
-def _create_function_context(schema) -> dict[str, Any]:
+def _create_function_context(schema: Any) -> dict[str, Any]:
     """Create additional context for function components."""
     context = {}
 

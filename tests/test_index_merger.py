@@ -5,7 +5,6 @@
 
 """Test module for index merger functionality."""
 
-
 from plating.core.index_merger import IndexMerger
 
 

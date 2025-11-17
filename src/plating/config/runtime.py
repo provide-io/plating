@@ -59,7 +59,7 @@ class PlatingConfig(RuntimeConfig):
         description="Path to terraform/tofu binary",
         env_var=ENV_PLATING_TF_BINARY,
     )
-    plugin_cache_dir: Path | None = field(
+    plugin_cache_dir: Path | None = field(  # noqa: RUF009
         default=None,
         description="Terraform plugin cache directory",
         env_var=ENV_TF_PLUGIN_CACHE_DIR,
@@ -78,22 +78,22 @@ class PlatingConfig(RuntimeConfig):
     )
 
     # Output configuration
-    output_dir: Path = field(
+    output_dir: Path = field(  # noqa: RUF009
         factory=lambda: Path(DEFAULT_OUTPUT_DIR),
         description="Default output directory for documentation",
         env_var=ENV_PLATING_OUTPUT_DIR,
     )
 
     # Component directories
-    resources_dir: Path = field(
+    resources_dir: Path = field(  # noqa: RUF009
         factory=lambda: Path(DEFAULT_RESOURCES_DIR),
         description="Directory containing resource definitions",
     )
-    data_sources_dir: Path = field(
+    data_sources_dir: Path = field(  # noqa: RUF009
         factory=lambda: Path(DEFAULT_DATA_SOURCES_DIR),
         description="Directory containing data source definitions",
     )
-    functions_dir: Path = field(
+    functions_dir: Path = field(  # noqa: RUF009
         factory=lambda: Path(DEFAULT_FUNCTIONS_DIR),
         description="Directory containing function definitions",
     )

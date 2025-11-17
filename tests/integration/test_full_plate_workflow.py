@@ -104,40 +104,44 @@ Test mode function content
         output_dir.mkdir(parents=True)
 
         # Mock the registry
-        with patch("plating.plating.get_plating_registry", return_value=mock_registry):
-            with patch("plating.plating.extract_provider_schema", return_value={}):
-                # Create plating instance
-                plating = Plating(context=plating_context, package_name="test_package")
-                plating.registry = mock_registry
+        with (
+            patch("plating.plating.get_plating_registry", return_value=mock_registry),
+            patch("plating.plating.extract_provider_schema", return_value={}),
+        ):
+            # Create plating instance
+            plating = Plating(context=plating_context, package_name="test_package")
+            plating.registry = mock_registry
 
-                # Run plate workflow
-                result = await plating.plate(output_dir=output_dir, force=True)
+            # Run plate workflow
+            result = await plating.plate(output_dir=output_dir, force=True)
 
-                # Check result
-                assert result.files_generated > 0, "Should generate files"
+            # Check result
+            assert result.files_generated > 0, "Should generate files"
 
-                # Check that index.md was created
-                index_file = output_dir / "index.md"
-                assert index_file.exists(), "Should create index.md"
+            # Check that index.md was created
+            index_file = output_dir / "index.md"
+            assert index_file.exists(), "Should create index.md"
 
-                # Read and verify index content
-                index_content = index_file.read_text()
+            # Read and verify index content
+            index_content = index_file.read_text()
 
-                # Should have capability sections in correct order
-                assert "## Lens" in index_content, "Should have Lens capability section"
-                assert "## Utilities" in index_content, "Should have Utilities capability section"
-                assert "## Test Mode" in index_content, "Should have Test Mode capability section"
+            # Should have capability sections in correct order
+            assert "## Lens" in index_content, "Should have Lens capability section"
+            assert "## Utilities" in index_content, "Should have Utilities capability section"
+            assert "## Test Mode" in index_content, "Should have Test Mode capability section"
 
-                # Test Mode should appear after other capabilities
-                lens_pos = index_content.index("## Lens")
-                utilities_pos = index_content.index("## Utilities")
-                test_mode_pos = index_content.index("## Test Mode")
+            # Test Mode should appear after other capabilities
+            lens_pos = index_content.index("## Lens")
+            utilities_pos = index_content.index("## Utilities")
+            test_mode_pos = index_content.index("## Test Mode")
 
-                assert test_mode_pos > lens_pos, "Test Mode should appear after Lens"
-                assert test_mode_pos > utilities_pos, "Test Mode should appear after Utilities"
+            assert test_mode_pos > lens_pos, "Test Mode should appear after Lens"
+            assert test_mode_pos > utilities_pos, "Test Mode should appear after Utilities"
 
     @pytest.mark.asyncio
-    async def test_plate_workflow_creates_mkdocs_nav(self, temp_directory, sample_components_mixed_types) -> None:
+    async def test_plate_workflow_creates_mkdocs_nav(
+        self, temp_directory, sample_components_mixed_types
+    ) -> None:
         """Full workflow creates mkdocs.yml with correct navigation structure."""
         output_dir = temp_directory / "docs"
         output_dir.mkdir(parents=True)
@@ -154,7 +158,7 @@ Test mode function content
         assert mkdocs_file.exists(), "Should create mkdocs.yml"
 
         # Read and verify structure
-        with open(mkdocs_file) as f:
+        with mkdocs_file.open() as f:
             config = yaml.safe_load(f)
 
         assert "nav" in config, "Should have nav section"
@@ -189,7 +193,9 @@ Test mode function content
         assert "Troubleshooting" in guides_dict, "Should include troubleshooting guide"
 
     @pytest.mark.asyncio
-    async def test_plate_workflow_respects_force_flag(self, temp_directory, mock_registry, plating_context) -> None:
+    async def test_plate_workflow_respects_force_flag(
+        self, temp_directory, mock_registry, plating_context
+    ) -> None:
         """Force regeneration works correctly."""
         output_dir = temp_directory / "docs"
         output_dir.mkdir(parents=True)
@@ -199,26 +205,28 @@ Test mode function content
         existing_file.parent.mkdir(parents=True, exist_ok=True)
         existing_file.write_text("# Old content\n\nThis should be overwritten")
 
-        with patch("plating.plating.get_plating_registry", return_value=mock_registry):
-            with patch("plating.plating.extract_provider_schema", return_value={}):
-                plating = Plating(context=plating_context, package_name="test_package")
-                plating.registry = mock_registry
+        with (
+            patch("plating.plating.get_plating_registry", return_value=mock_registry),
+            patch("plating.plating.extract_provider_schema", return_value={}),
+        ):
+            plating = Plating(context=plating_context, package_name="test_package")
+            plating.registry = mock_registry
 
-                # Run with force=False (should skip existing file)
-                await plating.plate(output_dir=output_dir, force=False)
+            # Run with force=False (should skip existing file)
+            await plating.plate(output_dir=output_dir, force=False)
 
-                # Check file wasn't modified
-                content_after_no_force = existing_file.read_text()
-                assert "Old content" in content_after_no_force, "Should not overwrite when force=False"
+            # Check file wasn't modified
+            content_after_no_force = existing_file.read_text()
+            assert "Old content" in content_after_no_force, "Should not overwrite when force=False"
 
-                # Run with force=True (should overwrite)
-                await plating.plate(output_dir=output_dir, force=True)
+            # Run with force=True (should overwrite)
+            await plating.plate(output_dir=output_dir, force=True)
 
-                # File should exist and be regenerated
-                assert existing_file.exists(), "File should still exist"
+            # File should exist and be regenerated
+            assert existing_file.exists(), "File should still exist"
 
-                # Note: In real workflow, content would be different
-                # This test verifies the force flag is passed through correctly
+            # Note: In real workflow, content would be different
+            # This test verifies the force flag is passed through correctly
 
     @pytest.mark.asyncio
     async def test_plate_workflow_handles_missing_templates(self, temp_directory, plating_context) -> None:
@@ -243,19 +251,23 @@ Test mode function content
             }.get(comp_type, [])
         )
 
-        with patch("plating.plating.get_plating_registry", return_value=registry):
-            with patch("plating.plating.extract_provider_schema", return_value={}):
-                plating = Plating(context=plating_context, package_name="test_package")
-                plating.registry = registry
+        with (
+            patch("plating.plating.get_plating_registry", return_value=registry),
+            patch("plating.plating.extract_provider_schema", return_value={}),
+        ):
+            plating = Plating(context=plating_context, package_name="test_package")
+            plating.registry = registry
 
-                # Should not crash when template is missing
-                result = await plating.plate(output_dir=output_dir, force=True)
+            # Should not crash when template is missing
+            result = await plating.plate(output_dir=output_dir, force=True)
 
-                # Should complete even with missing template
-                assert isinstance(result, object), "Should return result object"
+            # Should complete even with missing template
+            assert isinstance(result, object), "Should return result object"
 
     @pytest.mark.asyncio
-    async def test_plate_workflow_component_grouping(self, temp_directory, mock_registry, plating_context) -> None:
+    async def test_plate_workflow_component_grouping(
+        self, temp_directory, mock_registry, plating_context
+    ) -> None:
         """Verify components are correctly grouped by capability."""
         from plating.core.doc_generator import group_components_by_capability
 

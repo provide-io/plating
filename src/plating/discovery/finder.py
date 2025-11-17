@@ -81,7 +81,7 @@ class PlatingDiscovery:
 
         return None
 
-    def _discover_from_all_packages(self, component_type: str | None = None) -> list[PlatingBundle]:
+    def _discover_from_all_packages(self, component_type: str | None = None) -> list[PlatingBundle]:  # noqa: C901
         """Discover .plating bundles from all installed packages.
 
         Searches site-packages and other Python paths for .plating directories.
