@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "garnish"
+name = "plating"
 dynamic = ["version"]
 description = "Documentation generation system for Terraform/OpenTofu providers"
 requires-python = ">=3.11"
 readme = "README.md"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 authors = [
     { name = "Tim Perkins", email = "code@tim.life" },
 ]
@@ -16,9 +16,8 @@ maintainers = [
     { name = "provide.io", email = "code@provide.io" },
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
@@ -27,34 +26,32 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "attrs>=23.0.0",
-    "click>=8.1.0",
     "jinja2>=3.1.6",
-    "rich>=13.0.0",
-    "pyvider-telemetry>=0.0.13",
-    # pyvider>=0.0.1111,  # Install from sibling: uv pip install -e ../pyvider
-    # pyvider-cty>=0.0.111,  # Temporarily removed - install from sibling
-    # pyvider-hcl>=0.0.113,  # Temporarily removed - install from sibling
+    "rich>=14.0.0",
+    "pyvider-cty",
+    "provide-foundation[all]",
+    "pymarkdownlnt>=0.9.32",
+    "mkdocs-material>=9.6.20",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=6.0.0",
-    "mypy>=1.10.0",
-    "ruff>=0.2.0",
+    "provide-testkit[standard,build]",
+]
+docs = [
+    "provide-testkit[docs]",
 ]
 
 [project.scripts]
-garnish = "garnish.cli:main"
+plating = "plating.cli:main"
 
 [tool.uv]
 package = true
 
+
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["garnish*"]
+include = ["plating*"]
 namespaces = false
 
 [tool.setuptools.dynamic]
@@ -67,6 +64,11 @@ asyncio_mode = "auto"
 pythonpath = ["src", "."]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
+filterwarnings = [
+    "ignore::RuntimeWarning:threading",
+    "ignore:coroutine.*was never awaited:RuntimeWarning",
+    "ignore:Module already imported so cannot be rewritten.*:pytest.PytestAssertRewriteWarning",
+]
 
 [tool.ruff]
 line-length = 111
@@ -75,10 +77,10 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "ANN", "B", "C90", "SIM", "PTH", "RUF"]
-ignore = ["ANN401", "E501"]
+ignore = ["ANN401", "B008", "E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["garnish"]
+known-first-party = ["plating"]
 force-sort-within-sections = true
 combine-as-imports = true
 
@@ -99,21 +101,18 @@ warn_unused_ignores = true
 warn_unused_configs = true
 disallow_untyped_decorators = false
 
+# Exclude .plating directories from mypy checking
+exclude = [".*\\.plating/.*"]
+
 [[tool.mypy.overrides]]
-module = ["pyvider.*", "jinja2.*", "rich.*", "click.*", "attrs.*"]
+module = ["pyvider.*", "jinja2.*", "rich.*", "click.*", "attrs.*", "provide.*", "opentelemetry.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]
-source = ["garnish"]
+source = ["plating"]
 branch = true
-parallel = true
 
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
 exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ == .__main__.:", "if TYPE_CHECKING:", "def __repr__", "def __str__", "pass"]
-
-[dependency-groups]
-dev = [
-    "pytest-asyncio>=1.1.0",
-]
