@@ -32,6 +32,7 @@ dependencies = [
     "jinja2>=3.1.6",
     "rich>=13.0.0",
     "pyvider-telemetry>=0.0.13",
+    # pyvider>=0.0.1111,  # Install from sibling: uv pip install -e ../pyvider
     # pyvider-cty>=0.0.111,  # Temporarily removed - install from sibling
     # pyvider-hcl>=0.0.113,  # Temporarily removed - install from sibling
 ]
