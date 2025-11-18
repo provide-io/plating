@@ -1,0 +1,128 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "plating"
+dynamic = ["version"]
+description = "Documentation generation system for Terraform/OpenTofu providers"
+requires-python = ">=3.11"
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+    { name = "Tim Perkins", email = "code@tim.life" },
+]
+maintainers = [
+    { name = "provide.io", email = "code@provide.io" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+dependencies = [
+    "jinja2>=3.1.6",
+    "rich>=14.0.0",
+    "pyvider-cty",
+    "provide-foundation[all]",
+    "pymarkdownlnt>=0.9.32",
+    "mkdocs-material>=9.6.20",
+]
+
+[project.urls]
+Homepage = "https://foundry.provide.io/plating/"
+Documentation = "https://foundry.provide.io/plating/"
+Repository = "https://foundry.provide.io/plating/repo"
+Issues = "https://foundry.provide.io/plating/issues"
+
+[dependency-groups]
+dev = [
+    "provide-testkit[standard,build]",
+]
+docs = [
+    "provide-testkit[docs]",
+]
+
+[project.scripts]
+plating = "plating.cli:main"
+
+[tool.uv]
+package = true
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["plating*"]
+namespaces = false
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "DEBUG"
+asyncio_mode = "auto"
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+filterwarnings = [
+    "ignore::RuntimeWarning:threading",
+    "ignore:coroutine.*was never awaited:RuntimeWarning",
+    "ignore:Module already imported so cannot be rewritten.*:pytest.PytestAssertRewriteWarning",
+]
+
+[tool.ruff]
+line-length = 111
+indent-width = 4
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "ANN", "B", "C90", "SIM", "PTH", "RUF"]
+ignore = ["ANN401", "B008", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["ANN001", "ANN002", "ANN003", "ANN201", "ANN202"]
+"conftest.py" = ["ANN001", "ANN002", "ANN003", "ANN201", "ANN202"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["plating"]
+force-sort-within-sections = true
+combine-as-imports = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "src"
+strict = true
+pretty = true
+show_error_codes = true
+show_column_numbers = true
+warn_unused_ignores = true
+warn_unused_configs = true
+disallow_untyped_decorators = false
+
+# Exclude .plating directories from mypy checking
+exclude = [".*\\.plating/.*"]
+
+[[tool.mypy.overrides]]
+module = ["pyvider.*", "jinja2.*", "rich.*", "click.*", "attrs.*", "provide.*", "opentelemetry.*"]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["plating"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ == .__main__.:", "if TYPE_CHECKING:", "def __repr__", "def __str__", "pass"]

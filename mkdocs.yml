@@ -1,0 +1,57 @@
+# Inherit shared configuration from provide-foundry
+INHERIT: .provide/foundry/base-mkdocs.yml
+
+# Project-Specific Configuration
+site_name: plating
+site_description: Documentation and code generation templates
+site_author: provide.io
+site_url: https://foundry.provide.io/plating/
+repo_url: https://github.com/provide-io/plating
+repo_name: provide-io/plating
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; 2024-2025 provide.io
+
+# Development server configuration
+dev_addr: '127.0.0.1:8009'
+
+# Standalone mode settings
+docs_dir: docs
+
+# Project-specific theme overrides
+theme:
+  font:
+    text: Inter
+    code: Fira Code
+  palette:
+    # Light mode - custom colors for plating
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode - custom colors for plating
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started/index.md
+  - User Guide:
+      - Quick Start: quick-start.md
+      - Authoring Bundles: authoring-bundles.md
+      - Examples: examples.md
+  - Reference:
+      - CLI Reference: cli-reference.md
+      - API Reference: api-reference.md
+      - API Documentation: api/index.md
+      - Registry Pattern: registry-pattern.md
+  - Advanced:
+      - Performance: performance.md
+      - Troubleshooting: troubleshooting.md
