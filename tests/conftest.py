@@ -335,7 +335,7 @@ def mock_mkdocs_config(temp_directory):
         "theme": {"name": "material"},
         "nav": [{"Home": "index.md"}],
     }
-    with open(mkdocs_file, "w") as f:
+    with mkdocs_file.open("w") as f:
         yaml.dump(config, f)
 
     return mkdocs_file

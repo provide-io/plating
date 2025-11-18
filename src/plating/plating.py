@@ -101,7 +101,7 @@ class Plating:
     @with_timing
     @with_retry()
     @with_metrics("plate")
-    async def plate(
+    async def plate(  # noqa: C901
         self,
         output_dir: Path | None = None,
         component_types: list[ComponentType] | None = None,

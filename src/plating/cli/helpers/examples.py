@@ -41,7 +41,7 @@ def generate_examples_if_requested(
         bundles_with_examples.extend([b for b in bundles if b.has_examples()])
 
     if not bundles_with_examples:
-        pout("ℹ️  No components with examples found")
+        pout("ℹ️  No components with examples found")  # noqa: RUF001
         return
 
     compiler = ExampleCompiler(
@@ -63,7 +63,7 @@ def generate_examples_if_requested(
         if len(compilation_result.output_files) > 5:
             pout(f"  ... and {len(compilation_result.output_files) - 5} more")
     else:
-        pout("ℹ️  No examples found to compile")
+        pout("ℹ️  No examples found to compile")  # noqa: RUF001
 
     if compilation_result.errors:
         perr("⚠️ Some example compilation errors:")

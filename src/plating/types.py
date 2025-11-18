@@ -105,7 +105,7 @@ class SchemaInfo:
             component_of=schema_dict.get("component_of"),
         )
 
-    def to_markdown(self) -> str:
+    def to_markdown(self) -> str:  # noqa: C901
         """Convert schema to markdown format."""
         if not self.attributes and not self.blocks:
             return ""
@@ -160,7 +160,7 @@ class SchemaInfo:
 
         return "\n".join(lines)
 
-    def _format_type(self, type_info) -> str:
+    def _format_type(self, type_info: Any) -> str:
         """Format type information to human-readable string."""
         if not type_info:
             return "String"
@@ -198,7 +198,7 @@ class PlatingCLIContext(CLIContext):
         signature: str | None = None,
         arguments: list[ArgumentInfo] | None = None,
         global_partials_dir: Path | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self.name = name
@@ -259,7 +259,7 @@ class PlatingCLIContext(CLIContext):
         self._set_metadata = set_metadata or {}
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any], source: Any = None) -> "PlatingCLIContext":
+    def from_dict(cls, data: dict[str, Any], source: Any = None) -> "PlatingCLIContext":  # noqa: C901
         """Create context from dictionary.
 
         Args:
