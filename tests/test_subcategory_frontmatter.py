@@ -5,7 +5,6 @@
 
 """Test module for subcategory frontmatter injection and preservation."""
 
-
 from plating.core.doc_generator import _inject_subcategory, _inject_test_mode_subcategory
 
 

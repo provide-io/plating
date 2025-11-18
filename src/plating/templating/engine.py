@@ -402,12 +402,8 @@ class AsyncTemplateEngine:
                 desc_idx = i
                 break
 
-        if desc_idx == -1:
-            # No description found, insert after H1
-            insert_idx = h1_idx + 1
-        else:
-            # Insert after description
-            insert_idx = desc_idx + 1
+        # Insert after description if found, otherwise after H1
+        insert_idx = h1_idx + 1 if desc_idx == -1 else desc_idx + 1
 
         # Insert header at the calculated position
         lines.insert(insert_idx, "")  # Add blank line before header
