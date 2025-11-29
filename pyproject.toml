@@ -75,6 +75,7 @@ filterwarnings = [
     "ignore:coroutine.*was never awaited:RuntimeWarning",
     "ignore:Module already imported so cannot be rewritten.*:pytest.PytestAssertRewriteWarning",
 ]
+addopts = "--dist load"
 
 [tool.ruff]
 line-length = 111
