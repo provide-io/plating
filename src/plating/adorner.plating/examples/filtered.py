@@ -8,7 +8,6 @@ import asyncio
 from plating.adorner import PlatingAdorner
 
 
-
 async def dress_resources_only() -> None:
     """Dress only resource components."""
     adorner = PlatingAdorner()
