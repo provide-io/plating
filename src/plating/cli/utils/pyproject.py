@@ -22,7 +22,7 @@ def load_tomllib_module() -> type | None:
         return tomllib
     except ImportError:
         try:
-            import tomli as tomllib  # type: ignore[no-redef]
+            import tomli as tomllib  # type: ignore[import-not-found,no-redef]
 
             return tomllib
         except ImportError:

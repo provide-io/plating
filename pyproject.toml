@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68.0.0", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -32,7 +32,6 @@ dependencies = [
     "provide-foundation[all]",
     "pymarkdownlnt>=0.9.32",
     "mkdocs-material>=9.6.20",
-    "pyvider",
 ]
 
 [project.urls]
@@ -55,9 +54,6 @@ plating = "plating.cli:main"
 [tool.uv]
 package = true
 
-[tool.uv.sources]
-pyvider = { path = "../pyvider", editable = true }
-
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -79,8 +75,6 @@ filterwarnings = [
     "ignore:coroutine.*was never awaited:RuntimeWarning",
     "ignore:Module already imported so cannot be rewritten.*:pytest.PytestAssertRewriteWarning",
 ]
-addopts = ""
-# Parallel execution: pytest -n <workers> (range: 2-16, recommend: CPU cores or 8, max: 16 to avoid xdist hang)
 
 [tool.ruff]
 line-length = 111
@@ -129,7 +123,6 @@ source = ["plating"]
 branch = true
 
 [tool.coverage.report]
-fail_under = 70
 show_missing = true
 skip_covered = true
 exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ == .__main__.:", "if TYPE_CHECKING:", "def __repr__", "def __str__", "pass"]

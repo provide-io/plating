@@ -7,6 +7,8 @@ import asyncio
 
 from plating.adorner import PlatingAdorner
 
+"""TODO: Add module docstring."""
+
 
 async def dress_resources_only() -> None:
     """Dress only resource components."""
