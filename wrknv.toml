@@ -6,3 +6,5 @@ siblings = [
     { name = "flavor", with_deps = true },
     { name = "wrkenv", with_deps = true }
 ]
+[tasks.security]
+_default = "bandit -r src/ -c pyproject.toml"
