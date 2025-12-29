@@ -125,4 +125,5 @@ branch = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
+fail_under = 70
 exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ == .__main__.:", "if TYPE_CHECKING:", "def __repr__", "def __str__", "pass"]
