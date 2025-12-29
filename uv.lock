@@ -1962,7 +1962,6 @@ name = "plating"
 source = { editable = "." }
 dependencies = [
     { name = "jinja2" },
-    { name = "mkdocs-material" },
     { name = "provide-foundation", extra = ["all"] },
     { name = "pymarkdownlnt" },
     { name = "pyvider-cty" },
@@ -1974,13 +1973,13 @@ dev = [
     { name = "provide-testkit", extra = ["build", "standard"] },
 ]
 docs = [
+    { name = "mkdocs-material" },
     { name = "provide-testkit", extra = ["docs"] },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "mkdocs-material", specifier = ">=9.6.20" },
     { name = "provide-foundation", extras = ["all"] },
     { name = "pymarkdownlnt", specifier = ">=0.9.32" },
     { name = "pyvider-cty" },
@@ -1989,7 +1988,10 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [{ name = "provide-testkit", extras = ["standard", "build"] }]
-docs = [{ name = "provide-testkit", extras = ["docs"] }]
+docs = [
+    { name = "mkdocs-material", specifier = ">=9.7.1" },
+    { name = "provide-testkit", extras = ["docs"] },
+]
 
 [[package]]
 name = "pluggy"
