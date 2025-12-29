@@ -31,7 +31,6 @@ dependencies = [
     "pyvider-cty",
     "provide-foundation[all]",
     "pymarkdownlnt>=0.9.32",
-    "mkdocs-material>=9.7.1",
 ]
 
 [project.urls]
@@ -46,6 +45,7 @@ dev = [
 ]
 docs = [
     "provide-testkit[docs]",
+    "mkdocs-material>=9.7.1",
 ]
 
 [project.scripts]
