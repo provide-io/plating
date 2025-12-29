@@ -2,43 +2,7 @@
 siblings = [
     # Pattern for all pyvider packages
     { pattern = "pyvider-*", with_deps = true },
-    # Other special packages
+    # Other special packages  
     { name = "flavor", with_deps = true },
     { name = "wrkenv", with_deps = true }
 ]
-
-[tasks]
-typecheck = "mypy src/"
-build = "uv build"
-
-[tasks.test]
-_default = "pytest"
-parallel = "pytest -n auto"
-verbose = "pytest -vvv"
-
-[tasks.test.coverage]
-_default = "pytest --cov=src --cov-report=html --cov-report=term-missing"
-
-[tasks.lint]
-_default = "ruff check ."
-fix = "ruff check . --fix"
-
-[tasks.format]
-_default = "ruff format ."
-check = "ruff format . --check"
-
-[tasks.quality]
-_default = [
-    "lint",
-    "typecheck",
-]
-
-[tasks.ci]
-_default = [
-    "quality",
-    "test",
-    "build",
-]
-
-[tasks.security]
-_default = "bandit -r src/ -c pyproject.toml"
