@@ -122,21 +122,12 @@ class PlatingDiscovery:
                     sub_component_bundles = self._discover_sub_components(plating_dir, bundle_component_type)
                     if sub_component_bundles:
                         all_bundles.extend(sub_component_bundles)
-                    else:
-                        if bundle_component_type == "function":
-                            function_bundles = self._discover_component_templates(
-                                plating_dir, bundle_component_type
-                            )
-                            if function_bundles:
-                                all_bundles.extend(function_bundles)
-                            else:
-                                component_name = plating_dir.name.replace(".plating", "")
-                                bundle = PlatingBundle(
-                                    name=component_name,
-                                    plating_dir=plating_dir,
-                                    component_type=bundle_component_type,
-                                )
-                                all_bundles.append(bundle)
+                    elif bundle_component_type == "function":
+                        function_bundles = self._discover_component_templates(
+                            plating_dir, bundle_component_type
+                        )
+                        if function_bundles:
+                            all_bundles.extend(function_bundles)
                         else:
                             component_name = plating_dir.name.replace(".plating", "")
                             bundle = PlatingBundle(
@@ -145,6 +136,14 @@ class PlatingDiscovery:
                                 component_type=bundle_component_type,
                             )
                             all_bundles.append(bundle)
+                    else:
+                        component_name = plating_dir.name.replace(".plating", "")
+                        bundle = PlatingBundle(
+                            name=component_name,
+                            plating_dir=plating_dir,
+                            component_type=bundle_component_type,
+                        )
+                        all_bundles.append(bundle)
             except Exception:
                 # Skip directories that cause errors
                 continue
