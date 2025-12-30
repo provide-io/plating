@@ -70,6 +70,11 @@ asyncio_mode = "auto"
 pythonpath = ["src", "."]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks integration tests",
+    "unit: marks unit tests",
+]
 filterwarnings = [
     "ignore::RuntimeWarning:threading",
     "ignore:coroutine.*was never awaited:RuntimeWarning",
@@ -150,3 +155,6 @@ show_missing = true
 skip_covered = true
 fail_under = 70
 exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ == .__main__.:", "if TYPE_CHECKING:", "def __repr__", "def __str__", "pass"]
+
+[tool.bandit]
+exclude_dirs = [".venv", "tests", "workenv"]
