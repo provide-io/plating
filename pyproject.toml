@@ -1,3 +1,9 @@
+#
+# plating/pyproject.toml
+#
+# Documentation generation system for Terraform/OpenTofu providers
+#
+
 [build-system]
 requires = ["setuptools>=75.0", "wheel"]
 build-backend = "setuptools.build_meta"
