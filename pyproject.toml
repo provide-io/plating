@@ -31,7 +31,7 @@ dependencies = [
     "pyvider-cty",
     "provide-foundation[all]",
     "pymarkdownlnt>=0.9.32",
-    "mkdocs-material>=9.6.20",
+    "mkdocs-material>=9.7.1",
 ]
 
 [project.urls]
