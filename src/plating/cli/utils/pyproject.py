@@ -10,7 +10,10 @@ from provide.foundation.file.safe import safe_read_text
 from provide.foundation.serialization import toml_loads
 
 
-def load_tomllib_module() -> type | None:
+from types import ModuleType
+
+
+def load_tomllib_module() -> ModuleType | None:
     """Load tomllib or tomli module.
 
     Returns:
@@ -22,7 +25,7 @@ def load_tomllib_module() -> type | None:
         return tomllib
     except ImportError:
         try:
-            import tomli as tomllib  # type: ignore[import-not-found,no-redef]
+            import tomli as tomllib  # type: ignore[no-redef]
 
             return tomllib
         except ImportError:
@@ -48,7 +51,7 @@ def get_pyvider_component_packages(pyproject_path: Path) -> list[str] | None:
         if "pyvider" in pyproject:
             component_packages = pyproject["pyvider"].get("component_packages")
             if component_packages and isinstance(component_packages, list):
-                return component_packages
+                return list(component_packages)
     except Exception as e:
         logger.debug(f"Failed to read [pyvider] section from pyproject.toml: {e}")
 
@@ -77,7 +80,7 @@ def get_provider_name_from_pyproject(pyproject_path: Path) -> str | None:
         if "pyvider" in pyproject:
             provider_name = pyproject["pyvider"].get("name")
             if provider_name:
-                return provider_name
+                return str(provider_name)
 
         # Fallback to [tool.plating] provider_name for backward compatibility
         if (
@@ -85,7 +88,7 @@ def get_provider_name_from_pyproject(pyproject_path: Path) -> str | None:
             and "plating" in pyproject["tool"]
             and "provider_name" in pyproject["tool"]["plating"]
         ):
-            return pyproject["tool"]["plating"]["provider_name"]
+            return str(pyproject["tool"]["plating"]["provider_name"])
     except Exception as e:
         logger.debug(f"Failed to read provider name from pyproject.toml: {e}")
 
