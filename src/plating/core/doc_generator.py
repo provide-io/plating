@@ -110,8 +110,9 @@ def group_components_by_capability(
     Returns a nested dictionary: {capability: {component_type: [components]}}
     """
     from collections import defaultdict
+    from typing import Any
 
-    grouped = defaultdict(lambda: defaultdict(list))
+    grouped: dict[str | None, dict[str, list[Any]]] = defaultdict(lambda: defaultdict(list))
 
     for component, comp_type in components:
         # Extract subcategory from template frontmatter if present
@@ -122,7 +123,7 @@ def group_components_by_capability(
         grouped[subcategory][comp_type].append((component, comp_type))
 
     # Sort capabilities: None (uncategorized) first, then alphabetically, "Test Mode" always last
-    sorted_grouped = {}
+    sorted_grouped: dict[str | None, dict[str, list[Any]]] = {}
 
     # Add uncategorized components (None key) first if they exist
     if None in grouped:
@@ -518,10 +519,10 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
         type_order = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
 
         for comp_type in type_order:
-            if comp_type not in types_dict:
+            if comp_type.value not in types_dict:
                 continue
 
-            components = types_dict[comp_type]
+            components = types_dict[comp_type.value]
             if not components:
                 continue
 

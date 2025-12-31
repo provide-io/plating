@@ -121,7 +121,7 @@ class AsyncTemplateEngine:
                 template_path=bundle.plating_dir / "docs" / f"{bundle.name}.tmpl.md",
                 reason=error_msg,
                 line_number=line_number,
-                context=getattr(e, "source", None),
+                template_context=getattr(e, "source", None),
             ) from e
 
         except OSError as e:
