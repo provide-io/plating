@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from jinja2 import DictLoader, Environment, TemplateError as Jinja2TemplateError, select_autoescape
 from provide.foundation import logger
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from plating.decorators import plating_metrics, with_metrics, with_timing
 from plating.errors import FileSystemError, TemplateError

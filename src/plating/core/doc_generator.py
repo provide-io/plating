@@ -120,7 +120,7 @@ def group_components_by_capability(
         subcategory = _extract_subcategory_from_template(component)
 
         # Store grouped components
-        grouped[subcategory][comp_type].append((component, comp_type))
+        grouped[subcategory][comp_type.value].append((component, comp_type))
 
     # Sort capabilities: None (uncategorized) first, then alphabetically, "Test Mode" always last
     sorted_grouped: dict[str | None, dict[str, list[Any]]] = {}
@@ -131,14 +131,14 @@ def group_components_by_capability(
 
     # Add categorized components alphabetically
     test_mode_items = grouped.pop("Test Mode", None)
-    for capability in sorted(grouped.keys()):
+    for capability in sorted((k for k in grouped.keys() if k is not None), key=str):
         sorted_grouped[capability] = grouped[capability]
 
     # Add Test Mode last
     if test_mode_items:
         sorted_grouped["Test Mode"] = test_mode_items
 
-    return dict(sorted_grouped)
+    return sorted_grouped  # type: ignore[return-value]
 
 
 def _extract_subcategory_from_template(component: PlatingBundle) -> str | None:

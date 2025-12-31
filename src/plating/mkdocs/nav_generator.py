@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from provide.foundation import logger
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from plating.bundles import PlatingBundle
 from plating.core.doc_generator import group_components_by_capability
@@ -133,7 +133,7 @@ class MkdocsNavGenerator:
     def _generate_capability_section(
         self,
         capability: str,
-        types_dict: dict[ComponentType, list[tuple[PlatingBundle, ComponentType]]],
+        types_dict: dict[str, list[tuple[PlatingBundle, ComponentType]]],
     ) -> dict[str, Any] | None:
         """Generate navigation section for a capability."""
         section = {}
@@ -142,10 +142,10 @@ class MkdocsNavGenerator:
         type_order = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
 
         for comp_type in type_order:
-            if comp_type not in types_dict:
+            if comp_type.value not in types_dict:
                 continue
 
-            components = types_dict[comp_type]
+            components = types_dict[comp_type.value]
             if not components:
                 continue
 
