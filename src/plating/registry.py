@@ -42,7 +42,8 @@ class PlatingRegistryEntry(RegistryEntry):
     @property
     def bundle(self) -> PlatingBundle:
         """Get the PlatingBundle from this entry."""
-        return self.value  # type: ignore[return-value]
+        bundle: PlatingBundle = self.value
+        return bundle
 
 
 class PlatingRegistry(Registry):
@@ -203,7 +204,7 @@ class PlatingRegistry(Registry):
         all_names = self.list_all()
 
         stats["total_components"] = sum(len(names) for names in all_names.values())
-        stats["component_types"] = list(all_names.keys())
+        stats["component_types_list"] = list(all_names.keys())
 
         for comp_type, names in all_names.items():
             stats[f"{comp_type}_count"] = len(names)

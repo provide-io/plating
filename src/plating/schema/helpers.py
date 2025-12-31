@@ -123,7 +123,7 @@ def convert_pvs_schema_to_dict(pvs_schema: Any) -> dict[str, Any]:
         import attrs
 
         if attrs.has(type(pvs_schema)):
-            schema_dict = attrs.asdict(pvs_schema)  # type: ignore[arg-type]
+            schema_dict = attrs.asdict(pvs_schema)
         else:
             # Fallback: try to access schema attributes directly
             schema_dict = {

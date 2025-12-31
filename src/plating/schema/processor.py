@@ -29,7 +29,7 @@ from plating.schema.formatters import (
 )
 
 if TYPE_CHECKING:
-    from plating.generator import DocsGenerator
+    from typing import Any as DocsGenerator  # Avoid circular import
 
 
 class SchemaProcessor:

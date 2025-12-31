@@ -19,7 +19,7 @@ from plating.errors import FileSystemError, TemplateError
 from plating.types import PlatingContext
 
 if TYPE_CHECKING:
-    from plating.plating import PlatingBundle
+    from plating.bundles import PlatingBundle
 
 """Modern async template engine with foundation integration and error handling."""
 
