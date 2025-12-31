@@ -2,7 +2,65 @@
 siblings = [
     # Pattern for all pyvider packages
     { pattern = "pyvider-*", with_deps = true },
-    # Other special packages  
+    # Other special packages
     { name = "flavor", with_deps = true },
     { name = "wrkenv", with_deps = true }
 ]
+
+[tasks]
+typecheck = "mypy src/"
+build = "uv build"
+
+[tasks.test]
+_default = "pytest"
+parallel = "pytest -n auto"
+verbose = "pytest -vvv"
+unit = "pytest -m unit"
+integration = "pytest -m integration"
+
+[tasks.test.coverage]
+_default = "pytest --cov=src --cov-report=html --cov-report=term-missing"
+xml = "pytest --cov=src --cov-report=xml --cov-report=term"
+
+[tasks.lint]
+_default = "ruff check ."
+fix = "ruff check . --fix"
+
+[tasks.format]
+_default = "ruff format ."
+check = "ruff format . --check"
+
+[tasks.quality]
+_default = [
+    "lint",
+    "typecheck",
+]
+parallel = true
+
+[tasks.pkg]
+install = "uv pip install -e ."
+lock = "uv lock"
+version = "cat VERSION 2>/dev/null || grep '^version = ' pyproject.toml | cut -d'\"' -f2"
+
+[tasks.clean]
+run = "rm -rf build/ dist/ *.egg-info .pytest_cache .mypy_cache .ruff_cache .hypothesis htmlcov/ .coverage site/\nfind . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true\nfind . -type f -name '*.pyc' -delete 2>/dev/null || true\nfind . -type f -name '*.pyo' -delete 2>/dev/null || true\n"
+
+[tasks.dev]
+setup = "uv sync"
+test = "pytest -n auto"
+check = "ruff format . && ruff check . && mypy src/"
+
+[tasks.ci]
+_default = [
+    "quality",
+    "test",
+    "build",
+]
+quality = [
+    "format.check",
+    "lint",
+    "typecheck",
+]
+
+[tasks.setup]
+_default = "uv sync"
