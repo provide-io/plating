@@ -29,7 +29,7 @@ from plating.schema.formatters import (
 )
 
 if TYPE_CHECKING:
-    from .generator import DocsGenerator
+    from plating.generator import DocsGenerator
 
 
 class SchemaProcessor:
@@ -51,7 +51,7 @@ class SchemaProcessor:
 
     def extract_provider_schema(self) -> dict[str, Any]:
         """Extract provider schema using foundation's component discovery."""
-        with timed_block(logger, "schema_extraction_total") as timer:
+        with timed_block(logger, "schema_extraction_total") as timer:  # type: ignore[arg-type]
             try:
                 result = self._extract_schema_via_discovery()
                 logger.info("Schema extraction successful", duration=timer.get("duration", 0))
@@ -160,12 +160,12 @@ class SchemaProcessor:
         except ProcessError as e:
             logger.error(
                 "Provider build failed",
-                command=e.cmd,
-                returncode=e.returncode,
-                stdout=e.stdout,
-                stderr=e.stderr,
+                command=getattr(e, "command", str(e)),
+                returncode=getattr(e, "return_code", -1),
+                stdout=getattr(e, "stdout", ""),
+                stderr=getattr(e, "stderr", ""),
             )
-            raise SchemaError(f"Failed to build provider: {e}") from e
+            raise SchemaError(self.generator.provider_name, f"Failed to build provider: {e}") from e
 
         # Find the built provider binary
         self._find_provider_binary()
@@ -202,12 +202,12 @@ provider "{self.generator.provider_name}" {{}}
             except ProcessError as e:
                 logger.error(
                     "Terraform init failed",
-                    command=e.cmd,
-                    returncode=e.returncode,
-                    stdout=e.stdout,
-                    stderr=e.stderr,
+                    command=getattr(e, "command", str(e)),
+                    returncode=getattr(e, "return_code", -1),
+                    stdout=getattr(e, "stdout", ""),
+                    stderr=getattr(e, "stderr", ""),
                 )
-                raise SchemaError(f"Failed to initialize Terraform: {e}") from e
+                raise SchemaError(self.generator.provider_name, f"Failed to initialize Terraform: {e}") from e
 
             # Extract schema with retry
             try:
@@ -220,14 +220,14 @@ provider "{self.generator.provider_name}" {{}}
             except ProcessError as e:
                 logger.error(
                     "Schema extraction failed",
-                    command=e.cmd,
-                    returncode=e.returncode,
-                    stdout=e.stdout,
-                    stderr=e.stderr,
+                    command=getattr(e, "command", str(e)),
+                    returncode=getattr(e, "return_code", -1),
+                    stdout=getattr(e, "stdout", ""),
+                    stderr=getattr(e, "stderr", ""),
                 )
-                raise SchemaError(f"Failed to extract provider schema: {e}") from e
+                raise SchemaError(self.generator.provider_name, f"Failed to extract provider schema: {e}") from e
 
-            schema_data = json.loads(schema_result.stdout)
+            schema_data: dict[str, Any] = json.loads(schema_result.stdout)
             return schema_data
 
         finally:

@@ -48,7 +48,7 @@ def auto_detect_package_name() -> str | None:
 
         # Fall back to package name from [project] section
         if "project" in pyproject and "name" in pyproject["project"]:
-            return pyproject["project"]["name"]
+            return str(pyproject["project"]["name"])
 
         return None
     except Exception as e:

@@ -16,7 +16,7 @@ except ImportError:
     _BaseError = Exception  # type: ignore[misc,assignment]
 
 
-class PlatingError(_BaseError):  # type: ignore[misc]
+class PlatingError(_BaseError):
     """Base error for all plating-related errors with context support."""
 
     def to_user_message(self) -> str:
