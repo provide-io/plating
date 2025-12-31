@@ -13,13 +13,10 @@ from typing import Any
 try:
     from provide.foundation.errors import FoundationError as _BaseError
 except ImportError:
-    _BaseError = Exception
-
-# Type alias - base class for all plating errors
-FoundationError: type[Exception] = _BaseError
+    _BaseError = Exception  # type: ignore[misc,assignment]
 
 
-class PlatingError(FoundationError):
+class PlatingError(_BaseError):  # type: ignore[misc]
     """Base error for all plating-related errors with context support."""
 
     def to_user_message(self) -> str:
