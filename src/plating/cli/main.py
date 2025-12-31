@@ -26,9 +26,11 @@ def main(ctx: click.Context, log_level: str | None, log_file: Path | None, log_f
         from provide.foundation import LoggingConfig, TelemetryConfig, get_hub
 
         hub = get_hub()
+        from typing import cast, Literal
+        LogLevel = Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "TRACE", "NOTSET"]
         updated_config = TelemetryConfig(
             service_name="plating",
-            logging=LoggingConfig(default_level=log_level.upper()),
+            logging=LoggingConfig(default_level=cast(LogLevel, log_level.upper())),
         )
         hub.initialize_foundation(config=updated_config)
         logger.debug(f"Log level set to {log_level.upper()}")

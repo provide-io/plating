@@ -204,7 +204,7 @@ class SingleExampleCompiler:
         """
         try:
             is_test_only, _ = _extract_component_metadata(bundle, component_type, self.provider_name)
-            return is_test_only
+            return bool(is_test_only)
         except Exception:
             return False
 
