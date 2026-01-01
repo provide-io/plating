@@ -79,7 +79,7 @@ class TestMkdocsNavGenerator:
         (docs_dir / "test_resource.tmpl.md").write_text("# Test Resource")
 
         component = PlatingBundle("test_resource", resource_dir, "resource")
-        types_dict = {ComponentType.RESOURCE: [(component, ComponentType.RESOURCE)]}
+        types_dict = {ComponentType.RESOURCE.value: [(component, ComponentType.RESOURCE)]}
 
         generator = MkdocsNavGenerator(temp_directory)
         section = generator._generate_capability_section("Utilities", types_dict)
@@ -100,7 +100,7 @@ class TestMkdocsNavGenerator:
         (docs_dir / "test_data.tmpl.md").write_text("# Test Data Source")
 
         component = PlatingBundle("test_data", data_dir, "data_source")
-        types_dict = {ComponentType.DATA_SOURCE: [(component, ComponentType.DATA_SOURCE)]}
+        types_dict = {ComponentType.DATA_SOURCE.value: [(component, ComponentType.DATA_SOURCE)]}
 
         generator = MkdocsNavGenerator(temp_directory)
         section = generator._generate_capability_section("Utilities", types_dict)
@@ -121,7 +121,7 @@ class TestMkdocsNavGenerator:
         (docs_dir / "test_func.tmpl.md").write_text("# Test Function")
 
         component = PlatingBundle("test_func", func_dir, "function")
-        types_dict = {ComponentType.FUNCTION: [(component, ComponentType.FUNCTION)]}
+        types_dict = {ComponentType.FUNCTION.value: [(component, ComponentType.FUNCTION)]}
 
         generator = MkdocsNavGenerator(temp_directory)
         section = generator._generate_capability_section("Utilities", types_dict)
