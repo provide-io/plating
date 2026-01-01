@@ -106,7 +106,7 @@ class TemplateEngine:
             template = self.env.from_string(template_content)
             return template.render(**context)
         finally:
-            self._current_context = None
+            self._current_context = {}  # Reset to empty dict
 
     def _schema_function(self) -> str:
         """{{ schema() }} - Render the component schema as markdown table."""
@@ -142,7 +142,7 @@ class TemplateEngine:
         if filename not in partials:
             return f"<!-- Partial '{filename}' not found -->"
 
-        return partials[filename]
+        return str(partials[filename])
 
     def _render_function(self, filename: str) -> str:
         """{{ render('filename') }} - Render dynamic template partial."""
@@ -204,7 +204,7 @@ def _create_function_context(schema: Any) -> dict[str, Any]:
     if schema and hasattr(schema, "parameters"):
         # Add function-specific fields
         context["has_parameters"] = len(schema.parameters) > 0
-        context["parameter_count"] = len(schema.parameters)
+        context["parameter_count"] = len(schema.parameters)  # type: ignore[assignment]
 
         if hasattr(schema, "return_type"):
             context["return_type"] = schema.return_type

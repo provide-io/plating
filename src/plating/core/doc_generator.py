@@ -110,8 +110,9 @@ def group_components_by_capability(
     Returns a nested dictionary: {capability: {component_type: [components]}}
     """
     from collections import defaultdict
+    from typing import Any
 
-    grouped = defaultdict(lambda: defaultdict(list))
+    grouped: dict[str | None, dict[str, list[Any]]] = defaultdict(lambda: defaultdict(list))
 
     for component, comp_type in components:
         # Extract subcategory from template frontmatter if present
@@ -119,10 +120,10 @@ def group_components_by_capability(
         subcategory = _extract_subcategory_from_template(component)
 
         # Store grouped components
-        grouped[subcategory][comp_type].append((component, comp_type))
+        grouped[subcategory][comp_type.value].append((component, comp_type))
 
     # Sort capabilities: None (uncategorized) first, then alphabetically, "Test Mode" always last
-    sorted_grouped = {}
+    sorted_grouped: dict[str | None, dict[str, list[Any]]] = {}
 
     # Add uncategorized components (None key) first if they exist
     if None in grouped:
@@ -130,14 +131,14 @@ def group_components_by_capability(
 
     # Add categorized components alphabetically
     test_mode_items = grouped.pop("Test Mode", None)
-    for capability in sorted(grouped.keys()):
+    for capability in sorted((k for k in grouped.keys() if k is not None), key=str):
         sorted_grouped[capability] = grouped[capability]
 
     # Add Test Mode last
     if test_mode_items:
         sorted_grouped["Test Mode"] = test_mode_items
 
-    return dict(sorted_grouped)
+    return sorted_grouped  # type: ignore[return-value]
 
 
 def _extract_subcategory_from_template(component: PlatingBundle) -> str | None:
@@ -518,10 +519,10 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
         type_order = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
 
         for comp_type in type_order:
-            if comp_type not in types_dict:
+            if comp_type.value not in types_dict:
                 continue
 
-            components = types_dict[comp_type]
+            components = types_dict[comp_type.value]
             if not components:
                 continue
 

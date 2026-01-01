@@ -80,6 +80,9 @@ def with_circuit_breaker(
         failure_threshold: Number of failures before opening circuit
         recovery_timeout: Time to wait before attempting recovery
         expected_exception: Exception type that triggers circuit breaker
+
+    Note: This decorator only supports synchronous functions. For async functions,
+    use the AsyncCircuitBreaker directly.
     """
 
     def decorator(func: F) -> F:
@@ -89,20 +92,11 @@ def with_circuit_breaker(
             expected_exception=expected_exception,
         )
 
-        if asyncio.iscoroutinefunction(func):
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            return circuit.call(func, *args, **kwargs)
 
-            @functools.wraps(func)
-            async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
-                return await circuit.call_async(func, *args, **kwargs)
-
-            return async_wrapper  # type: ignore[return-value]
-        else:
-
-            @functools.wraps(func)
-            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-                return circuit.call(func, *args, **kwargs)
-
-            return sync_wrapper  # type: ignore[return-value]
+        return sync_wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -185,7 +179,7 @@ def with_timing(func: F) -> F:
             from provide.foundation.utils import timed_block
 
             operation_name = f"{func.__module__}.{func.__name__}"
-            with timed_block(logger, operation_name):
+            with timed_block(logger, operation_name):  # type: ignore[arg-type]
                 return await func(*args, **kwargs)
 
         return async_wrapper  # type: ignore[return-value]
@@ -196,14 +190,17 @@ def with_timing(func: F) -> F:
             from provide.foundation.utils import timed_block
 
             operation_name = f"{func.__module__}.{func.__name__}"
-            with timed_block(logger, operation_name):
+            with timed_block(logger, operation_name):  # type: ignore[arg-type]
                 return func(*args, **kwargs)
 
         return sync_wrapper  # type: ignore[return-value]
 
 
+from collections.abc import AsyncGenerator
+
+
 @asynccontextmanager
-async def async_rate_limited(rate: float, burst: int = 10) -> None:
+async def async_rate_limited(rate: float, burst: int = 10) -> AsyncGenerator[None, None]:
     """Async context manager for rate limiting.
 
     Args:

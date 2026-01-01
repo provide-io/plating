@@ -235,7 +235,7 @@ class PlatingCLIContext(CLIContext):
 
         # Include global_partials_dir if set (needed for template rendering)
         if self.global_partials_dir:
-            plating_dict["global_partials_dir"] = self.global_partials_dir
+            plating_dict["global_partials_dir"] = str(self.global_partials_dir)
 
         return {**base_dict, **plating_dict}
 
