@@ -42,7 +42,8 @@ class PlatingRegistryEntry(RegistryEntry):
     @property
     def bundle(self) -> PlatingBundle:
         """Get the PlatingBundle from this entry."""
-        return self.value
+        bundle: PlatingBundle = self.value
+        return bundle
 
 
 class PlatingRegistry(Registry):
@@ -76,7 +77,7 @@ class PlatingRegistry(Registry):
             scope = package_name if package_name else "all packages"
             logger.error(f"Failed to initialize discovery for {scope}: {e}")
             # Set discovery to None so we can still create the registry
-            self._discovery = None
+            self._discovery = None  # type: ignore[assignment]
 
     def _discover_and_register(self) -> None:
         """Discover and register all components using foundation patterns."""
@@ -199,7 +200,7 @@ class PlatingRegistry(Registry):
         Returns:
             Dictionary with registry statistics
         """
-        stats = {}
+        stats: dict[str, Any] = {}
         all_names = self.list_all()
 
         stats["total_components"] = sum(len(names) for names in all_names.values())

@@ -67,8 +67,9 @@ class PlatingDiscovery:
 
             # Fallback: construct module name from distribution name
             dist = importlib.metadata.distribution(dist_name)
-            if dist.read_text("top_level.txt"):
-                top_levels = dist.read_text("top_level.txt").strip().split("\n")
+            top_level_text = dist.read_text("top_level.txt")
+            if top_level_text:
+                top_levels = top_level_text.strip().split("\n")
                 if top_levels:
                     top_level = top_levels[0]
                     # Convert dist name "pyvider-components" to "pyvider.components"
@@ -240,21 +241,22 @@ class PlatingDiscovery:
 
             # For functions, use specialized FunctionPlatingBundle
             if component_type == "function":
-                bundle = FunctionPlatingBundle(
+                func_bundle: PlatingBundle = FunctionPlatingBundle(
                     name=component_name,
                     plating_dir=plating_dir,
                     component_type=component_type,
                     template_file=template_file,
                 )
+                template_bundles.append(func_bundle)
             else:
                 # For data sources and resources, use regular PlatingBundle
                 # but override the name to match the component name from the template
-                bundle = PlatingBundle(
+                regular_bundle = PlatingBundle(
                     name=component_name,
                     plating_dir=plating_dir,
                     component_type=component_type,
                 )
-            template_bundles.append(bundle)
+                template_bundles.append(regular_bundle)
 
         return template_bundles
 

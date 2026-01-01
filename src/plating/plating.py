@@ -283,12 +283,12 @@ class Plating:
         if self._provider_schema is not None:
             return self._provider_schema
 
-        self._provider_schema = extract_provider_schema(self.package_name)
+        self._provider_schema = extract_provider_schema(self.package_name or "pyvider.components")
         return self._provider_schema
 
     def get_registry_stats(self) -> dict[str, Any]:
         """Get registry statistics."""
-        stats = {"total_components": 0, "component_types": []}
+        stats: dict[str, Any] = {"total_components": 0, "component_types": []}
 
         for component_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]:
             components = self.registry.get_components(component_type)
@@ -320,7 +320,7 @@ def plating(context: PlatingContext | None = None) -> Plating:
     """
     global _global_api
     if _global_api is None:
-        _global_api = Plating(context)
+        _global_api = Plating(context)  # type: ignore[arg-type]
     return _global_api
 
 

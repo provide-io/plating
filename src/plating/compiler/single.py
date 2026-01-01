@@ -203,7 +203,7 @@ class SingleExampleCompiler:
             True if component is test_only, False otherwise
         """
         try:
-            is_test_only, _ = _extract_component_metadata(bundle, component_type, self.provider_name)
+            is_test_only = _extract_component_metadata(bundle, component_type, self.provider_name)
             return is_test_only
         except Exception:
             return False

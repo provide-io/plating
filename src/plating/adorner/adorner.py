@@ -12,8 +12,8 @@ from pyvider.hub.components import ComponentRegistry
 from pyvider.hub.discovery import ComponentDiscovery
 
 from plating.adorner.finder import ComponentFinder
+from plating.discovery import PlatingDiscovery
 from plating.errors import AdorningError, handle_error
-import plating.registry
 from plating.templating.generator import TemplateGenerator
 
 """Core adorner implementation."""
@@ -30,7 +30,7 @@ class PlatingAdorner:
             hub: Optional Hub instance for component discovery
         """
         self.package_name = package_name
-        self.plating_discovery = plating.registry.PlatingDiscovery(package_name)
+        self.plating_discovery = PlatingDiscovery(package_name)
         self.template_generator = TemplateGenerator()
         self.component_finder = ComponentFinder()
         # Allow hub to be injected for testing, otherwise create a default one

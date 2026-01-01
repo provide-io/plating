@@ -78,7 +78,7 @@ class MarkdownLinter:
             Tuple of (success, errors)
         """
         # Check circuit breaker state
-        if self.circuit_breaker.state == CircuitState.OPEN:
+        if self.circuit_breaker.state() == CircuitState.OPEN:
             logger.warning("Markdownlint circuit breaker is open, skipping lint check")
             return False, [{"message": "Markdownlint temporarily unavailable (circuit breaker open)"}]
 
@@ -127,7 +127,7 @@ class MarkdownLinter:
             True if fixes were applied successfully
         """
         # Check circuit breaker state
-        if self.circuit_breaker.state == CircuitState.OPEN:
+        if self.circuit_breaker.state() == CircuitState.OPEN:
             logger.warning("Markdownlint circuit breaker is open, skipping fix operation")
             return False
 
@@ -138,7 +138,7 @@ class MarkdownLinter:
         try:
             result = self.circuit_breaker.call(run, cmd, capture_output=True, check=False)
 
-            return result.returncode == 0
+            return bool(result.returncode == 0)
 
         except ProcessError as e:
             # Check if it's a command not found error

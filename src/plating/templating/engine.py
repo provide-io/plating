@@ -12,14 +12,14 @@ from typing import TYPE_CHECKING
 
 from jinja2 import DictLoader, Environment, TemplateError as Jinja2TemplateError, select_autoescape
 from provide.foundation import logger
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from plating.decorators import plating_metrics, with_metrics, with_timing
 from plating.errors import FileSystemError, TemplateError
 from plating.types import PlatingContext
 
 if TYPE_CHECKING:
-    from plating.plating import PlatingBundle
+    from plating.bundles import PlatingBundle
 
 """Modern async template engine with foundation integration and error handling."""
 
@@ -121,7 +121,7 @@ class AsyncTemplateEngine:
                 template_path=bundle.plating_dir / "docs" / f"{bundle.name}.tmpl.md",
                 reason=error_msg,
                 line_number=line_number,
-                context=getattr(e, "source", None),
+                template_context=getattr(e, "source", None),
             ) from e
 
         except OSError as e:
@@ -184,8 +184,14 @@ class AsyncTemplateEngine:
             # Wrap blocking file I/O in executor to avoid blocking event loop
             template_content = await asyncio.get_event_loop().run_in_executor(None, bundle.load_main_template)
 
-            self._template_cache[cache_key] = template_content
-            return template_content
+            if template_content is not None:
+                self._template_cache[cache_key] = template_content
+                return template_content
+            raise FileSystemError(
+                path=bundle.plating_dir / "docs" / f"{bundle.name}.tmpl.md",
+                operation="read",
+                reason="Template content is empty",
+            )
 
         except (OSError, FileNotFoundError) as e:
             logger.error("Failed to load template", bundle=bundle.name, error=str(e))
@@ -216,14 +222,15 @@ class AsyncTemplateEngine:
 
         cache_key = f"{bundle.plating_dir}:{bundle.name}:partials"
         if cache_key in self._template_cache:
-            return json.loads(self._template_cache[cache_key])
+            result: dict[str, str] = json.loads(self._template_cache[cache_key])
+            return result
 
         try:
             # Wrap blocking file I/O in executor to avoid blocking event loop
             partials = await asyncio.get_event_loop().run_in_executor(None, bundle.load_partials)
 
             self._template_cache[cache_key] = json.dumps(partials)
-            return partials
+            return dict(partials)
 
         except OSError as e:
             logger.error("Failed to load partials", bundle=bundle.name, error=str(e))

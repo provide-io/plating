@@ -5,14 +5,14 @@
 
 """Template processing and rendering for documentation generation."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from jinja2 import DictLoader, Environment, select_autoescape
 from provide.foundation import pout
 
 if TYPE_CHECKING:
-    from .generator import DocsGenerator
-    from .plating import PlatingBundle
+    from typing import Any as DocsGenerator  # Avoid circular import
+    from plating.bundles import PlatingBundle
 
 
 class TemplateProcessor:
@@ -161,9 +161,9 @@ provider "{{ provider.short_name }}" {
         self,
         env: Environment,
         filename: str,
-        component_info: dict,
-        examples: dict,
-        partials: dict,
+        component_info: dict[str, Any],
+        examples: dict[str, Any],
+        partials: dict[str, Any],
     ) -> str:
         """Render a partial template with full context."""
         try:
@@ -179,7 +179,7 @@ provider "{{ provider.short_name }}" {
         except Exception as e:
             return f"<!-- Error rendering partial {filename}: {e} -->"
 
-    def _get_component_info(self, bundle: "PlatingBundle") -> dict:
+    def _get_component_info(self, bundle: "PlatingBundle") -> dict[str, Any]:
         """Get component information based on bundle type and name."""
         # Try both the bundle name as-is and with the pyvider_ prefix
         possible_names = [bundle.name, f"pyvider_{bundle.name}"]
