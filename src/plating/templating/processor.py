@@ -12,6 +12,7 @@ from provide.foundation import pout
 
 if TYPE_CHECKING:
     from typing import Any as DocsGenerator  # Avoid circular import
+
     from plating.bundles import PlatingBundle
 
 
