@@ -290,10 +290,10 @@ Test mode function content
         keys = list(grouped.keys())
         assert keys[-1] == "Test Mode", "Test Mode should be last"
 
-        # Verify correct components in each group
-        assert ComponentType.RESOURCE in grouped["Lens"], "Lens should have resource"
-        assert ComponentType.DATA_SOURCE in grouped["Utilities"], "Utilities should have data source"
-        assert ComponentType.FUNCTION in grouped["Test Mode"], "Test Mode should have function"
+        # Verify correct components in each group (use .value for string keys)
+        assert ComponentType.RESOURCE.value in grouped["Lens"], "Lens should have resource"
+        assert ComponentType.DATA_SOURCE.value in grouped["Utilities"], "Utilities should have data source"
+        assert ComponentType.FUNCTION.value in grouped["Test Mode"], "Test Mode should have function"
 
 
 # 🍽️📖🔚
