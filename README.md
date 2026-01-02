@@ -355,4 +355,4 @@ Built with ❤️ using:
 
 *Plating - Making documentation as delightful as a well-plated dish* 🍽️
 
-Copyright (c) Provide.io LLC.
+Copyright (c) provide.io LLC.

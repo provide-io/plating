@@ -12,17 +12,13 @@
     - Async-first architecture
 
     ⚠️ **Known Limitations:**
-    - Not yet available on PyPI
-    - API may change before v1.0
-    - Some advanced features experimental
+    - Some advanced features are documented separately
 
     📋 **Roadmap:**
-    - PyPI publication (coming soon)
     - Enhanced template functions
     - Additional component types
 
-    **Current Version:** v0.0.1026 (Beta)
-    **Target v1.0 Release:** Q2 2026
+    **Current Version:** v0.3.0
 
 ---
 
