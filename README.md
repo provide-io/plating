@@ -1,10 +1,16 @@
-# 🍽️ Plating
+# Plating
 
-> A sophisticated documentation generation system for Terraform/OpenTofu providers
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![uv](https://img.shields.io/badge/uv-package_manager-FF6B35.svg)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![CI](https://github.com/provide-io/plating/actions/workflows/ci.yml/badge.svg)](https://github.com/provide-io/plating/actions)
+
+**Documentation generation system for Terraform/OpenTofu providers**
 
 Plating is a powerful documentation system that brings culinary elegance to technical documentation. Just as a chef carefully plates a dish, Plating helps you present your Terraform provider documentation beautifully.
 
-## ✨ Features
+## ✨ Key Features
 
 - **🎯 Automatic Documentation Generation** - Generate comprehensive docs from your provider code
 - **✨ Smart Component Adorning** - Automatically create documentation templates for undocumented components
