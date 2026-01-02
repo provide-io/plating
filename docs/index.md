@@ -32,8 +32,8 @@ Understand how provide-foundation, pyvider, flavorpack, and other projects work 
 
 ### Installation
 
-!!! info "Beta Status"
-    plating is in beta. Core build orchestration features are functional, but the API may evolve.
+!!! info "Release Status"
+    plating is in its initial release series.
 
     - **Current version:** v0.0.1026
     - **Status:** Beta (Development Status: 4)

@@ -1,8 +1,8 @@
 # Getting Started with Plating
 
-!!! warning "Beta Software - Active Development"
+!!! info "Release Status"
 
-    **Plating is in active beta development.** The API and features are functional but may evolve as the project matures toward v1.0.
+    **Plating is in its initial release series.**
 
     ✅ **Currently Working:**
     - PSPF documentation generation
@@ -42,7 +42,7 @@ Plating is a modern, async-first documentation generation system for Terraform/O
 Before installing Plating, ensure you have:
 
 - **Python 3.11+** - Required for modern async features
-- **UV** - Recommended package manager (or pip)
+- **UV** - Required package manager
 - **Git** - For source installation
 
 ### Install UV (Recommended)
@@ -70,10 +70,13 @@ For more information, visit [UV Documentation](https://github.com/astral-sh/uv).
 
 ## Installation
 
-!!! info "Beta Installation"
-    Plating is currently in beta and must be installed from source. PyPI publication is coming soon.
+### Install from PyPI
 
-### From Source (Recommended for Beta)
+```bash
+uv tool install plating
+```
+
+### From Source
 
 ```bash
 # Clone the repository
@@ -96,18 +99,7 @@ plating --help
 
 ```bash
 # Install directly from GitHub (using UV)
-uv add git+https://github.com/provide-io/plating.git
-
-# Or using pip
-pip install git+https://github.com/provide-io/plating.git
-```
-
-### Coming Soon: PyPI
-
-```bash
-# PyPI installation (not yet available)
-# uv add plating
-# pip install plating
+uv tool install git+https://github.com/provide-io/plating.git
 ```
 
 ---
@@ -428,11 +420,10 @@ plating validate --output-dir ./documentation
 
 ## Pre-Release Limitations
 
-As a beta project, be aware of these current limitations:
+Current limitations:
 
 ### Not Available Yet
 
-- **PyPI Distribution** - Must install from source
 - **Windows Full Support** - Some features may be experimental on Windows
 - **Plugin System** - Custom template functions (planned)
 - **Multi-Provider Support** - Batch processing multiple providers (planned)

@@ -26,8 +26,8 @@ uv sync
 
 **Coming soon to PyPI:**
 ```bash
-# PyPI installation (not yet available)
-# uv add plating
+# PyPI installation
+# uv tool install plating
 # pip install plating
 ```
 
