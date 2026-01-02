@@ -566,7 +566,7 @@ The core issue of missing schemas in plating documentation has been **successful
 
 **tofusoup requires additional investigation** to resolve the doc generation filtering issue, but the underlying infrastructure (schema extraction and template detection) is working correctly.
 
-The solution is **production-ready for pyvider-components** and provides a solid foundation for resolving the remaining tofusoup issue.
+The solution is **production-focused for pyvider-components** and provides a solid foundation for resolving the remaining tofusoup issue.
 
 ---
 
