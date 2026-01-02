@@ -14,7 +14,7 @@ This guide helps you resolve common issues when using Plating.
 uv pip install -e .
 
 # Install pyvider dependencies
-uv pip install pyvider-cty provide-foundation
+uv uv add pyvider-cty provide-foundation
 ```
 
 ### 2. Async/Await Errors
