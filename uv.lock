@@ -641,6 +641,18 @@ wheels = [
 ]
 
 [[package]]
+name = "google"
+version = "3.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "beautifulsoup4" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/89/97/b49c69893cddea912c7a660a4b6102c6b02cd268f8c7162dd70b7c16f753/google-3.0.0.tar.gz", hash = "sha256:143530122ee5130509ad5e989f0512f7cb218b2d4eddbafbad40fd10e8d8ccbe", size = 44978, upload-time = "2020-07-11T14:50:45.678Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ac/35/17c9141c4ae21e9a29a43acdfd848e3e468a810517f862cad07977bf8fe9/google-3.0.0-py2.py3-none-any.whl", hash = "sha256:889cf695f84e4ae2c55fbc0cfdaf4c1e729417fa52ab1db0485202ba173e4935", size = 45258, upload-time = "2020-07-11T14:49:58.287Z" },
+]
+
+[[package]]
 name = "googleapis-common-protos"
 version = "1.72.0"
 source = { registry = "https://pypi.org/simple" }
@@ -713,6 +725,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/4a/45/122df922d05655f63930cf42c9e3f72ba20aadb26c100ee105cad4ce4257/grpcio-1.76.0-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:1c9b93f79f48b03ada57ea24725d83a30284a012ec27eab2cf7e50a550cbbbcc", size = 7592214, upload-time = "2025-10-21T16:22:33.831Z" },
     { url = "https://files.pythonhosted.org/packages/4a/6e/0b899b7f6b66e5af39e377055fb4a6675c9ee28431df5708139df2e93233/grpcio-1.76.0-cp314-cp314-win32.whl", hash = "sha256:747fa73efa9b8b1488a95d0ba1039c8e2dca0f741612d80415b1e1c560febf4e", size = 4062961, upload-time = "2025-10-21T16:22:36.468Z" },
     { url = "https://files.pythonhosted.org/packages/19/41/0b430b01a2eb38ee887f88c1f07644a1df8e289353b78e82b37ef988fb64/grpcio-1.76.0-cp314-cp314-win_amd64.whl", hash = "sha256:922fa70ba549fce362d2e2871ab542082d66e2aaf0c19480ea453905b01f384e", size = 4834462, upload-time = "2025-10-21T16:22:39.772Z" },
+]
+
+[[package]]
+name = "grpcio-health-checking"
+version = "1.76.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "grpcio" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3e/96/5a52dcf21078b47ffa0c2ed613c3153a06f138edb6133792bace5f1ccc1d/grpcio_health_checking-1.76.0.tar.gz", hash = "sha256:b7a99d74096b3ab3a59987fc02374068e1c180a352e8d1f79f10e5a23727098d", size = 16784, upload-time = "2025-10-21T16:28:55.204Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/65/e6/746dffa51399827e38bb3f3f1ad656a3d8c1255039b256a6f76593368768/grpcio_health_checking-1.76.0-py3-none-any.whl", hash = "sha256:9743f345a855ba030cc7c381361606870b79d33bb71d7756efa47b6faa970f81", size = 18910, upload-time = "2025-10-21T16:27:26.332Z" },
 ]
 
 [[package]]
@@ -1964,6 +1989,7 @@ dependencies = [
     { name = "jinja2" },
     { name = "provide-foundation", extra = ["all"] },
     { name = "pymarkdownlnt" },
+    { name = "pyvider" },
     { name = "pyvider-cty" },
     { name = "rich" },
 ]
@@ -1982,6 +2008,7 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "provide-foundation", extras = ["all"] },
     { name = "pymarkdownlnt", specifier = ">=0.9.32" },
+    { name = "pyvider", url = "https://github.com/provide-io/pyvider/releases/download/v0.3.0/pyvider-0.3.0-py3-none-any.whl" },
     { name = "pyvider-cty" },
     { name = "rich", specifier = ">=14.0.0" },
 ]
@@ -2451,6 +2478,38 @@ wheels = [
 ]
 
 [[package]]
+name = "pyvider"
+version = "0.3.0"
+source = { url = "https://github.com/provide-io/pyvider/releases/download/v0.3.0/pyvider-0.3.0-py3-none-any.whl" }
+dependencies = [
+    { name = "attrs" },
+    { name = "click" },
+    { name = "cryptography" },
+    { name = "google" },
+    { name = "grpcio" },
+    { name = "msgpack" },
+    { name = "provide-foundation" },
+    { name = "pyvider-cty" },
+    { name = "pyvider-rpcplugin" },
+]
+wheels = [
+    { url = "https://github.com/provide-io/pyvider/releases/download/v0.3.0/pyvider-0.3.0-py3-none-any.whl", hash = "sha256:edd4a66debb1defee0da3cbede9a37b738e02baacc96417149089436b8021c13" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "attrs", specifier = ">=25.3.0" },
+    { name = "click", specifier = ">=8.1.8" },
+    { name = "cryptography", specifier = ">=45.0.7" },
+    { name = "google", specifier = ">=3.0.0" },
+    { name = "grpcio", specifier = ">=1.76.0" },
+    { name = "msgpack", specifier = ">=1.1.1" },
+    { name = "provide-foundation" },
+    { name = "pyvider-cty" },
+    { name = "pyvider-rpcplugin" },
+]
+
+[[package]]
 name = "pyvider-cty"
 version = "0.0.1111"
 source = { registry = "https://pypi.org/simple" }
@@ -2462,6 +2521,25 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9c/84/e694036677072b71361545b2fa4b12e65bdc2403d64df7074472106a06b2/pyvider_cty-0.0.1111.tar.gz", hash = "sha256:51fc9e919a4cc1dbe18b213b2cc003e7c06268df8b38385339ea7ad888f0e9ab", size = 66354, upload-time = "2025-11-12T07:01:25.936Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/27/f8/6b4ad64e46f2f381c2e2bd7c77bcd5b1d87e2546d2e5369c2746fde135ee/pyvider_cty-0.0.1111-py3-none-any.whl", hash = "sha256:bd6ff2045343fd4e77b44000cbcda98239bace6c061a56a395b07cb56d5a5cbf", size = 90848, upload-time = "2025-11-12T07:01:24.284Z" },
+]
+
+[[package]]
+name = "pyvider-rpcplugin"
+version = "0.0.1100"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+    { name = "cryptography" },
+    { name = "google" },
+    { name = "grpcio" },
+    { name = "grpcio-health-checking" },
+    { name = "protobuf" },
+    { name = "provide-foundation" },
+    { name = "structlog" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fc/11/00380ca6618e18fce731b67c642c5b1006ac1d64a3ed1bf81008a0ba43dd/pyvider_rpcplugin-0.0.1100.tar.gz", hash = "sha256:cbff47d31adbcb6490d324fad1991821341a058b5e880ae56f2009949003d2cb", size = 75958, upload-time = "2025-11-02T00:47:56.701Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e3/43/4711d0c81cf31793d86f6265d0d588ef032dd01afdaf8673f7d3a65007c9/pyvider_rpcplugin-0.0.1100-py3-none-any.whl", hash = "sha256:5f142c15801ff4725d1534f8ae538826399548bf5603a904d0d79cbe40d6b9c5", size = 98701, upload-time = "2025-11-02T00:47:55.323Z" },
 ]
 
 [[package]]

@@ -225,7 +225,9 @@ provider "{self.generator.provider_name}" {{}}
                     stdout=getattr(e, "stdout", ""),
                     stderr=getattr(e, "stderr", ""),
                 )
-                raise SchemaError(self.generator.provider_name, f"Failed to extract provider schema: {e}") from e
+                raise SchemaError(
+                    self.generator.provider_name, f"Failed to extract provider schema: {e}"
+                ) from e
 
             schema_data: dict[str, Any] = json.loads(schema_result.stdout)
             return schema_data

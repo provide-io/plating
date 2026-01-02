@@ -27,6 +27,7 @@ def main(ctx: click.Context, log_level: str | None, log_file: Path | None, log_f
 
         hub = get_hub()
         from typing import Literal, cast
+
         LogLevel = Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "TRACE", "NOTSET"]
         updated_config = TelemetryConfig(
             service_name="plating",
