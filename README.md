@@ -16,28 +16,6 @@ Plating is a powerful documentation system that brings culinary elegance to tech
 - **📍 Smart Navigation** - Auto-generated mkdocs.yml with capability-first structure
 - **📚 Guide Support** - Built-in support for provider guides and tutorials
 
-## 📦 Prerequisites
-
-> **Important:** This project uses `uv` for Python environment and package management.
-
-### Install UV
-
-Visit [UV Documentation](https://github.com/astral-sh/uv) for more information.
-
-```bash
-# On macOS and Linux.
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# On Windows.
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-
-# Using pipx (if you prefer)
-pipx install uv
-
-# Update UV to latest version
-uv self update
-```
-
 ## 🚀 Getting Started
 
 ### Installation
@@ -74,6 +52,42 @@ uv sync
 ```bash
 # Install directly from GitHub
 uv add git+https://github.com/provide-io/plating.git
+```
+
+## Documentation
+Documentation lives in [docs/index.md](docs/index.md).
+
+## Development
+Development notes are in [CLAUDE.md](CLAUDE.md).
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📜 License
+
+Apache 2.0
+
+## 📦 Prerequisites
+
+> **Important:** This project uses `uv` for Python environment and package management.
+
+### Install UV
+
+Visit [UV Documentation](https://github.com/astral-sh/uv) for more information.
+
+```bash
+# On macOS and Linux.
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# On Windows.
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Using pipx (if you prefer)
+pipx install uv
+
+# Update UV to latest version
+uv self update
 ```
 
 ## 📚 Usage Examples
@@ -176,6 +190,7 @@ Plating now supports organizing documentation by **capability** (subcategory) in
    Components are automatically grouped by capability in generated documentation:
 
    ```
+
    ## Math
    ### Functions
    - add
@@ -326,14 +341,6 @@ Plating follows a modular architecture:
 - **PlatingAdorner** - Creates documentation templates
 - **PlatingDiscovery** - Finds components and bundles
 - **SchemaProcessor** - Extracts provider schemas
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📜 License
-
-Apache 2.0
 
 ## 🙏 Acknowledgments
 
