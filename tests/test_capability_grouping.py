@@ -102,10 +102,10 @@ subcategory: "Lens"
         assert len(grouped) == 1, "Should have only one capability"
         assert "Lens" in grouped, "Should have Lens capability"
 
-        # Lens should contain all three component types
-        assert ComponentType.RESOURCE in grouped["Lens"], "Lens should have resources"
-        assert ComponentType.DATA_SOURCE in grouped["Lens"], "Lens should have data sources"
-        assert ComponentType.FUNCTION in grouped["Lens"], "Lens should have functions"
+        # Lens should contain all three component types (use .value for string keys)
+        assert ComponentType.RESOURCE.value in grouped["Lens"], "Lens should have resources"
+        assert ComponentType.DATA_SOURCE.value in grouped["Lens"], "Lens should have data sources"
+        assert ComponentType.FUNCTION.value in grouped["Lens"], "Lens should have functions"
 
     def test_extract_subcategory_from_template_with_subcategory(
         self, sample_component_with_subcategory
