@@ -20,25 +20,13 @@ Plating is a powerful documentation system that brings culinary elegance to tech
 
 ### Installation
 
-**Note:** Plating is currently in pre-release. Install from source for now.
+**Note:** Plating is in pre-release. Some documented or roadmap items are exploratory and may change or be removed.
 
-> **Version Info:** The version `0.0.1000-0` is a pre-release identifier indicating active development. Expect the API and features to evolve as the project matures.
+> **Version Info:** The version `0.3.0` is a pre-release identifier indicating active development. Expect the API and features to evolve. Some documented or roadmap items are exploratory and may change or be removed.
 
 ```bash
-# Clone the repository
-git clone https://github.com/provide-io/plating.git
-cd plating
-
-# Create virtual environment
-uv venv
-
-# Activate virtual environment
-source .venv/bin/activate  # On Linux/macOS
-# or
-.venv\Scripts\activate     # On Windows
-
-# Install dependencies
-uv sync
+# Install from PyPI
+uv tool install plating
 ```
 
 ```bash
