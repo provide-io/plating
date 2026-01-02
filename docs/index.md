@@ -61,7 +61,7 @@ Plating - Modern async documentation generator
 
 </div>
 
-**Exploratory and may change or be removed to PyPI:** `uv add plating`
+**Exploratory and may change or be removed to PyPI:** `uv tool install plating`
 
 ### Adorn Components with Templates
 
