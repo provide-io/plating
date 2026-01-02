@@ -4,13 +4,11 @@
 """Utilities for reading and parsing pyproject.toml files."""
 
 from pathlib import Path
+from types import ModuleType
 
 from provide.foundation import logger
 from provide.foundation.file.safe import safe_read_text
 from provide.foundation.serialization import toml_loads
-
-
-from types import ModuleType
 
 
 def load_tomllib_module() -> ModuleType | None:

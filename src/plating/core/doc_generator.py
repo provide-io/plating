@@ -110,7 +110,6 @@ def group_components_by_capability(
     Returns a nested dictionary: {capability: {component_type: [components]}}
     """
     from collections import defaultdict
-    from typing import Any
 
     grouped: dict[str | None, dict[str, list[Any]]] = defaultdict(lambda: defaultdict(list))
 
@@ -131,7 +130,7 @@ def group_components_by_capability(
 
     # Add categorized components alphabetically
     test_mode_items = grouped.pop("Test Mode", None)
-    for capability in sorted((k for k in grouped.keys() if k is not None), key=str):
+    for capability in sorted((k for k in grouped if k is not None), key=str):
         sorted_grouped[capability] = grouped[capability]
 
     # Add Test Mode last
