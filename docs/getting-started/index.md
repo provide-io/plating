@@ -426,8 +426,8 @@ Current limitations:
 ### Not Available Yet
 
 - **Windows Full Support** - Some features may be experimental on Windows
-- **Plugin System** - Custom template functions (planned)
-- **Multi-Provider Support** - Batch processing multiple providers (planned)
+- **Plugin System** - Custom template functions (exploratory; may change)
+- **Multi-Provider Support** - Batch processing multiple providers (exploratory; may change)
 
 ### Known Issues
 
