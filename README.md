@@ -41,10 +41,9 @@ source .venv/bin/activate  # On Linux/macOS
 uv sync
 ```
 
-**Coming soon to PyPI:**
 ```bash
-# PyPI installation (not yet available)
-# uv add plating
+# Install from PyPI
+uv add plating
 ```
 
 ### Quick Install from Git
