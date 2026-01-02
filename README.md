@@ -43,14 +43,14 @@ uv sync
 
 ```bash
 # Install from PyPI
-uv add plating
+uv tool install plating
 ```
 
 ### Quick Install from Git
 
 ```bash
 # Install directly from GitHub
-uv add git+https://github.com/provide-io/plating.git
+uv tool install git+https://github.com/provide-io/plating.git
 ```
 
 ## Documentation
