@@ -6,7 +6,7 @@
 """Foundation integration decorators for clean API."""
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 import functools
 import time
@@ -194,9 +194,6 @@ def with_timing(func: F) -> F:
                 return func(*args, **kwargs)
 
         return sync_wrapper  # type: ignore[return-value]
-
-
-from collections.abc import AsyncGenerator
 
 
 @asynccontextmanager
