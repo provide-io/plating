@@ -24,7 +24,7 @@ cd plating
 uv sync
 ```
 
-**Coming soon to PyPI:**
+**Exploratory and may change or be removed to PyPI:**
 ```bash
 # PyPI installation
 # uv tool install plating
