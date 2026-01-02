@@ -55,10 +55,12 @@ uv add git+https://github.com/provide-io/plating.git
 ```
 
 ## Documentation
-Documentation lives in [docs/index.md](docs/index.md).
+- [Documentation index](docs/index.md)
+- [Examples](examples/README.md)
 
 ## Development
-Development notes are in [CLAUDE.md](CLAUDE.md).
+- See [CLAUDE.md](CLAUDE.md) for local development notes.
+- Run `uv sync --extra dev` to set up the dev environment.
 
 ## 🤝 Contributing
 
