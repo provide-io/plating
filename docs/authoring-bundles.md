@@ -105,3 +105,83 @@ examples/full_stack/
 2. **Always include main.tf**: Required for group discovery
 3. **Add fixtures if needed**: Place test data in `fixtures/` directory
 4. **Avoid filename conflicts**: Each component's files should be uniquely named
+
+## Bundle Structure Reference
+
+Each component has a `.plating` bundle with a standardized directory structure:
+
+```
+my_resource.plating/
+├── docs/
+│   ├── my_resource.tmpl.md    # Main template
+│   └── _partial.md             # Reusable partials (optional)
+├── examples/
+│   ├── basic.tf                # Example configurations
+│   ├── advanced.tf             # (optional)
+│   └── full_stack/             # Grouped examples (optional)
+│       └── main.tf             # Required entry point
+└── fixtures/                   # Test fixtures (optional)
+    └── data.json               # Test data files
+```
+
+### Directory Details
+
+**docs/** - Documentation templates
+- `*.tmpl.md` - Jinja2 templates that render to final markdown
+- `_partial.md` - Reusable template fragments (use with `include()` or `render()`)
+
+**examples/** - Terraform/Python examples
+- `.tf` files for resources/data sources (flat examples)
+- `.py` files for Python API examples
+- Subdirectories with `main.tf` for grouped examples that combine multiple components
+
+**fixtures/** - Test data (optional)
+- JSON, YAML, or other data files used in examples or tests
+
+## Template Functions Reference
+
+Plating provides powerful template functions you can use in your `.tmpl.md` files:
+
+### `{{ schema() }}`
+Renders the component's schema as a formatted markdown table with attributes, types, and descriptions.
+
+**Example:**
+```markdown
+## Schema
+
+{{ schema() }}
+```
+
+### `{{ example('name') }}`
+Includes an example file from the `examples/` directory in a terraform code block.
+
+**Example:**
+```markdown
+## Example Usage
+
+{{ example('basic') }}
+
+## Advanced Example
+
+{{ example('advanced') }}
+```
+
+### `{{ include('filename') }}`
+Includes a static partial file from the `docs/` directory without rendering.
+
+**Example:**
+```markdown
+{{ include('_partial.md') }}
+```
+
+### `{{ render('filename') }}`
+Renders a dynamic template partial with the current context (variables, functions).
+
+**Example:**
+```markdown
+{{ render('_partial.md') }}
+```
+
+**When to use `include()` vs `render()`:**
+- Use `include()` for static markdown content
+- Use `render()` when partials need access to template functions or variables
