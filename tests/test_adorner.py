@@ -332,9 +332,7 @@ class TestAdornerAPI:
         mock_adorner = MockDresser.return_value
         mock_adorner.adorn_missing = AsyncMock(return_value={"resource": 2})
 
-        result = await adorn_missing_components(
-            package_name="test.package", component_types=["resource"]
-        )
+        result = await adorn_missing_components(package_name="test.package", component_types=["resource"])
 
         MockDresser.assert_called_once_with("test.package")
         mock_adorner.adorn_missing.assert_called_once_with(["resource"])
