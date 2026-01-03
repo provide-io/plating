@@ -129,136 +129,13 @@ plating plate --output-dir ./documentation
 
 ## 📂 Bundle Structure
 
-Each component has a `.plating` bundle:
-
-```
-my_resource.plating/
-├── docs/
-│   ├── my_resource.tmpl.md    # Main template
-│   └── _partial.md             # Reusable partials (optional)
-├── examples/
-│   ├── basic.tf                # Example configurations
-│   ├── advanced.tf             # (optional)
-│   └── full_stack/             # Grouped examples (optional)
-│       └── main.tf             # Required entry point
-└── fixtures/                   # Test fixtures (optional)
-    └── data.json               # Test data files
-```
-
-**Note:** The `examples/` directory can contain:
-- `.tf` files for resources/data sources (flat examples)
-- `.py` files for Python API examples
-- Subdirectories with `main.tf` for grouped examples that combine multiple components
-
-## 🎨 Template Functions
-
-Plating provides powerful template functions:
-
-- `{{ "{{ schema() }}" }}` - Render component schema as markdown table
-- `{{ "{{ example('name') }}" }}` - Include an example file in a terraform code block
-- `{{ "{{ include('filename') }}" }}` - Include a static partial file
-- `{{ "{{ render('filename') }}" }}` - Render a dynamic template partial with current context
+Each component has a `.plating` bundle containing documentation templates, examples, and optional test fixtures. See [Authoring Bundles Guide](https://github.com/provide-io/plating/blob/main/docs/authoring-bundles.md) for complete bundle structure and template function reference.
 
 ## 🎯 Capability-First Organization
 
-Plating now supports organizing documentation by **capability** (subcategory) instead of just by component type. This makes it easier to find related functionality across resource types.
+Organize documentation by **capability** (subcategory) instead of just by component type. Add a `subcategory` field to your template frontmatter, and Plating automatically groups components by capability in the navigation.
 
-### How It Works
-
-1. **Add Subcategory to Templates**
-
-   Add a `subcategory` field to your component template frontmatter:
-
-   ```markdown
-   ---
-   page_title: "sqrt Function"
-   subcategory: "Math"
-   description: |-
-     Calculate square root of a number
-   ---
-   ```
-
-2. **Automatic Organization**
-
-   Components are automatically grouped by capability in generated documentation:
-
-   ```
-
-   ## Math
-   ### Functions
-   - add
-   - subtract
-   - multiply
-
-   ## String Utilities
-   ### Functions
-   - format
-   - join
-   - split
-
-   ## Utilities
-   ### Resources
-   - pyvider_file_content
-   ### Data Sources
-   - pyvider_env_variables
-   ```
-
-3. **MkDocs Navigation**
-
-   The `mkdocs.yml` navigation is automatically generated with capability-first structure:
-
-   ```yaml
-   nav:
-     - Overview: index.md
-     - Math:
-         Functions:
-           add: functions/add.md
-           subtract: functions/subtract.md
-     - String Utilities:
-         Functions:
-           format: functions/format.md
-           join: functions/join.md
-     - Utilities:
-         Resources:
-           file_content: resources/file_content.md
-   ```
-
-### Standard Subcategories
-
-- **Math** - Numeric operations (add, subtract, multiply, etc.)
-- **String Utilities** - String manipulation (format, join, split, etc.)
-- **Collections** - List/map operations (contains, length, lookup)
-- **Type Conversion** - Type casting functions
-- **Lens** - Data transformation components (JQ integration)
-- **Utilities** - General-purpose resources and data sources
-- **Test Mode** - Components for testing (always appears last)
-
-### Custom Subcategories
-
-You can use any custom subcategory name. Just add it to your template frontmatter:
-
-```markdown
----
-page_title: "Custom Component"
-subcategory: "My Custom Category"
----
-```
-
-### Guide Support
-
-Add provider-level guides in `.plating/guides/`:
-
-```
-.plating/
-├── guides/
-│   ├── getting-started.tmpl.md
-│   ├── authentication.tmpl.md
-│   └── troubleshooting.tmpl.md
-└── docs/
-    └── components.tmpl.md
-```
-
-Guides are automatically discovered and added to the documentation structure and navigation.
+See [Capabilities Guide](https://github.com/provide-io/plating/blob/main/docs/capabilities.md) for standard subcategories, custom categories, and guide support.
 
 ## 🔍 Validation
 
