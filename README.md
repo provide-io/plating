@@ -22,18 +22,17 @@ Plating is a powerful documentation system that brings culinary elegance to tech
 - **📍 Smart Navigation** - Auto-generated mkdocs.yml with capability-first structure
 - **📚 Guide Support** - Built-in support for provider guides and tutorials
 
-## 🚀 Getting Started
+## Quick Start
+
+1. Install: `uv tool install plating`
+2. Read the [Documentation](https://github.com/provide-io/plating/blob/main/docs/index.md)
+3. Try `plating adorn` to create documentation templates
 
 ### Installation
 
 **Note:** Plating is in pre-release. Some documented or roadmap items are exploratory and may change or be removed.
 
 > **Version Info:** The version `0.3.0` is a pre-release identifier indicating active development. Expect the API and features to evolve. Some documented or roadmap items are exploratory and may change or be removed.
-
-```bash
-# Install from PyPI
-uv tool install plating
-```
 
 ```bash
 # Install from PyPI
