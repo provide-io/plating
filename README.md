@@ -56,7 +56,6 @@ uv add git+https://github.com/provide-io/plating.git
 
 ## Documentation
 - [Documentation index](https://github.com/provide-io/plating/blob/main/docs/index.md)
-- [Examples](https://github.com/provide-io/plating/blob/main/examples/README.md)
 
 ## Development
 - See [CLAUDE.md](https://github.com/provide-io/plating/blob/main/CLAUDE.md) for local development notes.
