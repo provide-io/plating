@@ -32,11 +32,12 @@ Understand how provide-foundation, pyvider, flavorpack, and other projects work 
 
 ### Installation
 
-!!! info "Beta Status"
-    plating is in beta. Core build orchestration features are functional, but the API may evolve.
+!!! info "Release Status"
+    plating is in its pre-release series.
+    Some documented or roadmap items are exploratory and may change or be removed.
 
-    - **Current version:** v0.0.1026
-    - **Status:** Beta (Development Status: 4)
+    - **Current version:** v0.3.0
+    - **Status:** Pre-release
     - **Installation:** Install from source (not yet on PyPI)
 
 **Installation:**
@@ -56,7 +57,7 @@ Plating - Modern async documentation generator
 
 </div>
 
-**Coming soon to PyPI:** `uv add plating`
+**Exploratory and may change or be removed to PyPI:** `uv add plating`
 
 ### Adorn Components with Templates
 
