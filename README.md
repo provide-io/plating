@@ -30,9 +30,9 @@ Plating is a powerful documentation system that brings culinary elegance to tech
 
 ### Installation
 
-**Note:** Plating is in pre-release. Some documented or roadmap items are exploratory and may change or be removed.
+**Note:** Plating is in pre-release. Some documented items are exploratory and may change or be removed.
 
-> **Version Info:** The version `0.3.0` is a pre-release identifier indicating active development. Expect the API and features to evolve. Some documented or roadmap items are exploratory and may change or be removed.
+> **Version Info:** The version `0.3.0` is a pre-release identifier indicating active development. Expect the API and features to evolve. Some documented items are exploratory and may change or be removed.
 
 ```bash
 # Install from PyPI

@@ -3,7 +3,7 @@
 !!! info "Release Status"
 
     **Plating is in its pre-release series.**
-    Some documented or roadmap items are exploratory and may change or be removed.
+    Some documented items are exploratory and may change or be removed.
 
     ✅ **Currently Working:**
     - PSPF documentation generation
