@@ -42,7 +42,7 @@ Understand how provide-foundation, pyvider, flavorpack, and other projects work 
 
     - **Current version:** v0.3.0
     - **Status:** Pre-release
-    - **Installation:** Install from source (not yet on PyPI)
+    - **Installation:** Install from source if a PyPI package is not available
 
 **Installation:**
 
