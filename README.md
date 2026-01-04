@@ -50,8 +50,21 @@ uv tool install git+https://github.com/provide-io/plating.git
 - [Documentation index](https://github.com/provide-io/plating/blob/main/docs/index.md)
 
 ## Development
-- See [CLAUDE.md](https://github.com/provide-io/plating/blob/main/CLAUDE.md) for local development notes.
-- Run `uv sync --extra dev` to set up the dev environment.
+
+### Quick Start
+
+```bash
+# Set up environment
+uv sync
+
+# Run common tasks
+we test           # Run tests
+we lint           # Check code
+we format         # Format code
+we tasks          # See all available commands
+```
+
+See [CLAUDE.md](https://github.com/provide-io/plating/blob/main/CLAUDE.md) for detailed development instructions and architecture information.
 
 ## 🤝 Contributing
 
