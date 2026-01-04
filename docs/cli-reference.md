@@ -413,4 +413,4 @@ plating adorn && plating plate
 
 Currently, only `provider_name` can be configured in `pyproject.toml`. Other settings like `output_dir`, `component_types`, and `package_name` for filtering must be provided as CLI flags.
 
-Later versions may expand configuration file support; timing may change or be removed.
+Later versions may expand configuration file support; availability may change or be removed.
