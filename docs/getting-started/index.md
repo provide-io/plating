@@ -15,7 +15,7 @@
     ⚠️ **Known Limitations:**
     - Some advanced features are documented separately
 
-    📋 **Roadmap:**
+    📋 **Exploratory:**
     - Enhanced template functions
     - Additional component types
 
