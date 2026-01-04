@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Dress all components missing .plating directories."""
 
 import asyncio
 
@@ -11,7 +11,6 @@ from plating.adorner import PlatingAdorner
 
 
 async def dress_all_components() -> None:
-    """Dress all components missing .plating directories."""
     adorner = PlatingAdorner()
 
     # Find and dress all missing components

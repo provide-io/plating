@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Modern async API for plating operations with full foundation integration."""
 
 from __future__ import annotations
 
@@ -27,7 +27,6 @@ from plating.types import AdornResult, ComponentType, PlateResult, PlatingContex
 #
 # plating/plating.py
 #
-"""Modern async API for plating operations with full foundation integration."""
 
 
 class Plating:

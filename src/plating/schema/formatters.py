@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Schema formatting and conversion utilities."""
 
 from __future__ import annotations
 
@@ -12,7 +12,6 @@ from typing import Any
 #
 # plating/schema/formatters.py
 #
-"""Schema formatting and conversion utilities."""
 
 
 def _format_cty_type(type_info: Any) -> str | None:

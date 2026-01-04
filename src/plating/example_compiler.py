@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Executable example compilation for Terraform provider documentation."""
 
 from __future__ import annotations
 
@@ -19,7 +19,6 @@ from plating.types import ComponentType
 #
 # plating/example_compiler.py
 #
-"""Executable example compilation for Terraform provider documentation."""
 
 
 @define

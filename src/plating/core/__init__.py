@@ -3,14 +3,13 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Core utilities for plating operations."""
 
 from __future__ import annotations
 
 #
 # plating/core/__init__.py
 #
-"""Core utilities for plating operations."""
 
 __all__ = []
 

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Schema extraction and processing helpers."""
 
 from __future__ import annotations
 
@@ -18,7 +18,6 @@ from plating.types import ComponentType, SchemaInfo
 #
 # plating/schema/helpers.py
 #
-"""Schema extraction and processing helpers."""
 
 
 def extract_provider_schema(package_name: str) -> dict[str, Any]:

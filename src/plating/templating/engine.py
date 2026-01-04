@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Modern async template engine with foundation integration and error handling."""
 
 from __future__ import annotations
 
@@ -21,7 +21,6 @@ from plating.types import PlatingContext
 if TYPE_CHECKING:
     from plating.bundles import PlatingBundle
 
-"""Modern async template engine with foundation integration and error handling."""
 
 
 class AsyncTemplateEngine:

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Documentation content enhancement and template variable population."""
 
 from __future__ import annotations
 
@@ -14,7 +14,6 @@ from plating.config import get_config
 #
 # plating/generation/adorner.py
 #
-"""Documentation content enhancement and template variable population."""
 
 
 class DocumentationAdorner:

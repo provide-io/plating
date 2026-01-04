@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Documentation generation utilities."""
 
 from __future__ import annotations
 
@@ -20,7 +20,6 @@ from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingConte
 #
 # plating/core/doc_generator.py
 #
-"""Documentation generation utilities."""
 
 
 def _extract_component_metadata(

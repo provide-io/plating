@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Main documentation generation orchestrator."""
 
 from __future__ import annotations
 
@@ -20,7 +20,6 @@ from plating.types import PlatingContext
 #
 # plating/generation/plater.py
 #
-"""Main documentation generation orchestrator."""
 
 
 class DocumentationPlater:

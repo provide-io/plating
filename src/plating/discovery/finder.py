@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Component discovery logic for .plating bundles."""
 
 from __future__ import annotations
 
@@ -17,7 +17,6 @@ from plating.bundles import FunctionPlatingBundle, PlatingBundle
 #
 # plating/discovery/finder.py
 #
-"""Component discovery logic for .plating bundles."""
 
 
 class PlatingDiscovery:

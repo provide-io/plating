@@ -3,13 +3,12 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""
 
 from __future__ import annotations
 
 """Centralized default values for plating configuration.
 All defaults are defined here instead of inline in field definitions.
-"""
 
 # =================================
 # Template generation defaults
