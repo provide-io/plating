@@ -60,11 +60,6 @@ UV is a fast Python package manager. Install it with:
     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
     ```
 
-=== "pipx"
-    ```bash
-    pipx install uv
-    ```
-
 For more information, visit [UV Documentation](https://github.com/astral-sh/uv).
 
 ---
