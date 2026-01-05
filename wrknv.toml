@@ -38,7 +38,7 @@ _default = [
 parallel = true
 
 [tasks.pkg]
-install = "uv pip install -e ."
+install = "uv sync"
 lock = "uv lock"
 version = "cat VERSION 2>/dev/null || grep '^version = ' pyproject.toml | cut -d'\"' -f2"
 
