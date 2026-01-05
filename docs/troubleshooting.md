@@ -11,7 +11,7 @@ This guide helps you resolve common issues when using Plating.
 **Solutions:**
 ```bash
 # Ensure plating is installed
-uv pip install -e .
+uv sync
 
 # Install pyvider dependencies
 uv add pyvider-cty provide-foundation

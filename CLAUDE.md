@@ -23,7 +23,7 @@ source .venv/bin/activate
 # Install dependencies with dev extras
 uv sync --all-groups
 # Or for editable install:
-uv pip install -e ".[dev]"
+uv add -e ".[dev]"
 ```
 
 ### Running Tests
@@ -114,8 +114,8 @@ python -m plating.cli plate --output-dir docs
 ### Working with Sibling Packages
 If pyvider packages are in sibling directories:
 ```bash
-uv pip install -e ../pyvider-components
-uv pip install -e ../pyvider-telemetry
+uv add -e ../pyvider-components
+uv add -e ../pyvider-telemetry
 # etc.
 ```
 
