@@ -207,10 +207,7 @@ class DiscoveryError(PlatingError):
             msg += f"\nSearched paths:\n  {paths_str}"
 
         msg += "\n\n💡 How to fix:"
-        msg += (
-            f"\n  • Verify '{self.package_name}' is installed: "
-            f"uv run python -c \"import importlib.metadata as m; print(m.version('{self.package_name}'))\""
-        )
+        msg += f"\n  • Verify '{self.package_name}' is installed: uv pip list | grep {self.package_name}"
         msg += "\n  • Check package has entry points defined in pyproject.toml"
         msg += "\n  • Ensure components are in the correct directory structure"
         msg += f"\n  • Try running: python -m {self.package_name} --help"
