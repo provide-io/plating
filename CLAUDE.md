@@ -21,7 +21,7 @@ uv venv
 source .venv/bin/activate
 
 # Install dependencies with dev extras
-uv sync --extra dev
+uv sync --all-groups
 # Or for editable install:
 uv pip install -e ".[dev]"
 ```

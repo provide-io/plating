@@ -512,7 +512,7 @@ Now that you're set up, explore:
 
 Plating is part of a larger ecosystem of Python and Terraform tools.
 
-**[View Ecosystem Overview →](https://docs.provide.io/provide-foundation/ecosystem/)**
+**[View Ecosystem Overview →](https://foundry.provide.io/provide-foundation/ecosystem/)**
 
 Understand how plating integrates with:
 - **provide-foundation** - Core reliability patterns
