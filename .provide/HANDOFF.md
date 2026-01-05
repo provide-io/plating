@@ -157,17 +157,17 @@ User runs: `plating plate --package-name tofusoup`
 
 #### pyvider-components
 - [ ] Navigate to: `cd /Users/tim/code/gh/provide-io/pyvider-components`
-- [ ] Reinstall: `uv pip install -e .`
+- [ ] Reinstall: `uv add --editable .`
 - [ ] Verify entry points: `python -c "import importlib.metadata; print(list(importlib.metadata.entry_points(group='pyvider-components')))"`
 
 #### terraform-provider-tofusoup
 - [ ] Navigate to: `cd /Users/tim/code/gh/provide-io/terraform-provider-tofusoup`
-- [ ] Reinstall: `uv pip install -e .`
+- [ ] Reinstall: `uv add --editable .`
 - [ ] Verify entry points: `python -c "import importlib.metadata; print(list(importlib.metadata.entry_points(group='tofusoup')))"`
 
 #### plating
 - [ ] Navigate to: `cd /Users/tim/code/gh/provide-io/plating`
-- [ ] Reinstall if needed: `uv pip install -e .`
+- [ ] Reinstall if needed: `uv add --editable .`
 
 ### Phase 5: Code Quality Checks
 
