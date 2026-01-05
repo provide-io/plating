@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Project detection and directory utilities."""
 
 from __future__ import annotations
 
@@ -14,7 +14,6 @@ from provide.foundation import logger
 #
 # plating/core/project_utils.py
 #
-"""Project detection and directory utilities."""
 
 
 def find_project_root(start_dir: Path | None = None) -> Path | None:
