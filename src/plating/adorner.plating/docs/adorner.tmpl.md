@@ -71,7 +71,7 @@ Templates are generated with:
 - Appropriate frontmatter
 - Standard sections (Example Usage, Arguments, Attributes)
 - Terraform import instructions (for resources)
-- Schema placeholder
+- Schema section generated from component definitions
 
 ## Example Generation
 

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Specialized PlatingBundle for individual function templates."""
 
 from __future__ import annotations
 
@@ -16,7 +16,6 @@ from plating.bundles.base import PlatingBundle
 #
 # plating/bundles/function.py
 #
-"""Specialized PlatingBundle for individual function templates."""
 
 
 @define

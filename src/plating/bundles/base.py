@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Base PlatingBundle class for managing component documentation assets."""
 
 from __future__ import annotations
 
@@ -14,7 +14,6 @@ from attrs import define
 #
 # plating/bundles/base.py
 #
-"""Base PlatingBundle class for managing component documentation assets."""
 
 
 @define

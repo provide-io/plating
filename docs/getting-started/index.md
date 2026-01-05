@@ -417,38 +417,6 @@ plating stats
 plating validate --output-dir ./documentation
 ```
 
----
-
-## Pre-Release Limitations
-
-Current limitations:
-
-### Not Available Yet
-
-- **Windows Full Support** - Some features may be experimental on Windows
-- **Plugin System** - Custom template functions (exploratory; may change)
-- **Multi-Provider Support** - Batch processing multiple providers (exploratory; may change)
-
-### Known Issues
-
-- **Template Hot-Reload** - Requires re-running `plating plate` to see changes
-- **Error Messages** - Some errors may lack detailed context
-- **Performance** - Large providers (100+ resources) may take 5-10 seconds
-
-### Workarounds
-
-**Issue: Templates not updating**
-```bash
-# Force regeneration
-plating plate --force
-```
-
-**Issue: Missing components**
-```bash
-# Re-run discovery with verbose logging
-plating adorn --log-level DEBUG
-```
-
 **Issue: Validation failures**
 ```bash
 # Check specific file

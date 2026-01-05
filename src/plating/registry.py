@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Component registry using foundation patterns."""
 
 from __future__ import annotations
 
@@ -19,7 +19,6 @@ from plating.types import ComponentType
 #
 # plating/registry.py
 #
-"""Component registry using foundation patterns."""
 
 
 class PlatingRegistryEntry(RegistryEntry):

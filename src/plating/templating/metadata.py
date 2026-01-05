@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-"""TODO: Add module docstring."""
+"""Template metadata extraction utilities."""
 
 from __future__ import annotations
 
@@ -20,7 +20,6 @@ from plating.config.defaults import (
 #
 # plating/templating/metadata.py
 #
-"""Template metadata extraction utilities."""
 
 
 class TemplateMetadataExtractor:
