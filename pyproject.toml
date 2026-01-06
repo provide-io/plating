@@ -167,3 +167,18 @@ exclude_lines = ["pragma: no cover", "raise NotImplementedError", "if __name__ =
 
 [tool.bandit]
 exclude_dirs = [".venv", "tests", "workenv"]
+
+################################################################################
+# Security Scanning Allowlist
+################################################################################
+
+[tool.security]
+# Paths to exclude from secret scanning (TruffleHog, GitGuardian, Gitleaks)
+# Run: we security generate (via wrknv) to regenerate tool configs
+description = "Test documentation output - intentionally committed"
+allowed_paths = [
+    # Test documentation output directories (contain example API keys in HCL)
+    "debug_docs/**",
+    "test_docs/**",
+    "test-provider-docs/**",
+]
