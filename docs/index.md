@@ -1,10 +1,4 @@
-# Plating Documentation
-
-!!! warning "Pre-release"
-    This documentation covers a pre-release. APIs and features may change during the pre-release series.
-
-
-Welcome to Plating - An async-first documentation generation system for Terraform/OpenTofu providers.
+# Plating DocumentationWelcome to Plating - An async-first documentation generation system for Terraform/OpenTofu providers.
 
 ## What is Plating?
 
