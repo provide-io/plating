@@ -155,6 +155,7 @@ Apache 2.0
 ## 🙏 Acknowledgments
 
 Built with ❤️ using:
+
 - [attrs](https://www.attrs.org/) - Python classes without boilerplate
 - [Jinja2](https://jinja.palletsprojects.com/) - Powerful templating
 - [pyvider](https://github.com/provide-io/pyvider) - Terraform provider framework
