@@ -22,7 +22,6 @@ if TYPE_CHECKING:
     from plating.bundles import PlatingBundle
 
 
-
 class AsyncTemplateEngine:
     """Async-first template engine with foundation integration."""
 
