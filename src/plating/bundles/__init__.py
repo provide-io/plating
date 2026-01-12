@@ -1,0 +1,19 @@
+#
+# SPDX-FileCopyrightText: Copyright (c) provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+"""Bundle classes for managing component documentation assets."""
+
+from __future__ import annotations
+
+from plating.bundles.base import PlatingBundle
+from plating.bundles.function import FunctionPlatingBundle
+
+#
+# plating/bundles/__init__.py
+#
+
+__all__ = ["FunctionPlatingBundle", "PlatingBundle"]
+
+# 🍽️📖🔚
