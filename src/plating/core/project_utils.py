@@ -36,7 +36,8 @@ def find_project_root(start_dir: Path | None = None) -> Path | None:
     while current != current.parent:  # Stop at filesystem root
         for marker in project_markers:
             if (current / marker).exists():
-                logger.debug(f"Found project root at {current} (marker: {marker})")
+                if logger.is_debug_enabled():
+                    logger.debug(f"Found project root at {current} (marker: {marker})")
                 return current
         current = current.parent
 
