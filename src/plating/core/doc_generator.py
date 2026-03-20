@@ -73,7 +73,8 @@ def _extract_component_metadata(
 
         return False
     except (ImportError, AttributeError) as e:
-        logger.debug(f"Could not extract metadata for {bundle.name}: {e}")
+        if logger.is_debug_enabled():
+            logger.debug(f"Could not extract metadata for {bundle.name}: {e}")
         return False
 
 
@@ -168,7 +169,8 @@ def _extract_subcategory_from_template(component: PlatingBundle) -> str | None:
 
         return None
     except Exception as e:
-        logger.debug(f"Could not extract subcategory from {component.name}: {e}")
+        if logger.is_debug_enabled():
+            logger.debug(f"Could not extract subcategory from {component.name}: {e}")
         return None
 
 
@@ -289,7 +291,8 @@ async def render_component_docs(  # noqa: C901
             output_file = output_subdir / f"{component_name}.md"
 
             if output_file.exists() and not force:
-                logger.debug(f"Skipping existing file: {output_file}")
+                if logger.is_debug_enabled():
+                    logger.debug(f"Skipping existing file: {output_file}")
                 continue
 
             # Load and render template
@@ -387,7 +390,8 @@ async def render_component_docs(  # noqa: C901
             import traceback
 
             logger.error(f"Failed to render {component.name}: {e}")
-            logger.debug(f"Traceback: {traceback.format_exc()}")
+            if logger.is_debug_enabled():
+                logger.debug(f"Traceback: {traceback.format_exc()}")
 
 
 def generate_template(component: PlatingBundle, template_file: Path) -> None:
@@ -425,7 +429,8 @@ def generate_provider_index(  # noqa: C901
     index_file = output_dir / "index.md"
 
     if index_file.exists() and not force:
-        logger.debug(f"Skipping existing provider index: {index_file}")
+        if logger.is_debug_enabled():
+            logger.debug(f"Skipping existing provider index: {index_file}")
         return
 
     logger.info("Generating provider index page...")

@@ -53,7 +53,8 @@ class MarkdownValidator:
         """Configure the PyMarkdown API."""
         if config_file and config_file.exists():
             self._api.configuration_file_path = str(config_file)
-            logger.debug(f"Using pymarkdown config: {config_file}")
+            if logger.is_debug_enabled():
+                logger.debug(f"Using pymarkdown config: {config_file}")
 
         self._api.enable_strict_configuration = strict_mode
 
@@ -91,10 +92,14 @@ class MarkdownValidator:
                     f"{failure.rule_id} {failure.rule_description}"
                     for failure in scan_result.scan_failures
                 ]
-                logger.debug(f"Markdown validation failed for {file_path}: {len(result.lint_errors)} issues")
+                if logger.is_debug_enabled():
+                    logger.debug(
+                        f"Markdown validation failed for {file_path}: {len(result.lint_errors)} issues"
+                    )
             else:
                 result.passed = 1
-                logger.debug(f"Markdown validation passed for {file_path}")
+                if logger.is_debug_enabled():
+                    logger.debug(f"Markdown validation passed for {file_path}")
 
             # Handle pragma errors
             if scan_result.pragma_errors:
@@ -131,10 +136,14 @@ class MarkdownValidator:
                     f"{failure.rule_id} {failure.rule_description}"
                     for failure in scan_result.scan_failures
                 ]
-                logger.debug(f"Markdown validation failed for {filename}: {len(result.lint_errors)} issues")
+                if logger.is_debug_enabled():
+                    logger.debug(
+                        f"Markdown validation failed for {filename}: {len(result.lint_errors)} issues"
+                    )
             else:
                 result.passed = 1
-                logger.debug(f"Markdown validation passed for {filename}")
+                if logger.is_debug_enabled():
+                    logger.debug(f"Markdown validation passed for {filename}")
 
             # Handle pragma errors
             if scan_result.pragma_errors:
