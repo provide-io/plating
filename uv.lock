@@ -2493,13 +2493,13 @@ dependencies = [
     { name = "pyvider-rpcplugin" },
 ]
 wheels = [
-    { url = "https://github.com/provide-io/pyvider/releases/download/v0.3.0/pyvider-0.3.0-py3-none-any.whl", hash = "sha256:edd4a66debb1defee0da3cbede9a37b738e02baacc96417149089436b8021c13" },
+    { url = "https://github.com/provide-io/pyvider/releases/download/v0.3.0/pyvider-0.3.0-py3-none-any.whl", hash = "sha256:ad559e67a55c65e43cbec0afc31828dbecd326ba4d9c1ada538465f9af48a7af" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "attrs", specifier = ">=25.3.0" },
-    { name = "click", specifier = ">=8.1.8" },
+    { name = "attrs", specifier = ">=25.4.0" },
+    { name = "click", specifier = ">=8.3.1" },
     { name = "cryptography", specifier = ">=45.0.7" },
     { name = "google", specifier = ">=3.0.0" },
     { name = "grpcio", specifier = ">=1.76.0" },
