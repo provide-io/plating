@@ -1997,7 +1997,7 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "provide-foundation", extras = ["all"], specifier = ">=0.3.21,<0.4" },
+    { name = "provide-foundation", extras = ["all"], specifier = ">=0.3.21" },
     { name = "pymarkdownlnt", specifier = ">=0.9.32" },
     { name = "pyvider", url = "https://github.com/provide-io/pyvider/releases/download/v0.3.0/pyvider-0.3.0-py3-none-any.whl" },
     { name = "pyvider-cty" },
