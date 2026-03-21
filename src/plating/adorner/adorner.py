@@ -135,7 +135,8 @@ class PlatingAdorner:
         """Adorn a single component with a .plating directory."""
         try:
             # Find the component's source file location
-            logger.trace(f"Looking for source file for {name}")
+            if logger.is_trace_enabled():
+                logger.trace(f"Looking for source file for {name}")
             source_file = await self.component_finder.find_source(component_class)
             if not source_file:
                 logger.warning(f"Could not find source file for {name}")
@@ -147,7 +148,8 @@ class PlatingAdorner:
             docs_dir = plating_dir / "docs"
             examples_dir = plating_dir / "examples"
 
-            logger.trace(f"Creating .plating directory at {plating_dir}")
+            if logger.is_trace_enabled():
+                logger.trace(f"Creating .plating directory at {plating_dir}")
             try:
                 await asyncio.to_thread(docs_dir.mkdir, parents=True, exist_ok=True)
                 await asyncio.to_thread(examples_dir.mkdir, parents=True, exist_ok=True)
