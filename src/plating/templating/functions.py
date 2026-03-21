@@ -122,12 +122,14 @@ class TemplateEngine:
     def _example_function(self, example_name: str) -> str:
         """{{ example('name') }} - Render named example in terraform code block."""
         if not hasattr(self, "_current_context") or not self._current_context:
-            logger.debug(f"Optional example '{example_name}' not available (no context)")
+            if logger.is_debug_enabled():
+                logger.debug(f"Optional example '{example_name}' not available (no context)")
             return ""
 
         examples = self._current_context.get("examples", {})
         if example_name not in examples:
-            logger.debug(f"Optional example '{example_name}' not found in examples")
+            if logger.is_debug_enabled():
+                logger.debug(f"Optional example '{example_name}' not found in examples")
             return ""
 
         example_content = examples[example_name]
