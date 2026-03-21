@@ -90,6 +90,7 @@ filterwarnings = [
     "ignore:coroutine.*was never awaited:RuntimeWarning",
     "ignore:Module already imported so cannot be rewritten.*:pytest.PytestAssertRewriteWarning",
 ]
+norecursedirs = [".git", "build", "dist", "*.egg-info", ".venv", "htmlcov", ".hypothesis", "tests/memray"]
 
 [tool.ruff]
 line-length = 111
