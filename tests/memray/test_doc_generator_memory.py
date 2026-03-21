@@ -1,7 +1,6 @@
 """Memory profiling tests for doc generator hot paths."""
 
 import pytest
-
 from wrknv.memray.runner import run_memray_stress
 
 pytestmark = [pytest.mark.memray, pytest.mark.slow]
