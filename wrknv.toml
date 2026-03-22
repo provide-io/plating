@@ -77,6 +77,10 @@ validate = "python .provide/foundry/scripts/docs_validate.py"
 run = "python .provide/foundry/scripts/docs_serve.py"
 timeout = 604800.0
 
+[tasks.memray]
+_default = "pytest tests/memray -m memray --no-header -q"
+update = "MEMRAY_UPDATE_BASELINE=1 pytest tests/memray -m memray --no-header -q"
+
 [tasks.docs.links]
 _default = "lychee --offline --verbose --no-progress './docs/**/*.md' './src/**/*.md' './README.md' './.github/**/*.md' './CONTRIBUTING.md' 2>&1 | grep -v 'INFO'"
 check = "lychee --offline --verbose --no-progress './docs/**/*.md' './src/**/*.md' './README.md' './.github/**/*.md' './CONTRIBUTING.md' 2>&1 | grep -v 'INFO'"

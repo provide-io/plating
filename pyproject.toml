@@ -83,6 +83,7 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks integration tests",
     "unit: marks unit tests",
+    "memray: memory profiling stress tests",
 ]
 filterwarnings = [
     "ignore::RuntimeWarning:threading",
