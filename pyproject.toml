@@ -38,7 +38,7 @@ dependencies = [
     "rich>=14.0.0",
     "pyvider-cty",
     "pyvider @ https://github.com/provide-io/pyvider/releases/download/v0.3.0/pyvider-0.3.0-py3-none-any.whl",
-    "provide-foundation[all]",
+    "provide-foundation[all]>=0.3.21",
     "pymarkdownlnt>=0.9.32",
 ]
 
@@ -90,6 +90,7 @@ filterwarnings = [
     "ignore:coroutine.*was never awaited:RuntimeWarning",
     "ignore:Module already imported so cannot be rewritten.*:pytest.PytestAssertRewriteWarning",
 ]
+norecursedirs = [".git", "build", "dist", "*.egg-info", ".venv", "htmlcov", ".hypothesis", "tests/memray"]
 
 [tool.ruff]
 line-length = 111
