@@ -72,8 +72,7 @@ class AsyncTemplateEngine:
             template_content, partials = await asyncio.gather(template_task, partials_task)
 
             if not template_content:
-                if logger.is_debug_enabled():
-                    logger.debug(f"No template found for {bundle.name}, skipping")
+                logger.debug(f"No template found for {bundle.name}, skipping")
                 return ""
 
             # Prepare templates dict
@@ -254,8 +253,7 @@ class AsyncTemplateEngine:
         example_content = examples.get(key, "")
         if not example_content:
             # Only log as debug since examples are often optional
-            if logger.is_debug_enabled():
-                logger.debug(f"Optional example '{key}' not found in examples")
+            logger.debug(f"Optional example '{key}' not found in examples")
             return ""
 
         return f"```terraform\n{example_content}\n```"
@@ -348,8 +346,7 @@ class AsyncTemplateEngine:
                 return data.get(flag_name, False) is True
             return False
         except (yaml.YAMLError, AttributeError):
-            if logger.is_debug_enabled():
-                logger.debug(f"Failed to parse frontmatter flag {flag_name}")
+            logger.debug(f"Failed to parse frontmatter flag {flag_name}")
             return False
 
     def _load_global_file(self, filename: str, context: PlatingContext) -> str:
@@ -363,17 +360,15 @@ class AsyncTemplateEngine:
             File content as string, or empty string if file not found or no directory configured
         """
         if not hasattr(context, "global_partials_dir") or not context.global_partials_dir:
-            if logger.is_debug_enabled():
-                logger.debug(f"No global_partials_dir configured, skipping {filename}")
+            logger.debug(f"No global_partials_dir configured, skipping {filename}")
             return ""
 
         try:
             global_file = context.global_partials_dir / filename
             if global_file.exists():
-                if logger.is_debug_enabled():
-                    logger.debug(f"Loaded global file: {global_file}")
+                logger.debug(f"Loaded global file: {global_file}")
                 return global_file.read_text(encoding="utf-8")
-            elif logger.is_debug_enabled():
+            else:
                 logger.debug(f"Global file not found: {global_file}")
         except (OSError, ValueError) as e:
             logger.warning(f"Failed to load global file {filename}: {e}")

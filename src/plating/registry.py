@@ -97,8 +97,7 @@ class PlatingRegistry(Registry):
 
                 # Skip if we've already seen this component (deduplication for global discovery)
                 if component_key in seen_components:
-                    if logger.is_debug_enabled():
-                        logger.debug(f"Skipping duplicate {bundle.component_type}/{bundle.name}")
+                    logger.debug(f"Skipping duplicate {bundle.component_type}/{bundle.name}")
                     continue
 
                 seen_components.add(component_key)
@@ -109,8 +108,7 @@ class PlatingRegistry(Registry):
                     dimension=bundle.component_type,  # "resource", "data_source", etc.
                     value=entry,
                 )
-                if logger.is_debug_enabled():
-                    logger.debug(f"Registered {bundle.component_type}/{bundle.name}")
+                logger.debug(f"Registered {bundle.component_type}/{bundle.name}")
 
         except Exception as e:
             logger.error(f"Failed to discover bundles: {e}")

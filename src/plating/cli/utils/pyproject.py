@@ -51,8 +51,7 @@ def get_pyvider_component_packages(pyproject_path: Path) -> list[str] | None:
             if component_packages and isinstance(component_packages, list):
                 return list(component_packages)
     except Exception as e:
-        if logger.is_debug_enabled():
-            logger.debug(f"Failed to read [pyvider] section from pyproject.toml: {e}")
+        logger.debug(f"Failed to read [pyvider] section from pyproject.toml: {e}")
 
     return None
 
@@ -89,8 +88,7 @@ def get_provider_name_from_pyproject(pyproject_path: Path) -> str | None:
         ):
             return str(pyproject["tool"]["plating"]["provider_name"])
     except Exception as e:
-        if logger.is_debug_enabled():
-            logger.debug(f"Failed to read provider name from pyproject.toml: {e}")
+        logger.debug(f"Failed to read provider name from pyproject.toml: {e}")
 
     return None
 
