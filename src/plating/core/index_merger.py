@@ -88,7 +88,6 @@ class IndexMerger:
             if custom_marker in custom_sections:
                 _, _, _custom_content = custom_sections[custom_marker]
                 # Replace corresponding section in result (simplified)
-                if logger.is_debug_enabled():
-                    logger.debug(f"Preserving custom {custom_marker} section")
+                logger.debug(f"Preserving custom {custom_marker} section")
 
         return result
