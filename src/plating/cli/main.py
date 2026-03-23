@@ -34,8 +34,7 @@ def main(ctx: click.Context, log_level: str | None, log_file: Path | None, log_f
             logging=LoggingConfig(default_level=cast(LogLevel, log_level.upper())),
         )
         hub.initialize_foundation(config=updated_config)
-        if logger.is_debug_enabled():
-            logger.debug(f"Log level set to {log_level.upper()}")
+        logger.debug(f"Log level set to {log_level.upper()}")
 
     # Store options in context for subcommands
     ctx.ensure_object(dict)
