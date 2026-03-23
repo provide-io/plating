@@ -91,9 +91,7 @@ class MarkdownValidator:
                     f"{failure.rule_id} {failure.rule_description}"
                     for failure in scan_result.scan_failures
                 ]
-                logger.debug(
-                    f"Markdown validation failed for {file_path}: {len(result.lint_errors)} issues"
-                )
+                logger.debug(f"Markdown validation failed for {file_path}: {len(result.lint_errors)} issues")
             else:
                 result.passed = 1
                 logger.debug(f"Markdown validation passed for {file_path}")
@@ -133,9 +131,7 @@ class MarkdownValidator:
                     f"{failure.rule_id} {failure.rule_description}"
                     for failure in scan_result.scan_failures
                 ]
-                logger.debug(
-                    f"Markdown validation failed for {filename}: {len(result.lint_errors)} issues"
-                )
+                logger.debug(f"Markdown validation failed for {filename}: {len(result.lint_errors)} issues")
             else:
                 result.passed = 1
                 logger.debug(f"Markdown validation passed for {filename}")
