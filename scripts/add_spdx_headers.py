@@ -13,8 +13,10 @@ from __future__ import annotations
 
 import argparse
 import ast
-import sys
 from pathlib import Path
+import sys
+from typing import Tuple
+
 
 HEADER_LINES = [
     "# SPDX-FileCopyrightText: Copyright (c) provide.io llc. All rights reserved.",
@@ -31,28 +33,28 @@ EXCLUDED_PATTERNS = [
 ]
 
 
-def check_header_correctness(content: str) -> tuple[bool, str]:
+def check_header_correctness(content: str) -> Tuple[bool, str]:
     """Check if existing header is correct. Returns (is_correct, issue)."""
-    lines = content.split("\n")[:15]
+    lines = content.split('\n')[:15]
 
     # Check for SPDX format
-    has_spdx = any("SPDX-FileCopyrightText" in line for line in lines)
-    has_license = any("SPDX-License-Identifier: Apache-2.0" in line for line in lines)
+    has_spdx = any('SPDX-FileCopyrightText' in line for line in lines)
+    has_license = any('SPDX-License-Identifier: Apache-2.0' in line for line in lines)
 
     if not has_spdx or not has_license:
         return False, "Missing SPDX tags or incorrect license"
 
     # Check year and company
-    copyright_line = next((ln for ln in lines if "SPDX-FileCopyrightText" in ln), "")
-    if "2025" not in copyright_line:
+    copyright_line = next((l for l in lines if 'SPDX-FileCopyrightText' in l), '')
+    if '2025' not in copyright_line:
         return False, "Incorrect year (not 2025)"
-    if "provide.io llc" not in copyright_line:
+    if 'provide.io llc' not in copyright_line:
         return False, "Incorrect company name"
 
     return True, ""
 
 
-def should_skip_file(file_path: Path) -> tuple[bool, str]:
+def should_skip_file(file_path: Path) -> Tuple[bool, str]:
     """Determine if file should be skipped. Returns (should_skip, reason)."""
     # Check exclusion patterns
     for pattern in EXCLUDED_PATTERNS:
@@ -62,7 +64,7 @@ def should_skip_file(file_path: Path) -> tuple[bool, str]:
     # Skip nearly empty __init__.py files (namespace packages)
     if file_path.name == "__init__.py":
         content = file_path.read_text()
-        lines = content.strip().split("\n")
+        lines = content.strip().split('\n')
         if len(lines) <= 3:
             return True, "nearly empty namespace package"
 
@@ -74,19 +76,7 @@ def has_shebang(content: str) -> bool:
     return content.startswith("#!")
 
 
-def _check_existing_header(content: str, file_path: Path, verbose: bool) -> tuple[bool, str] | None:
-    """Check existing header. Returns result tuple to return early, or None to continue."""
-    if "SPDX-FileCopyrightText" not in content and "Copyright" not in content[:500]:
-        return None
-    is_correct, issue = check_header_correctness(content)
-    if not is_correct:
-        return False, f"  ⚠️  WARN: {file_path.relative_to(Path.cwd())} - {issue} (manual review needed)"
-    if verbose:
-        return False, f"  SKIP: {file_path.relative_to(Path.cwd())} (already has correct header)"
-    return False, ""
-
-
-def add_header(file_path: Path, dry_run: bool = False, verbose: bool = False) -> tuple[bool, str]:
+def add_header(file_path: Path, dry_run: bool = False, verbose: bool = False) -> Tuple[bool, str]:
     """Add SPDX header to file. Returns (modified, message)."""
     try:
         content = file_path.read_text()
@@ -101,12 +91,17 @@ def add_header(file_path: Path, dry_run: bool = False, verbose: bool = False) ->
         return False, ""
 
     # Check for existing headers
-    existing = _check_existing_header(content, file_path, verbose)
-    if existing is not None:
-        return existing
+    if "SPDX-FileCopyrightText" in content or "Copyright" in content[:500]:
+        is_correct, issue = check_header_correctness(content)
+        if not is_correct:
+            return False, f"  ⚠️  WARN: {file_path.relative_to(Path.cwd())} - {issue} (manual review needed)"
+        # Header already exists and is correct
+        if verbose:
+            return False, f"  SKIP: {file_path.relative_to(Path.cwd())} (already has correct header)"
+        return False, ""
 
     # Determine header placement
-    lines = content.split("\n")
+    lines = content.split('\n')
     insert_line = 0
 
     if has_shebang(content):
@@ -114,12 +109,12 @@ def add_header(file_path: Path, dry_run: bool = False, verbose: bool = False) ->
 
     # Insert header with blank line after
     new_lines = (
-        lines[:insert_line]
-        + HEADER_LINES
-        + [""]  # Blank line after header
-        + lines[insert_line:]
+        lines[:insert_line] +
+        HEADER_LINES +
+        [''] +  # Blank line after header
+        lines[insert_line:]
     )
-    new_content = "\n".join(new_lines)
+    new_content = '\n'.join(new_lines)
 
     # Validate syntax before writing
     try:
@@ -150,12 +145,18 @@ def find_python_files(root: Path) -> list[Path]:
 
 def main() -> int:
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Add SPDX copyright headers to Python files")
-    parser.add_argument(
-        "--dry-run", "-n", action="store_true", help="Show what would change without modifying files"
+    parser = argparse.ArgumentParser(
+        description="Add SPDX copyright headers to Python files"
     )
     parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Show detailed output including skipped files"
+        "--dry-run", "-n",
+        action="store_true",
+        help="Show what would change without modifying files"
+    )
+    parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Show detailed output including skipped files"
     )
     args = parser.parse_args()
 
