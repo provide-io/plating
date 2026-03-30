@@ -5,6 +5,7 @@
 
 """Centralized test configuration and fixtures using provide-testkit."""
 
+import contextlib
 import os
 from pathlib import Path
 import sys
@@ -20,17 +21,13 @@ if sys.platform == "win32":
         if _real is None:
             continue
         if hasattr(_real, "reconfigure"):
-            try:
+            with contextlib.suppress(Exception):
                 _real.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
-            except Exception:
-                pass
         for _attr in ("wrapped", "stream"):
             _inner = getattr(_real, _attr, None)
             if _inner is not None and hasattr(_inner, "reconfigure"):
-                try:
+                with contextlib.suppress(Exception):
                     _inner.reconfigure(encoding="utf-8", errors="replace")
-                except Exception:
-                    pass
 
 from provide.testkit.mocking import ANY, AsyncMock, MagicMock, Mock, PropertyMock, call, patch
 import pytest
