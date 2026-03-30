@@ -140,7 +140,7 @@ class PlatingBundle:
             if fixture_file.is_file():
                 try:
                     rel_path = fixture_file.relative_to(self.fixtures_dir)
-                    fixtures[str(rel_path)] = fixture_file.read_text(encoding="utf-8")
+                    fixtures[rel_path.as_posix()] = fixture_file.read_text(encoding="utf-8")
                 except Exception:
                     continue
         return fixtures
@@ -178,7 +178,7 @@ class PlatingBundle:
         for file_path in group_fixtures_dir.rglob("*"):
             if file_path.is_file():
                 rel_path = file_path.relative_to(group_fixtures_dir)
-                fixtures[str(rel_path)] = file_path
+                fixtures[rel_path.as_posix()] = file_path
 
         return fixtures
 
