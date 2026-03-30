@@ -5,7 +5,32 @@
 
 """Centralized test configuration and fixtures using provide-testkit."""
 
+import os
 from pathlib import Path
+import sys
+
+# On Windows, prevent UnicodeEncodeError from emoji/box-drawing characters in
+# provide.foundation's structured logger.  colorama wraps sys.stdout with an
+# AnsiToWin32 proxy whose .wrapped attribute is the real cp1252 TextIOWrapper.
+# That reference is saved in structlog's PrintLogger._file before pytest
+# replaces sys.stdout with its capture buffer.  Reconfiguring the underlying
+# streams (sys.__stdout__ / sys.__stderr__) to UTF-8 fixes all write paths.
+if sys.platform == "win32":
+    for _real in (sys.__stdout__, sys.__stderr__, sys.stdout, sys.stderr):
+        if _real is None:
+            continue
+        if hasattr(_real, "reconfigure"):
+            try:
+                _real.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+            except Exception:
+                pass
+        for _attr in ("wrapped", "stream"):
+            _inner = getattr(_real, _attr, None)
+            if _inner is not None and hasattr(_inner, "reconfigure"):
+                try:
+                    _inner.reconfigure(encoding="utf-8", errors="replace")
+                except Exception:
+                    pass
 
 from provide.testkit.mocking import ANY, AsyncMock, MagicMock, Mock, PropertyMock, call, patch
 import pytest
@@ -111,6 +136,20 @@ except ImportError:
         from unittest.mock import mock_open
 
         return lambda read_data=None: mock_open(read_data=read_data)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def chdir_to_plating_root() -> None:
+    """Ensure tests run with the plating package root as CWD.
+
+    CLI commands use Path.cwd() to locate pyproject.toml for auto-detection.
+    When tests are run from a parent workspace directory (e.g. provide-io/),
+    no pyproject.toml exists there and auto-detection fails.  Changing to the
+    package root makes the plating pyproject.toml discoverable.
+    """
+    plating_root = Path(__file__).parent.parent
+    if (plating_root / "pyproject.toml").exists():
+        os.chdir(plating_root)
 
 
 def pytest_configure(config) -> None:

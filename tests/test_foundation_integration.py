@@ -208,16 +208,18 @@ class TestMarkdownValidator:
         """Test that validator uses foundation metrics decorators."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
             f.write("# Test Header\n\nSome content.\n")
-            f.flush()
+            temp_name = f.name
 
+        try:
             validator = MarkdownValidator()
 
             # This should trigger metrics via decorators
-            result = validator.validate_file(Path(f.name))
+            result = validator.validate_file(Path(temp_name))
 
             assert result.total == 1
-            # Clean up
-            Path(f.name).unlink()
+        finally:
+            # Clean up - file handle is closed before unlink (required on Windows)
+            Path(temp_name).unlink(missing_ok=True)
 
     def test_validator_handles_api_exceptions_gracefully(self) -> None:
         """Test that validator handles PyMarkdownApiException properly."""

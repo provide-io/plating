@@ -197,7 +197,7 @@ class GroupedExampleCompiler:
         for file_path in fixtures_dir.rglob("*"):
             if file_path.is_file():
                 rel_path = file_path.relative_to(fixtures_dir)
-                fixtures[str(rel_path)] = file_path
+                fixtures[rel_path.as_posix()] = file_path
 
         return fixtures
 
