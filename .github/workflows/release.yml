@@ -138,8 +138,10 @@ jobs:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
         with:
           name: sbom-python
-          path: sbom
-      - uses: sigstore/gh-action-sigstore-python@04cffa1d795717b140764e8b640de88853c92acc  # v3.3.0
+          path: sbom/
+
+      - name: Sign with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3.0.0
         with:
           inputs: dist/*.whl dist/*.tar.gz
       - name: Upload artifacts and signatures to release
