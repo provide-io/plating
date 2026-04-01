@@ -39,9 +39,9 @@ classifiers = [
 dependencies = [
     "jinja2>=3.1.6",
     "rich>=14.0.0",
-    "pyvider-cty",
-    "pyvider @ https://github.com/provide-io/pyvider/releases/download/v0.3.0/pyvider-0.3.0-py3-none-any.whl",
-    "provide-foundation[all]>=0.3.21",
+    "pyvider-cty>=0.3.21",
+    "pyvider>=0.3.22",
+    "provide-foundation[all]>=0.3.29",
     "pymarkdownlnt>=0.9.32",
 ]
 
