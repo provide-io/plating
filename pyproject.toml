@@ -45,8 +45,8 @@ dependencies = [
 [project.urls]
 Homepage = "https://foundry.provide.io/plating/"
 Documentation = "https://foundry.provide.io/plating/"
-Repository = "https://foundry.provide.io/plating/repo"
-Issues = "https://foundry.provide.io/plating/issues"
+Repository = "https://github.com/provide-io/plating"
+Issues = "https://github.com/provide-io/plating/issues"
 
 [dependency-groups]
 dev = [
