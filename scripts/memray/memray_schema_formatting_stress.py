@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: Copyright (c) 2026 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """Memray stress test for schema formatting hot paths.
 
 Exercises parse_schema_to_markdown, format_type_string, and the
