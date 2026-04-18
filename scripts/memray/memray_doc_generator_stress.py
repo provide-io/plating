@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: Copyright (c) 2026 provide.io llc. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 """Memray stress test for doc_generator helper functions.
 
 Exercises _inject_subcategory, _inject_test_mode_subcategory, and
