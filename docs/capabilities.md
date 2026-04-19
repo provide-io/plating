@@ -123,6 +123,7 @@ description: |-
 ### Guide Discovery
 
 Guides are automatically:
+
 - Discovered from the `.plating/guides/` directory
 - Added to the documentation structure
 - Included in navigation with proper ordering
@@ -131,11 +132,13 @@ Guides are automatically:
 ## Benefits of Capability-First Organization
 
 ### For Users
+
 - **Find related functionality faster** - All math functions grouped together
 - **Discover cross-component patterns** - See how resources and data sources work together
 - **Logical navigation** - Browse by what you want to do, not by component type
 
 ### For Maintainers
+
 - **Consistent categorization** - Standard categories across all providers
 - **Flexible organization** - Add custom categories as needed
 - **Automatic structure** - No manual navigation file maintenance
@@ -143,7 +146,7 @@ Guides are automatically:
 ## Best Practices
 
 1. **Use standard categories when possible** - Helps users familiar with other providers
-2. **Be specific with custom categories** - "Database Operations" vs "Misc"
-3. **Document category purpose** - Add description in category landing pages
-4. **Keep categories focused** - Split large categories into subcategories
-5. **Consistent naming** - Use title case for category names
+1. **Be specific with custom categories** - "Database Operations" vs "Misc"
+1. **Document category purpose** - Add description in category landing pages
+1. **Keep categories focused** - Split large categories into subcategories
+1. **Consistent naming** - Use title case for category names

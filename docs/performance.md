@@ -221,11 +221,11 @@ Prevents cascading failures:
 Typical performance metrics:
 
 | Operation | Small Provider (10 components) | Medium (50 components) | Large (200+ components) |
-|-----------|--------------------------------|------------------------|-------------------------|
-| Discovery | < 0.5s | 1-2s | 3-5s |
-| Adorn | < 1s | 2-3s | 5-10s |
-| Plate | < 2s | 5-10s | 15-30s |
-| Validate | < 1s | 2-3s | 5-10s |
+| --------- | ------------------------------ | ---------------------- | ----------------------- |
+| Discovery | < 0.5s                         | 1-2s                   | 3-5s                    |
+| Adorn     | < 1s                           | 2-3s                   | 5-10s                   |
+| Plate     | < 2s                           | 5-10s                  | 15-30s                  |
+| Validate  | < 1s                           | 2-3s                   | 5-10s                   |
 
 ## Performance Tuning
 
@@ -331,12 +331,12 @@ for stat in top_stats[:10]:
 ## Best Practices
 
 1. **Specify package names** - Always provide package_name parameter
-2. **Reuse API instances** - Create once, use multiple times
-3. **Process by type** - Handle component types separately for large providers
-4. **Enable plugin cache** - Set TF_PLUGIN_CACHE_DIR environment variable
-5. **Monitor metrics** - Use foundation metrics for production
-6. **Batch operations** - Use bulk operations over individual processing
-7. **Profile first** - Measure before optimizing
+1. **Reuse API instances** - Create once, use multiple times
+1. **Process by type** - Handle component types separately for large providers
+1. **Enable plugin cache** - Set TF_PLUGIN_CACHE_DIR environment variable
+1. **Monitor metrics** - Use foundation metrics for production
+1. **Batch operations** - Use bulk operations over individual processing
+1. **Profile first** - Measure before optimizing
 
 ## Environment Variables
 

@@ -11,11 +11,13 @@ Plating uses [UV](https://github.com/astral-sh/uv) for Python environment and pa
 #### Install UV
 
 **macOS and Linux:**
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 **Windows:**
+
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
@@ -23,12 +25,14 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 ### Getting Started
 
 1. **Fork and clone the repository:**
+
    ```bash
    git clone https://github.com/provide-io/plating.git
    cd plating
    ```
 
-2. **Set up development environment:**
+1. **Set up development environment:**
+
    ```bash
    uv venv
    source .venv/bin/activate  # Linux/macOS
@@ -36,7 +40,8 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
    uv sync
    ```
 
-3. **Verify installation:**
+1. **Verify installation:**
+
    ```bash
    python -m plating.cli --help
    uv run pytest tests/ -v
@@ -92,10 +97,10 @@ uv run pytest -k test_adorn
 ### Architecture Guidelines
 
 1. **PlatingBundle System:** Core abstraction for `.plating` directories
-2. **Async-First Design:** Primary renderer is async with sync adapters
-3. **Attrs for Data Classes:** Use `@attrs.define` instead of `@dataclass`
-4. **Pyvider Integration:** Leverage hub for component discovery
-5. **Error Handling:** Use `provide.foundation` patterns
+1. **Async-First Design:** Primary renderer is async with sync adapters
+1. **Attrs for Data Classes:** Use `@attrs.define` instead of `@dataclass`
+1. **Pyvider Integration:** Leverage hub for component discovery
+1. **Error Handling:** Use `provide.foundation` patterns
 
 ## Contributing Process
 
@@ -121,7 +126,7 @@ uv run pytest -k test_adorn
 ### 4. Review Process
 
 - All PRs require review before merging
-- Address reviewer feedback promptly  
+- Address reviewer feedback promptly
 - Ensure CI checks pass
 - Maintain clean commit history
 
@@ -170,10 +175,10 @@ uv run pytest -k test_adorn
 ## Release Process
 
 1. **Version Bump:** Update `VERSION` file
-2. **Changelog:** Update `CHANGELOG.md` with release notes
-3. **Testing:** Run full test suite
-4. **Tag Release:** Create version tag
-5. **PyPI Upload:** Automated via CI/CD
+1. **Changelog:** Update `CHANGELOG.md` with release notes
+1. **Testing:** Run full test suite
+1. **Tag Release:** Create version tag
+1. **PyPI Upload:** Automated via CI/CD
 
 ## Getting Help
 
@@ -188,6 +193,7 @@ By contributing to Plating, you agree that your contributions will be licensed u
 ## Recognition
 
 Contributors are recognized in:
+
 - CHANGELOG.md for significant contributions
 - GitHub contributors page
 - Release notes for major features

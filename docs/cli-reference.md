@@ -26,6 +26,7 @@ plating adorn [OPTIONS]
 ```
 
 **Options:**
+
 - `--provider-name TEXT` - Provider name (auto-detected if not specified)
 - `--package-name TEXT` - Package to search (searches all if not specified)
 - `--component-type [resource|data_source|function|provider]` - Component types to process (repeatable)
@@ -35,6 +36,7 @@ plating adorn [OPTIONS]
 - `--help` - Show help message
 
 **Examples:**
+
 ```bash
 # Adorn all components
 plating adorn
@@ -58,6 +60,7 @@ plating plate [OPTIONS]
 ```
 
 **Options:**
+
 - `--provider-name TEXT` - Provider name (auto-detected if not specified)
 - `--package-name TEXT` - Package to search (searches all if not specified)
 - `--component-type [resource|data_source|function|provider]` - Component types to process (repeatable)
@@ -72,6 +75,7 @@ plating plate [OPTIONS]
 - `--help` - Show help message
 
 **Examples:**
+
 ```bash
 # Generate all documentation
 plating plate
@@ -98,6 +102,7 @@ plating validate [OPTIONS]
 ```
 
 **Options:**
+
 - `--provider-name TEXT` - Provider name (auto-detected if not specified)
 - `--package-name TEXT` - Package to search (searches all if not specified)
 - `--component-type [resource|data_source|function|provider]` - Component types to validate (repeatable)
@@ -108,6 +113,7 @@ plating validate [OPTIONS]
 **Note:** The `validate` command operates on already-generated documentation files. Unlike `plate`, it does not support `--project-root` (the output directory must be explicitly provided or will default to `docs/`)
 
 **Examples:**
+
 ```bash
 # Validate all documentation
 plating validate
@@ -128,12 +134,14 @@ plating info [OPTIONS]
 ```
 
 **Options:**
+
 - `--provider-name TEXT` - Provider name (auto-detected if not specified)
 - `--package-name TEXT` - Package to search (searches all if not specified)
 - `--verbose` - Enable verbose output
 - `--help` - Show help message
 
 **Examples:**
+
 ```bash
 # Show info for auto-detected provider
 plating info
@@ -151,11 +159,13 @@ plating stats [OPTIONS]
 ```
 
 **Options:**
+
 - `--package-name TEXT` - Package to search (searches all if not specified)
 - `--verbose` - Enable verbose output
 - `--help` - Show help message
 
 **Examples:**
+
 ```bash
 # Show statistics for all packages
 plating stats
@@ -181,29 +191,36 @@ These options can be used with any command:
 The CLI attempts to determine the provider name in this order:
 
 ### 1. Explicit Flag (Highest Priority)
+
 ```bash
 plating adorn --provider-name my_provider
 ```
 
 ### 2. Configuration File
+
 Checks `pyproject.toml` in the current directory:
+
 ```toml
 [tool.plating]
 provider_name = "my_provider"
 ```
 
 ### 3. Package Name Pattern
+
 Extracts from package name if it follows conventions:
+
 - `terraform-provider-{name}` → Provider: `{name}`
 - `{name}-provider` → Provider: `{name}`
 
 Example:
+
 ```toml
 [project]
 name = "terraform-provider-aws"  # Auto-detects: aws
 ```
 
 ### 4. Fallback
+
 If none of the above work, you must specify `--provider-name`.
 
 ## Package Name Auto-Detection
@@ -211,18 +228,22 @@ If none of the above work, you must specify `--provider-name`.
 Determines which package to search for components:
 
 ### 1. Explicit Flag (Highest Priority)
+
 ```bash
 plating adorn --package-name pyvider.components
 ```
 
 ### 2. Current Directory's Package
+
 Reads from `pyproject.toml`:
+
 ```toml
 [project]
 name = "pyvider.components"  # Auto-detected
 ```
 
 ### 3. Fallback Behavior
+
 - If not specified: Searches ALL installed packages
 - This can be slow for large environments
 - Recommended: Always specify `--package-name` for better performance
@@ -232,6 +253,7 @@ name = "pyvider.components"  # Auto-detected
 ### For `plating plate` Command
 
 1. **Explicit Flag:**
+
 ```bash
 plating plate --output-dir ./documentation
 ```
@@ -239,8 +261,8 @@ plating plate --output-dir ./documentation
 2. **Auto-Detection Logic:**
    - Searches for existing documentation directories in order of preference:
      1. `./docs/` - If the directory already exists
-     2. `./documentation/` - If the directory already exists
-     3. `./doc/` - If the directory already exists
+     1. `./documentation/` - If the directory already exists
+     1. `./doc/` - If the directory already exists
    - If no existing directory is found, creates and uses `./docs/`
 
 ### For `plating validate` Command
@@ -250,12 +272,15 @@ Uses the same logic as `plate` to find where documentation was generated.
 ## Component Type Auto-Detection
 
 ### Default Behavior
+
 If not specified, operations apply to ALL component types:
+
 ```bash
 plating adorn  # Adorns resources, data_sources, and functions
 ```
 
 ### Explicit Selection
+
 ```bash
 plating adorn --component-type resource
 plating adorn --component-type resource --component-type function
@@ -266,24 +291,29 @@ plating adorn --component-type resource --component-type function
 Determines the project root for relative paths:
 
 ### Detection Order:
+
 1. **Explicit Flag:**
+
 ```bash
 plating plate --project-root /path/to/project
 ```
 
 2. **Git Repository Root:**
+
 ```python
 # Walks up from current directory to find .git/
 /path/to/project/.git/  # Found → project root is /path/to/project/
 ```
 
 3. **Pyproject.toml Location:**
+
 ```python
 # Walks up to find pyproject.toml
 /path/to/project/pyproject.toml  # Found → project root is /path/to/project/
 ```
 
 4. **Current Directory:**
+
 ```python
 Path.cwd()  # Fallback if no indicators found
 ```
@@ -291,9 +321,11 @@ Path.cwd()  # Fallback if no indicators found
 ## Examples Directory Auto-Detection
 
 ### For Generated Examples
+
 When using `--generate-examples`:
 
 1. **Explicit Flags:**
+
 ```bash
 plating plate --generate-examples \
   --examples-dir examples/ \
@@ -301,12 +333,14 @@ plating plate --generate-examples \
 ```
 
 2. **Defaults:**
+
 - Flat examples: `./examples/`
 - Grouped examples: `./examples/`
 
 ## Auto-Detection in Action
 
 ### Minimal Command (Maximum Auto-Detection)
+
 ```bash
 # In a properly configured project directory:
 cd terraform-provider-mycloud
@@ -315,6 +349,7 @@ plating plate    # Auto-detects everything
 ```
 
 ### What Gets Auto-Detected:
+
 - ✅ Provider name: `mycloud` (from package name)
 - ✅ Package name: From pyproject.toml
 - ✅ Output directory: `./docs/` (if exists)
@@ -324,12 +359,14 @@ plating plate    # Auto-detects everything
 ### When to Specify Values
 
 Provide explicit values when:
+
 1. Auto-detection fails or gives wrong results
-2. Working outside a project directory
-3. Wanting different behavior than defaults
-4. Performance optimization (e.g., specific package)
+1. Working outside a project directory
+1. Wanting different behavior than defaults
+1. Performance optimization (e.g., specific package)
 
 ### Full Explicit Command
+
 ```bash
 plating adorn \
   --provider-name mycloud \
@@ -350,10 +387,10 @@ plating plate \
 From highest to lowest priority:
 
 1. **Command-line flags** (always wins)
-2. **Environment variables** (if implemented)
-3. **pyproject.toml [tool.plating]** section
-4. **Auto-detection** from context
-5. **Built-in defaults**
+1. **Environment variables** (if implemented)
+1. **pyproject.toml [tool.plating]** section
+1. **Auto-detection** from context
+1. **Built-in defaults**
 
 ## Debugging Auto-Detection
 
@@ -368,6 +405,7 @@ plating plate --log-level DEBUG
 ```
 
 Example output:
+
 ```
 [DEBUG] Auto-detected provider name: mycloud
 [DEBUG] Auto-detected package name: pyvider.mycloud
@@ -378,7 +416,9 @@ Example output:
 ## Best Practices
 
 ### For Projects
+
 1. **Configure in pyproject.toml:**
+
 ```toml
 [tool.plating]
 provider_name = "mycloud"
@@ -386,15 +426,19 @@ provider_name = "mycloud"
 ```
 
 2. **Follow naming conventions:**
+
    - Package: `terraform-provider-{name}`
    - Or: `pyvider.{name}`
 
-3. **Use standard directory structure:**
+1. **Use standard directory structure:**
+
    - Documentation: `docs/`
    - Examples: `examples/`
 
 ### For CI/CD
+
 Always use explicit flags in CI/CD to ensure reproducibility:
+
 ```yaml
 - name: Generate Documentation
   run: |
@@ -403,7 +447,9 @@ Always use explicit flags in CI/CD to ensure reproducibility:
 ```
 
 ### For Development
+
 Use auto-detection for convenience during development:
+
 ```bash
 # Quick iterations during development
 plating adorn && plating plate

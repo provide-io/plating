@@ -2,26 +2,28 @@
 
 !!! info "Release Status"
 
-    **Plating is in its pre-release series.**
-    Some APIs may change during the pre-release series.
+```
+**Plating is in its pre-release series.**
+Some APIs may change during the pre-release series.
 
-    ✅ **Currently Working:**
-    - PSPF documentation generation
-    - Template-based doc system (Jinja2)
-    - Component discovery via foundation.hub
-    - CLI commands (adorn, plate, validate)
-    - Async-first architecture
+✅ **Currently Working:**
+- PSPF documentation generation
+- Template-based doc system (Jinja2)
+- Component discovery via foundation.hub
+- CLI commands (adorn, plate, validate)
+- Async-first architecture
 
-    ⚠️ **Known Limitations:**
-    - Some advanced features are documented separately
+⚠️ **Known Limitations:**
+- Some advanced features are documented separately
 
-    📋 **Exploratory:**
-    - Enhanced template functions
-    - Additional component types
+📋 **Exploratory:**
+- Enhanced template functions
+- Additional component types
 
-    **Current Version:** v0.3.0
+**Current Version:** v0.3.0
+```
 
----
+______________________________________________________________________
 
 ## What is Plating?
 
@@ -36,7 +38,7 @@ Plating is a modern, async-first documentation generation system for Terraform/O
 - **⚡ Foundation Integration** - Built-in retry policies, metrics, circuit breakers
 - **🚀 Async-First** - High-performance parallel processing
 
----
+______________________________________________________________________
 
 ## Prerequisites
 
@@ -50,19 +52,13 @@ Before installing Plating, ensure you have:
 
 UV is a fast Python package manager. Install it with:
 
-=== "macOS/Linux"
-    ```bash
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    ```
+=== "macOS/Linux" `bash     curl -LsSf https://astral.sh/uv/install.sh | sh     `
 
-=== "Windows"
-    ```powershell
-    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-    ```
+=== "Windows" `powershell     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"     `
 
 For more information, visit [UV Documentation](https://github.com/astral-sh/uv).
 
----
+______________________________________________________________________
 
 ## Installation
 
@@ -98,7 +94,7 @@ plating --help
 uv tool install git+https://github.com/provide-io/plating.git
 ```
 
----
+______________________________________________________________________
 
 ## Quick Start
 
@@ -117,6 +113,7 @@ plating adorn --component-type resource
 ```
 
 **Output:**
+
 ```console
 🎨 Adorning 5 component types...
 📦 Processing 10 resource(s)...
@@ -131,7 +128,8 @@ This creates `.plating` bundles with template files for each component.
 Edit the generated templates in your `.plating/docs/` directories:
 
 {% raw %}
-```markdown
+
+````markdown
 ---
 page_title: "Resource: my_resource"
 ---
@@ -149,8 +147,9 @@ page_title: "Resource: my_resource"
 Resources can be imported using:
 ```bash
 terraform import my_resource.example resource_id
-```
-```
+````
+
+````
 {% endraw %}
 
 ### Step 3: Plate Documentation
@@ -163,9 +162,10 @@ plating plate --output-dir docs/
 
 # Generate with validation
 plating plate --output-dir docs/ --validate
-```
+````
 
 **Output:**
+
 ```console
 🍽️ Plating documentation...
 ✅ Generated 10 files in 0.52s
@@ -186,6 +186,7 @@ plating validate --output-dir docs/
 ```
 
 **Output:**
+
 ```console
 📊 Validation results:
   • Total files: 10
@@ -195,7 +196,7 @@ plating validate --output-dir docs/
 ✅ All validations passed
 ```
 
----
+______________________________________________________________________
 
 ## Your First Documentation
 
@@ -250,7 +251,7 @@ plating plate --output-dir docs/
 
 Check the generated documentation in `docs/resources/my_resource.md`:
 
-```markdown
+````markdown
 # my_resource
 
 Manages a my_resource resource.
@@ -263,18 +264,21 @@ resource "my_resource" "example" {
   description = "Example resource configuration"
   ...
 }
-```
+````
 
 ## Schema
 
 ### Required
+
 - `name` (String) Name of the resource
 
 ### Optional
+
 - `description` (String) Description
 - `settings` (Block) Configuration settings
 - `tags` (Map of String) Resource tags
-```
+
+````
 
 ---
 
@@ -323,9 +327,9 @@ async def generate_provider_docs():
 if __name__ == "__main__":
     success = asyncio.run(generate_provider_docs())
     exit(0 if success else 1)
-```
+````
 
----
+______________________________________________________________________
 
 ## Bundle Structure
 
@@ -346,11 +350,12 @@ my_resource.plating/
 ```
 
 **Notes:**
+
 - `.tf` files for Terraform configurations
 - `.py` files for Python API examples
 - Subdirectories must contain `main.tf` as entry point
 
----
+______________________________________________________________________
 
 ## Template Functions
 
@@ -358,18 +363,19 @@ Plating provides powerful Jinja2 template functions:
 
 {% raw %}
 
-| Function | Description | Example |
-|----------|-------------|---------|
-| `schema()` | Render component schema as markdown table | `{{ schema() }}` |
-| `example('name')` | Include example file in code block | `{{ example('basic') }}` |
-| `include('file')` | Include static partial file | `{{ include('_intro.md') }}` |
-| `render('file')` | Render dynamic template with context | `{{ render('_advanced.md') }}` |
+| Function          | Description                               | Example                        |
+| ----------------- | ----------------------------------------- | ------------------------------ |
+| `schema()`        | Render component schema as markdown table | `{{ schema() }}`               |
+| `example('name')` | Include example file in code block        | `{{ example('basic') }}`       |
+| `include('file')` | Include static partial file               | `{{ include('_intro.md') }}`   |
+| `render('file')`  | Render dynamic template with context      | `{{ render('_advanced.md') }}` |
 
 {% endraw %}
 
 **Example Template:**
 
 {% raw %}
+
 ```markdown
 # my_resource
 
@@ -389,9 +395,10 @@ Plating provides powerful Jinja2 template functions:
 
 {{ render('_details.tmpl.md') }}
 ```
+
 {% endraw %}
 
----
+______________________________________________________________________
 
 ## Common Commands
 
@@ -413,18 +420,20 @@ plating validate --output-dir ./documentation
 ```
 
 **Issue: Validation failures**
+
 ```bash
 # Check specific file
 plating validate --output-dir docs/ --log-level INFO
 ```
 
----
+______________________________________________________________________
 
 ## Troubleshooting
 
 ### Installation Issues
 
 **Problem: UV not found**
+
 ```bash
 # Install UV first
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -434,6 +443,7 @@ source ~/.bashrc  # or ~/.zshrc
 ```
 
 **Problem: Python version too old**
+
 ```bash
 # Check Python version
 python --version  # Must be 3.11+
@@ -457,7 +467,7 @@ python --version  # Must be 3.11+
 
 For more troubleshooting, see **[Troubleshooting Guide](../troubleshooting.md)**.
 
----
+______________________________________________________________________
 
 ## Next Steps
 
@@ -469,7 +479,7 @@ Now that you're set up, explore:
 - **[API Reference](../api-reference.md)** - Python API documentation
 - **[Registry Pattern](../registry-pattern.md)** - Component discovery system
 
----
+______________________________________________________________________
 
 ## Part of the provide.io Ecosystem
 
@@ -478,12 +488,13 @@ Plating is part of a larger ecosystem of Python and Terraform tools.
 **[View Ecosystem Overview →](https://foundry.provide.io/provide-foundation/ecosystem/)**
 
 Understand how plating integrates with:
+
 - **provide-foundation** - Core reliability patterns
 - **pyvider** - Terraform provider framework
 - **flavorpack** - Application packaging
 - **provide-testkit** - Testing utilities
 
----
+______________________________________________________________________
 
 ## Getting Help
 
@@ -492,11 +503,12 @@ Understand how plating integrates with:
 - **[Discussions](https://github.com/provide-io/plating/discussions)** - Community support
 
 **Found a bug?** Please report it with:
+
 - Plating version (`plating --version`)
 - Python version (`python --version`)
 - Operating system
 - Complete error output
 
----
+______________________________________________________________________
 
 **Ready to start?** Jump to **[Authoring Bundles](../authoring-bundles.md)** to learn how to create custom documentation templates!
