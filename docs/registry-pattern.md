@@ -85,6 +85,7 @@ plating stats --package-name pyvider.components
 ```
 
 Example output:
+
 ```
 📊 Registry Statistics
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -103,12 +104,12 @@ Coverage: 80% (23/28)
 
 The registry organizes components into dimensions:
 
-| Type | Dimension | Directory | Description |
-|------|-----------|-----------|-------------|
-| `ComponentType.RESOURCE` | "resource" | `resources/` | Terraform resources |
-| `ComponentType.DATA_SOURCE` | "data_source" | `data-sources/` | Data sources |
-| `ComponentType.FUNCTION` | "function" | `functions/` | Provider functions |
-| `ComponentType.PROVIDER` | "provider" | `providers/` | Provider config |
+| Type                        | Dimension     | Directory       | Description         |
+| --------------------------- | ------------- | --------------- | ------------------- |
+| `ComponentType.RESOURCE`    | "resource"    | `resources/`    | Terraform resources |
+| `ComponentType.DATA_SOURCE` | "data_source" | `data-sources/` | Data sources        |
+| `ComponentType.FUNCTION`    | "function"    | `functions/`    | Provider functions  |
+| `ComponentType.PROVIDER`    | "provider"    | `providers/`    | Provider config     |
 
 ## Bundle Discovery
 
@@ -234,9 +235,9 @@ class CustomDiscovery(PlatingDiscovery):
 ## Best Practices
 
 1. **Package Organization**: Follow standard structure for automatic discovery
-2. **Naming Conventions**: Use consistent naming for components and bundles
-3. **Package Filtering**: Specify package_name for faster discovery
-4. **Cache Registry**: Reuse Plating instance to avoid re-discovery
+1. **Naming Conventions**: Use consistent naming for components and bundles
+1. **Package Filtering**: Specify package_name for faster discovery
+1. **Cache Registry**: Reuse Plating instance to avoid re-discovery
 
 ## Troubleshooting
 

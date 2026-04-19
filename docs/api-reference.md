@@ -25,6 +25,7 @@ Plating(
 ```
 
 **Parameters:**
+
 - `context`: PlatingContext with configuration (required)
 - `package_name`: Package to search for components, or None to search all packages
 
@@ -43,6 +44,7 @@ async def adorn(
 ```
 
 **Parameters:**
+
 - `output_dir`: Directory for templates (default: `.plating`)
 - `component_types`: Component types to process
 - `templates_only`: Only generate templates, skip discovery
@@ -64,6 +66,7 @@ async def plate(
 ```
 
 **Parameters:**
+
 - `output_dir`: Output directory for documentation (default: auto-detected from `docs/`, `documentation/`, or `doc/`)
 - `component_types`: Component types to process (if None, processes all types)
 - `force`: Overwrite existing documentation files
@@ -87,6 +90,7 @@ async def validate(
 ```
 
 **Parameters:**
+
 - `output_dir`: Documentation directory to validate (default: auto-detected from `docs/`, `documentation/`, or `doc/`)
 - `component_types`: Component types to validate (if None, validates all types)
 - `project_root`: Project root directory for auto-detection (if None, auto-detected from git or pyproject.toml)
@@ -102,6 +106,7 @@ def get_registry_stats() -> dict[str, Any]
 ```
 
 **Returns:** Dictionary with component statistics in the following format:
+
 ```python
 {
     "total_components": int,           # Total number of components
@@ -141,6 +146,7 @@ context = PlatingContext(
 #### Constructor Parameters
 
 **Commonly Used Parameters:**
+
 - `provider_name`: Provider name (required for most operations)
 - `log_level`: Logging level (`"DEBUG"`, `"INFO"`, `"WARNING"`, `"ERROR"`)
 - `no_color`: Disable colored output
@@ -148,6 +154,7 @@ context = PlatingContext(
 - `json_output`: Output in JSON format
 
 **Additional Parameters (from PlatingCLIContext):**
+
 - `name`: Component name
 - `component_type`: ComponentType enum value
 - `description`: Component description
@@ -169,6 +176,7 @@ def to_dict(include_sensitive: bool = False) -> dict[str, Any]
 ```
 
 **Parameters:**
+
 - `include_sensitive`: Whether to include sensitive values
 
 **Returns:** Dictionary with context values
@@ -182,6 +190,7 @@ def save_context(path: Path) -> None
 ```
 
 **Parameters:**
+
 - `path`: Path to save context file
 
 ##### load_context()
@@ -194,6 +203,7 @@ def load_context(cls, path: Path) -> PlatingContext
 ```
 
 **Parameters:**
+
 - `path`: Path to context file
 
 **Returns:** PlatingContext instance
@@ -359,6 +369,7 @@ ComponentType.PROVIDER      # Provider configuration
 ```
 
 **Properties:**
+
 - `display_name`: Formatted display name
 - `output_subdir`: Output directory name
 
@@ -409,6 +420,7 @@ Include example file.
 ```
 
 **Parameters:**
+
 - `name`: Filename without extension
 
 **Output:** Example wrapped in code block
@@ -422,6 +434,7 @@ Include static partial.
 ```
 
 **Parameters:**
+
 - `filename`: Partial filename
 
 **Output:** Raw partial content
@@ -435,6 +448,7 @@ Render dynamic partial.
 ```
 
 **Parameters:**
+
 - `filename`: Partial filename
 
 **Output:** Processed partial with context
@@ -458,6 +472,7 @@ RetryPolicy(
 ### Metrics
 
 Operations tracked:
+
 - `adorn`: Adorning duration
 - `plate`: Generation performance
 - `validate`: Validation time
@@ -516,6 +531,7 @@ documented = api.registry.get_components_with_templates(
 ```
 
 **Registry Methods:**
+
 - `get_components(component_type: ComponentType) -> list[PlatingBundle]`
 - `get_component(component_type: ComponentType, name: str) -> PlatingBundle | None`
 - `get_components_with_templates(component_type: ComponentType) -> list[PlatingBundle]`

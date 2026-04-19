@@ -14,7 +14,7 @@ Plating is a modern documentation generator that transforms your Terraform provi
 - **📊 Registry Pattern**: Centralized component management and statistics
 - **🛡️ Enterprise Ready**: Production-grade resilience and observability
 
----
+______________________________________________________________________
 
 ## Part of the provide.io Ecosystem
 
@@ -24,19 +24,19 @@ This project is part of a larger ecosystem of tools for Python and Terraform dev
 
 Understand how provide-foundation, pyvider, flavorpack, and other projects work together.
 
----
+______________________________________________________________________
 
 ## Quick Start
 
 ### Installation
 
-!!! info "Release Status"
-    plating is in its pre-release series.
-    Some APIs may change during the pre-release series.
+!!! info "Release Status" plating is in its pre-release series. Some APIs may change during the pre-release series.
 
-    - **Current version:** v0.3.0
-    - **Status:** Pre-release
-    - **Installation:** Install from source
+```
+- **Current version:** v0.3.0
+- **Status:** Pre-release
+- **Installation:** Install from source
+```
 
 **Installation:**
 
@@ -149,20 +149,24 @@ asyncio.run(main())
 ## Documentation
 
 ### Getting Started
+
 - **[Quick Start](quick-start.md)** - Get up and running in 5 minutes
 - **[Authoring Bundles](authoring-bundles.md)** - Create custom documentation
 - **[Examples](examples.md)** - Complete working examples
 
 ### Reference
+
 - **[API Reference](api-reference.md)** - Complete Python API documentation
 - **[CLI Reference](cli-reference.md)** - Command-line interface and options
 - **[Registry Pattern](registry-pattern.md)** - Component discovery and management
 
 ### Advanced Topics
+
 - **[Performance](performance.md)** - Optimization and best practices
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
 
 ### API Documentation
+
 - **[Auto-generated API](api/index.md)** - Auto-generated API documentation from source code
 
 ## Component Types Supported

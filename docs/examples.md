@@ -442,7 +442,7 @@ asyncio.run(test_documentation())
 
 Programmatically create bundles:
 
-```python
+````python
 #!/usr/bin/env python3
 """
 create_bundle.py - Create custom documentation bundles
@@ -483,34 +483,38 @@ Manages a my_resource in the MyProvider infrastructure.
 
 ```bash
 terraform import myprovider_my_resource.example <id>
-```
+````
+
 """
 
-    (bundle_dir / "docs" / "my_resource.tmpl.md").write_text(template)
+```
+(bundle_dir / "docs" / "my_resource.tmpl.md").write_text(template)
 
-    # Create example
-    example = '''resource "myprovider_my_resource" "example" {
-  name        = "example-resource"
-  description = "Created by Plating"
+# Create example
+example = '''resource "myprovider_my_resource" "example" {
+```
 
-  configuration {
-    setting = "value"
-  }
-}'''
+name = "example-resource" description = "Created by Plating"
 
-    (bundle_dir / "examples" / "basic.tf").write_text(example)
+configuration { setting = "value" } }'''
 
-    # Create bundle instance
-    bundle = PlatingBundle(
-        name="my_resource",
-        plating_dir=bundle_dir,
-        component_type="resource"
-    )
+```
+(bundle_dir / "examples" / "basic.tf").write_text(example)
 
-    print(f"Created bundle: {bundle.name}")
-    print(f"  Docs: {bundle.docs_dir}")
-    print(f"  Examples: {bundle.examples_dir}")
-    print(f"  Has template: {bundle.has_main_template()}")
+# Create bundle instance
+bundle = PlatingBundle(
+    name="my_resource",
+    plating_dir=bundle_dir,
+    component_type="resource"
+)
+
+print(f"Created bundle: {bundle.name}")
+print(f"  Docs: {bundle.docs_dir}")
+print(f"  Examples: {bundle.examples_dir}")
+print(f"  Has template: {bundle.has_main_template()}")
+```
 
 asyncio.run(create_custom_bundle())
+
+```
 ```

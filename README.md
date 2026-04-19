@@ -1,10 +1,6 @@
 # 🍽️📖 Plating
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![uv](https://img.shields.io/badge/uv-package_manager-FF6B35.svg)](https://github.com/astral-sh/uv)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![CI](https://github.com/provide-io/plating/actions/workflows/ci.yml/badge.svg)](https://github.com/provide-io/plating/actions)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/) [![uv](https://img.shields.io/badge/uv-package_manager-FF6B35.svg)](https://github.com/astral-sh/uv) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![CI](https://github.com/provide-io/plating/actions/workflows/ci.yml/badge.svg)](https://github.com/provide-io/plating/actions)
 
 **Documentation generation system for Terraform/OpenTofu providers**
 
@@ -25,8 +21,8 @@ Plating is a powerful documentation system that brings culinary elegance to tech
 ## Quick Start
 
 1. Install: `uv tool install plating`
-2. Read the [Documentation](https://github.com/provide-io/plating/blob/main/docs/index.md)
-3. Try `plating adorn` to create documentation templates
+1. Read the [Documentation](https://github.com/provide-io/plating/blob/main/docs/index.md)
+1. Try `plating adorn` to create documentation templates
 
 ### Installation
 
@@ -47,6 +43,7 @@ uv tool install git+https://github.com/provide-io/plating.git
 ```
 
 ## Documentation
+
 - [Documentation index](https://github.com/provide-io/plating/blob/main/docs/index.md)
 
 ## Development
@@ -224,13 +221,14 @@ Plating follows a modular architecture:
 ## 🙏 Acknowledgments
 
 Built with ❤️ using:
+
 - [attrs](https://www.attrs.org/) - Python classes without boilerplate
 - [Jinja2](https://jinja.palletsprojects.com/) - Powerful templating
 - [pyvider](https://github.com/provide-io/pyvider) - Terraform provider framework
 - [click](https://click.palletsprojects.com/) - Command line interface
 - [rich](https://rich.readthedocs.io/) - Beautiful terminal output
 
----
+______________________________________________________________________
 
 *Plating - Making documentation as delightful as a well-plated dish* 🍽️
 
