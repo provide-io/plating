@@ -4,6 +4,7 @@
 Exercises parse_schema_to_markdown, format_type_string, and the
 attribute table generation that runs for every resource/data-source.
 """
+
 from __future__ import annotations
 
 import os
@@ -60,8 +61,7 @@ def _make_function_schema() -> dict:
         "summary": "Test function",
         "signature": {
             "parameters": [
-                {"name": f"param_{i}", "type": "string", "description": f"Parameter {i}"}
-                for i in range(5)
+                {"name": f"param_{i}", "type": "string", "description": f"Parameter {i}"} for i in range(5)
             ],
             "variadic_parameter": {
                 "name": "extra_args",
