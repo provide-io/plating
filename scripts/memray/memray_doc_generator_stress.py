@@ -4,6 +4,7 @@
 Exercises _inject_subcategory, _inject_test_mode_subcategory, and
 group_components_by_capability which are called for every component.
 """
+
 from __future__ import annotations
 
 import os

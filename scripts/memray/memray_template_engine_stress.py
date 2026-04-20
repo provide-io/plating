@@ -4,6 +4,7 @@
 Exercises Jinja2 environment creation, frontmatter parsing, and the
 global header/footer injection logic that runs for every rendered doc.
 """
+
 from __future__ import annotations
 
 import os
@@ -18,7 +19,7 @@ CYCLES = 500
 
 def _make_frontmatter_content(skip_header: bool = False, skip_footer: bool = False) -> str:
     """Generate synthetic markdown with YAML frontmatter."""
-    fm_lines = ['---', 'page_title: "Test Resource"', 'description: "A test resource"']
+    fm_lines = ["---", 'page_title: "Test Resource"', 'description: "A test resource"']
     if skip_header:
         fm_lines.append("skip_global_header: true")
     if skip_footer:
@@ -71,7 +72,7 @@ def main() -> None:
         fm2, body2 = engine._parse_frontmatter(content_skip_header)
         engine._should_skip_header(fm2)
 
-        fm3, body3 = engine._parse_frontmatter(content_skip_footer)
+        fm3, _body3 = engine._parse_frontmatter(content_skip_footer)
         engine._should_skip_footer(fm3)
 
         engine._parse_frontmatter(content_no_fm)
@@ -85,7 +86,7 @@ def main() -> None:
     templates = {"main.tmpl": "Hello {{ name }}!", "partial.tmpl": "Partial content"}
     for _ in range(CYCLES // 5):
         env = engine._get_jinja_env(templates)
-        tmpl = env.get_template("main.tmpl")
+        env.get_template("main.tmpl")
 
     print(f"Template engine stress complete: {CYCLES} cycles")
 
