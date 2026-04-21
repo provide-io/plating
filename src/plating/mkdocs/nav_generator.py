@@ -105,8 +105,7 @@ class MkdocsNavGenerator:
                         guide_order = fm.get("guide_order")
                         page_title = fm.get("page_title")
             except Exception as e:
-                if logger.is_debug_enabled():
-                    logger.debug(f"Could not extract frontmatter from {guide_file}: {e}")
+                logger.debug(f"Could not extract frontmatter from {guide_file}: {e}")
 
             # Fallback to generated title if page_title not present
             if not page_title:

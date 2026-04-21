@@ -34,8 +34,7 @@ def auto_detect_package_name() -> str | None:
         component_packages = get_pyvider_component_packages(pyproject_path)
         if component_packages and len(component_packages) > 0:
             # Return the first component package
-            if logger.is_debug_enabled():
-                logger.debug(f"Using component package from [pyvider] section: {component_packages[0]}")
+            logger.debug(f"Using component package from [pyvider] section: {component_packages[0]}")
             return component_packages[0]
 
         # Fall back to reading pyproject and getting package name
@@ -53,8 +52,7 @@ def auto_detect_package_name() -> str | None:
 
         return None
     except Exception as e:
-        if logger.is_debug_enabled():
-            logger.debug(f"Failed to auto-detect package name: {e}")
+        logger.debug(f"Failed to auto-detect package name: {e}")
         return None
 
 
@@ -78,8 +76,7 @@ def auto_detect_provider_name() -> str | None:
 
         return None
     except Exception as e:
-        if logger.is_debug_enabled():
-            logger.debug(f"Failed to auto-detect provider name: {e}")
+        logger.debug(f"Failed to auto-detect provider name: {e}")
         return None
 
 

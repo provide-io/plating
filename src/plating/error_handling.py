@@ -6,7 +6,7 @@
 """Centralized error handling and reporting for plating."""
 
 from pathlib import Path
-import subprocess
+import subprocess  # nosec
 
 from provide.foundation import perr, pout
 
