@@ -1,1 +1,5 @@
-{}
+{
+  "doc_generator_total_allocations": 35589,
+  "schema_formatting_total_allocations": 11465,
+  "template_engine_total_allocations": 25988
+}

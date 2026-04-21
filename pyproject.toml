@@ -40,8 +40,8 @@ dependencies = [
     "jinja2>=3.1.6",
     "rich>=14.0.0",
     "pyvider-cty>=0.3.21",
-    "pyvider>=0.3.22",
-    "provide-foundation[all]>=0.3.29",
+    "pyvider",
+    "provide-foundation[all]",
     "pymarkdownlnt>=0.9.32",
 ]
 
