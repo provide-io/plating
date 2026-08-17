@@ -109,6 +109,9 @@ norecursedirs = [".git", "build", "dist", "*.egg-info", ".venv", "htmlcov", ".hy
 line-length = 111
 indent-width = 4
 target-version = "py311"
+# ruff >=0.16 formats Python blocks inside Markdown; docs prose is not ours to
+# restyle, so keep .md out of both check and format.
+exclude = ["**/*.md"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "ANN", "B", "BLE", "C90", "PIE", "PLR", "S", "SIM", "PTH", "RUF"]
@@ -132,6 +135,7 @@ ignore = [
     "PLR0912",  # too-many-branches (refactor later)
     "PLR0913",  # too-many-arguments (common in config classes)
     "PLR0915",  # too-many-statements (refactor later)
+    "PLR0917",  # too-many-positional-arguments (same rationale as PLR0913)
     "PLR1714",  # repeated-equality-comparison (style preference)
     "PLR2004",  # magic-value-comparison (too noisy)
 ]
