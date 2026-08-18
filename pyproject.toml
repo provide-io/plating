@@ -39,9 +39,9 @@ classifiers = [
 dependencies = [
     "jinja2>=3.1.6",
     "rich>=14.0.0",
-    "pyvider-cty>=0.5.0",
-    "pyvider>=0.5.0",
-    "provide-foundation[all]>=0.5.0",
+    "pyvider-cty>=0.4.0",
+    "pyvider>=0.4.0",
+    "provide-foundation[all]>=0.4.0",
     "pymarkdownlnt>=0.9.32",
 ]
 
@@ -53,10 +53,10 @@ Issues = "https://github.com/provide-io/plating/issues"
 
 [dependency-groups]
 dev = [
-    "provide-testkit[standard,build]>=0.5.0",
+    "provide-testkit[standard,build]>=0.4.0",
 ]
 docs = [
-    "provide-testkit[docs]>=0.5.0",
+    "provide-testkit[docs]>=0.4.0",
     "mkdocs-material>=9.7.1",
 ]
 
