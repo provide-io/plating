@@ -39,9 +39,9 @@ classifiers = [
 dependencies = [
     "jinja2>=3.1.6",
     "rich>=14.0.0",
-    "pyvider-cty>=0.3.21",
-    "pyvider",
-    "provide-foundation[all]",
+    "pyvider-cty>=0.4.0",
+    "pyvider>=0.4.0",
+    "provide-foundation[all]>=0.4.0",
     "pymarkdownlnt>=0.9.32",
 ]
 
@@ -53,10 +53,10 @@ Issues = "https://github.com/provide-io/plating/issues"
 
 [dependency-groups]
 dev = [
-    "provide-testkit[standard,build]",
+    "provide-testkit[standard,build]>=0.4.0",
 ]
 docs = [
-    "provide-testkit[docs]",
+    "provide-testkit[docs]>=0.4.0",
     "mkdocs-material>=9.7.1",
 ]
 
@@ -66,6 +66,16 @@ plating = "plating.cli:main"
 [tool.uv]
 package = true
 
+# Local development resolves sibling suite packages from source, so a change in
+# one repo is exercised by its consumers immediately rather than at release. uv
+# does not propagate a dependency's sources into published metadata, so this is
+# invisible to consumers of the built wheel. CI passes --no-sources to verify the
+# published story instead.
+[tool.uv.sources]
+provide-foundation = { path = "../provide-foundation", editable = true }
+provide-testkit = { path = "../provide-testkit", editable = true }
+pyvider = { path = "../pyvider", editable = true }
+pyvider-cty = { path = "../pyvider-cty", editable = true }
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -99,6 +109,9 @@ norecursedirs = [".git", "build", "dist", "*.egg-info", ".venv", "htmlcov", ".hy
 line-length = 111
 indent-width = 4
 target-version = "py311"
+# ruff >=0.16 formats Python blocks inside Markdown; docs prose is not ours to
+# restyle, so keep .md out of both check and format.
+extend-exclude = ["**/*.md"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "ANN", "B", "BLE", "C90", "PIE", "PLR", "S", "SIM", "PTH", "RUF"]
@@ -122,6 +135,7 @@ ignore = [
     "PLR0912",  # too-many-branches (refactor later)
     "PLR0913",  # too-many-arguments (common in config classes)
     "PLR0915",  # too-many-statements (refactor later)
+    "PLR0917",  # too-many-positional-arguments (same rationale as PLR0913)
     "PLR1714",  # repeated-equality-comparison (style preference)
     "PLR2004",  # magic-value-comparison (too noisy)
 ]
