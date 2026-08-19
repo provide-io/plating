@@ -152,7 +152,7 @@ class Plating:
             )
 
         if not component_types:
-            component_types = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
+            component_types = ComponentType.documentable()
 
         start_time = time.monotonic()
         result = PlateResult(duration_seconds=0.0, files_generated=0, errors=[], output_files=[])
@@ -204,7 +204,7 @@ class Plating:
 
             # Generate mkdocs navigation
             if all_components_for_nav:
-                nav_generator = MkdocsNavGenerator(final_output_dir.parent)
+                nav_generator = MkdocsNavGenerator(final_output_dir.parent, self.context.provider_name)
                 nav_dict = nav_generator.generate_nav(all_components_for_nav, include_guides=True)
                 nav_generator.update_mkdocs_config(nav_dict)
                 logger.info("Generated mkdocs navigation structure")
@@ -245,11 +245,7 @@ class Plating:
             project_root = find_project_root()
 
         final_output_dir = get_output_directory(output_dir, project_root)
-        component_types = component_types or [
-            ComponentType.RESOURCE,
-            ComponentType.DATA_SOURCE,
-            ComponentType.FUNCTION,
-        ]
+        component_types = component_types or ComponentType.documentable()
 
         errors = []
         files_checked = 0
@@ -289,7 +285,7 @@ class Plating:
         """Get registry statistics."""
         stats: dict[str, Any] = {"total_components": 0, "component_types": []}
 
-        for component_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]:
+        for component_type in ComponentType.documentable():
             components = self.registry.get_components(component_type)
             with_templates = self.registry.get_components_with_templates(component_type)
 

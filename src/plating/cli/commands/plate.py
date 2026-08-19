@@ -19,6 +19,8 @@ from plating.errors import PlatingError
 from plating.plating import Plating
 from plating.types import ComponentType, PlatingContext
 
+COMPONENT_TYPE_CHOICES = [member.value for member in ComponentType]
+
 
 @click.command("plate")
 @flexible_options
@@ -30,7 +32,7 @@ from plating.types import ComponentType, PlatingContext
 )
 @click.option(
     "--component-type",
-    type=click.Choice(["resource", "data_source", "function", "provider"]),
+    type=click.Choice(COMPONENT_TYPE_CHOICES),
     multiple=True,
     help="Component types to plate (can be used multiple times).",
 )

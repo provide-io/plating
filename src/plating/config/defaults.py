@@ -76,6 +76,10 @@ MAIN_TEMPLATE_FILE = "main.md.j2"
 COMPONENT_TYPE_FUNCTION = "function"
 COMPONENT_TYPE_RESOURCE = "resource"
 COMPONENT_TYPE_DATA_SOURCE = "data_source"
+COMPONENT_TYPE_EPHEMERAL_RESOURCE = "ephemeral_resource"
+COMPONENT_TYPE_LIST_RESOURCE = "list_resource"
+COMPONENT_TYPE_STATE_STORE = "state_store"
+COMPONENT_TYPE_ACTION = "action"
 
 # =================================
 # Jinja2 template engine defaults

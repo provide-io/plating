@@ -8,7 +8,7 @@
 from enum import Enum
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from attrs import define, field
 from provide.foundation import CLIContext
@@ -21,13 +21,27 @@ class ComponentType(Enum):
     - RESOURCE: Terraform resources
     - DATA_SOURCE: Terraform data sources
     - FUNCTION: Provider-defined functions
+    - EPHEMERAL_RESOURCE: Short-lived resources (protocol 6.5+)
+    - LIST_RESOURCE: Listable resources queried by `terraform query` (6.11)
+    - STATE_STORE: Pluggable state storage backends (6.11)
+    - ACTION: Provider-defined actions (6.10+)
     - PROVIDER: Provider configuration
+
+    The member values match the dimension names pyvider registers components
+    under, and `output_subdir` matches the directory layout terraform-plugin-docs
+    publishes to the Terraform Registry. Keeping both in sync with upstream is
+    what lets a schema key be derived as f"{type.value}_schemas" and a docs path
+    as output_dir / type.output_subdir, with no per-type branching.
     """
 
     # Terraform/OpenTofu component types
     RESOURCE = "resource"
     DATA_SOURCE = "data_source"
     FUNCTION = "function"
+    EPHEMERAL_RESOURCE = "ephemeral_resource"
+    LIST_RESOURCE = "list_resource"
+    STATE_STORE = "state_store"
+    ACTION = "action"
     PROVIDER = "provider"
 
     @property
@@ -37,7 +51,25 @@ class ComponentType(Enum):
             self.RESOURCE: "Resource",
             self.DATA_SOURCE: "Data Source",
             self.FUNCTION: "Function",
+            self.EPHEMERAL_RESOURCE: "Ephemeral Resource",
+            self.LIST_RESOURCE: "List Resource",
+            self.STATE_STORE: "State Store",
+            self.ACTION: "Action",
             self.PROVIDER: "Provider",
+        }[self]
+
+    @property
+    def plural_name(self) -> str:
+        """Get the plural display name used for section headings and nav."""
+        return {
+            self.RESOURCE: "Resources",
+            self.DATA_SOURCE: "Data Sources",
+            self.FUNCTION: "Functions",
+            self.EPHEMERAL_RESOURCE: "Ephemeral Resources",
+            self.LIST_RESOURCE: "List Resources",
+            self.STATE_STORE: "State Stores",
+            self.ACTION: "Actions",
+            self.PROVIDER: "Providers",
         }[self]
 
     @property
@@ -47,8 +79,98 @@ class ComponentType(Enum):
             self.RESOURCE: "resources",
             self.DATA_SOURCE: "data-sources",
             self.FUNCTION: "functions",
+            self.EPHEMERAL_RESOURCE: "ephemeral-resources",
+            self.LIST_RESOURCE: "list-resources",
+            self.STATE_STORE: "state-stores",
+            self.ACTION: "actions",
             self.PROVIDER: "providers",
         }[self]
+
+    @property
+    def source_package(self) -> str:
+        """Get the source sub-package a component of this type lives in.
+
+        Used to infer a bundle's type from the path of its .plating directory.
+        """
+        return {
+            self.RESOURCE: "resources",
+            self.DATA_SOURCE: "data_sources",
+            self.FUNCTION: "functions",
+            self.EPHEMERAL_RESOURCE: "ephemerals",
+            self.LIST_RESOURCE: "list_resources",
+            self.STATE_STORE: "state_stores",
+            self.ACTION: "actions",
+            self.PROVIDER: "providers",
+        }[self]
+
+    @property
+    def example_filename(self) -> str:
+        """Get the conventional example filename for this type.
+
+        Mirrors terraform-plugin-docs, which looks for a per-type filename
+        rather than a generic one -- notably list resources, whose examples are
+        query files rather than configuration.
+        """
+        return {
+            self.RESOURCE: "resource.tf",
+            self.DATA_SOURCE: "data-source.tf",
+            self.FUNCTION: "function.tf",
+            self.EPHEMERAL_RESOURCE: "ephemeral-resource.tf",
+            self.LIST_RESOURCE: "list-resource.tfquery.hcl",
+            self.STATE_STORE: "state-store.tf",
+            self.ACTION: "action.tf",
+            self.PROVIDER: "provider.tf",
+        }[self]
+
+    @property
+    def example_suffix(self) -> str:
+        """Get the file suffix an example for this type must carry.
+
+        Only list resources differ: their examples are query files, which
+        Terraform will not read from a .tf file.
+        """
+        _, _, suffix = self.example_filename.partition(".")
+        return f".{suffix}"
+
+    @property
+    def is_schema_backed(self) -> bool:
+        """Whether this type documents an attribute schema.
+
+        Functions carry a signature instead of a block schema; every other
+        component type renders a schema table.
+        """
+        return self is not ComponentType.FUNCTION
+
+    @classmethod
+    def documentable(cls) -> list["ComponentType"]:
+        """Component types rendered into per-type documentation directories.
+
+        Ordered as the docs and navigation should present them. PROVIDER is
+        excluded: it renders to a single index page, not a directory.
+        """
+        return [
+            cls.RESOURCE,
+            cls.DATA_SOURCE,
+            cls.FUNCTION,
+            cls.EPHEMERAL_RESOURCE,
+            cls.LIST_RESOURCE,
+            cls.ACTION,
+            cls.STATE_STORE,
+        ]
+
+    @classmethod
+    def from_value(cls, value: str) -> "ComponentType":
+        """Resolve a component type from its dimension name.
+
+        Accepts the registry dimension ("ephemeral_resource") and the docs
+        directory name ("ephemeral-resources") alike, so CLI input and
+        discovered paths can both be normalised through one entry point.
+        """
+        normalised = value.strip().lower().replace("-", "_")
+        for member in cls:
+            if member.value == normalised or member.output_subdir.replace("-", "_") == normalised:
+                return member
+        raise ValueError(f"Unknown component type: {value}")
 
 
 @define
@@ -129,22 +251,18 @@ class SchemaInfo:
                 optional_attrs.append((attr_name, attr_type, description))
 
         # Format sections
-        if required_attrs:
-            lines.extend(["### Required", ""])
-            for name, type_str, desc in required_attrs:
-                lines.append(f"- `{name}` ({type_str}) - {desc}")
-            lines.append("")
-
-        if optional_attrs:
-            lines.extend(["### Optional", ""])
-            for name, type_str, desc in optional_attrs:
-                lines.append(f"- `{name}` ({type_str}) - {desc}")
-            lines.append("")
-
-        if computed_attrs:
-            lines.extend(["### Read-Only", ""])
-            for name, type_str, desc in computed_attrs:
-                lines.append(f"- `{name}` ({type_str}) - {desc}")
+        for heading, attrs in (
+            ("### Required", required_attrs),
+            ("### Optional", optional_attrs),
+            ("### Read-Only", computed_attrs),
+        ):
+            if not attrs:
+                continue
+            lines.extend([heading, ""])
+            for name, type_str, desc in attrs:
+                # An undocumented attribute gets no trailing dash to hang off.
+                entry = f"- `{name}` ({type_str})"
+                lines.append(f"{entry} - {desc}" if desc else entry)
             lines.append("")
 
         # Handle nested blocks
@@ -160,13 +278,22 @@ class SchemaInfo:
 
         return "\n".join(lines)
 
+    # cty type names as they appear on the wire, mapped to the spellings
+    # terraform-plugin-docs publishes to the registry.
+    _TYPE_DISPLAY_NAMES: ClassVar[dict[str, str]] = {
+        "string": "String",
+        "bool": "Boolean",
+        "number": "Number",
+        "dynamic": "Dynamic",
+    }
+
     def _format_type(self, type_info: Any) -> str:
         """Format type information to human-readable string."""
         if not type_info:
             return "String"
 
         if isinstance(type_info, str):
-            return type_info.title()
+            return self._TYPE_DISPLAY_NAMES.get(type_info, type_info.title())
 
         if isinstance(type_info, list) and len(type_info) >= 2:
             container_type = type_info[0]

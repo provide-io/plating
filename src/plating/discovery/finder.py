@@ -13,10 +13,16 @@ import importlib.util
 from pathlib import Path
 
 from plating.bundles import FunctionPlatingBundle, PlatingBundle
+from plating.types import ComponentType
 
 #
 # plating/discovery/finder.py
 #
+
+# Directory names inside a multi-component .plating bundle that name a component
+# type rather than a component. Anything else is a component name and inherits
+# the bundle's type.
+_COMPONENT_TYPE_VALUES = frozenset(member.value for member in ComponentType)
 
 
 class PlatingDiscovery:
@@ -214,7 +220,7 @@ class PlatingDiscovery:
             docs_dir = item / "docs"
             if docs_dir.exists() and docs_dir.is_dir():
                 sub_component_type = item.name
-                if sub_component_type not in ["resource", "data_source", "function"]:
+                if sub_component_type not in _COMPONENT_TYPE_VALUES:
                     sub_component_type = component_type
 
                 bundle = PlatingBundle(name=item.name, plating_dir=item, component_type=sub_component_type)
@@ -260,17 +266,32 @@ class PlatingDiscovery:
         return template_bundles
 
     def _determine_component_type(self, plating_dir: Path) -> str:
-        """Determine component type from the .plating directory path."""
-        path_parts = plating_dir.parts
+        """Determine component type from the .plating directory path.
 
-        if "resources" in path_parts:
-            return "resource"
-        elif "data_sources" in path_parts:
-            return "data_source"
-        elif "functions" in path_parts:
-            return "function"
-        else:
-            return "resource"
+        Checked most-specific first: "list_resources" and "state_stores" both
+        end in a segment that a naive "resources"/"stores" check would claim,
+        and "ephemerals" must not fall through to the resource default.
+        """
+        # A provider bundle sits at the package root rather than in a per-type
+        # sub-package, so it has no path segment to match on.
+        if plating_dir.name.replace(".plating", "") == ComponentType.PROVIDER.value:
+            return str(ComponentType.PROVIDER.value)
+
+        path_parts = set(plating_dir.parts)
+
+        for component_type in (
+            ComponentType.EPHEMERAL_RESOURCE,
+            ComponentType.LIST_RESOURCE,
+            ComponentType.STATE_STORE,
+            ComponentType.ACTION,
+            ComponentType.DATA_SOURCE,
+            ComponentType.FUNCTION,
+            ComponentType.RESOURCE,
+        ):
+            if component_type.source_package in path_parts:
+                return str(component_type.value)
+
+        return str(ComponentType.RESOURCE.value)
 
 
 # 🍽️📖🔚

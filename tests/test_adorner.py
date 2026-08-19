@@ -9,6 +9,7 @@ from provide.testkit.mocking import AsyncMock, Mock, patch
 import pytest
 
 from plating.adorner import PlatingAdorner, adorn_components, adorn_missing_components
+from plating.adorner.adorner import _ADORNABLE_TYPES
 from plating.adorner.finder import ComponentFinder
 from plating.templating.generator import TemplateGenerator
 
@@ -43,7 +44,8 @@ class TestPlatingAdorner:
 
             result = await adorner.adorn_missing()
 
-            assert result == {"resource": 0, "data_source": 0, "function": 0}
+            assert set(result) == set(_ADORNABLE_TYPES)
+            assert not any(result.values())
             mock_foundation_hub.discover_components.assert_called_once_with("pyvider.components")
 
     @pytest.mark.asyncio
@@ -69,7 +71,8 @@ class TestPlatingAdorner:
             result = await adorner.adorn_missing()
 
             # Should not adorn the existing component
-            assert result == {"resource": 0, "data_source": 0, "function": 0}
+            assert set(result) == set(_ADORNABLE_TYPES)
+            assert not any(result.values())
 
     @pytest.mark.asyncio
     async def test_adorn_missing_with_new_components(
@@ -99,7 +102,8 @@ class TestPlatingAdorner:
                 result = await adorner.adorn_missing()
 
                 mock_dress.assert_called_once_with("new_resource", "resource", mock_component_class)
-                assert result == {"resource": 1, "data_source": 0, "function": 0}
+                assert result["resource"] == 1
+                assert sum(result.values()) == 1
 
     @pytest.mark.asyncio
     async def test_adorn_missing_with_component_type_filter(
@@ -132,7 +136,8 @@ class TestPlatingAdorner:
                 result = await adorner.adorn_missing(["resource"])
 
                 assert mock_dress.call_count == 1
-                assert result == {"resource": 1, "data_source": 0, "function": 0}
+                assert result["resource"] == 1
+                assert sum(result.values()) == 1
 
     @pytest.mark.asyncio
     async def test_adorn_component_success(self, adorner, mock_component_class, tmp_path) -> None:
