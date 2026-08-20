@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import asyncio
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from jinja2 import DictLoader, Environment, TemplateError as Jinja2TemplateError, select_autoescape
@@ -364,13 +365,17 @@ class AsyncTemplateEngine:
             return ""
 
         try:
-            global_file = context.global_partials_dir / filename
+            # The directory survives a round-trip through the context dict as a
+            # string, so it cannot be assumed to still be a Path: joining it
+            # with / raised TypeError, which this handler did not catch, and
+            # every component render failed with no document written.
+            global_file = Path(context.global_partials_dir) / filename
             if global_file.exists():
                 logger.debug(f"Loaded global file: {global_file}")
                 return global_file.read_text(encoding="utf-8")
             else:
                 logger.debug(f"Global file not found: {global_file}")
-        except (OSError, ValueError) as e:
+        except (OSError, TypeError, ValueError) as e:
             logger.warning(f"Failed to load global file {filename}: {e}")
 
         return ""

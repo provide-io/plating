@@ -15,6 +15,10 @@ from attrs import define
 # plating/bundles/base.py
 #
 
+# Flat example files a bundle may hold. List resources are queried from
+# .tfquery.hcl files, which Terraform will not accept as configuration.
+EXAMPLE_FILE_PATTERNS = ("*.tf", "*.tfquery.hcl")
+
 
 @define
 class PlatingBundle:
@@ -52,8 +56,8 @@ class PlatingBundle:
         if not self.examples_dir.exists():
             return False
 
-        # Check for flat .tf files
-        if any(self.examples_dir.glob("*.tf")):
+        # Check for flat example files
+        if any(any(self.examples_dir.glob(pattern)) for pattern in EXAMPLE_FILE_PATTERNS):
             return True
 
         # Check for grouped examples (subdirectories with main.tf)
@@ -86,23 +90,27 @@ class PlatingBundle:
         return None
 
     def load_examples(self) -> dict[str, str]:
-        """Load all example files - both flat .tf and grouped subdirs.
+        """Load all example files - both flat and grouped subdirs.
 
         Returns:
             Dictionary mapping example name to content:
-            - Flat .tf files: key is filename stem (e.g., "basic.tf" -> "basic")
+            - Flat files: key is filename stem (e.g., "basic.tf" -> "basic")
             - Grouped examples: key is subdirectory name (e.g., "full_stack/main.tf" -> "full_stack")
         """
         examples: dict[str, str] = {}
         if not self.examples_dir.exists():
             return examples
 
-        # Load flat .tf files (backward compatible)
-        for example_file in self.examples_dir.glob("*.tf"):
-            try:
-                examples[example_file.stem] = example_file.read_text(encoding="utf-8")
-            except Exception:
-                continue
+        # Load flat example files (backward compatible)
+        for pattern in EXAMPLE_FILE_PATTERNS:
+            for example_file in self.examples_dir.glob(pattern):
+                try:
+                    # "example.tfquery.hcl" keys as "example", the same as
+                    # "example.tf" would -- a template asks for the example by
+                    # name, not by the extension its component type demands.
+                    examples[example_file.name.split(".", 1)[0]] = example_file.read_text(encoding="utf-8")
+                except Exception:
+                    continue
 
         # Load grouped examples (subdirectories with main.tf)
         for subdir in self.examples_dir.iterdir():

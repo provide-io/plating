@@ -87,8 +87,9 @@ class TestMkdocsNavGenerator:
         assert section is not None, "Should generate section"
         assert "Utilities" in section, "Should have capability name"
         assert "Resources" in section["Utilities"], "Should have Resources subsection"
-        # Note: component name gets split on underscore, so "test_resource" becomes "resource"
-        assert "resource" in section["Utilities"]["Resources"], "Should include component"
+        # With no provider name to strip, the component keeps its full name --
+        # and the link has to match the file the renderer wrote.
+        assert section["Utilities"]["Resources"] == {"test_resource": "resources/test_resource.md"}
 
     def test_generate_capability_section_data_sources(self, temp_directory) -> None:
         """Generate data source sections."""
@@ -108,8 +109,7 @@ class TestMkdocsNavGenerator:
         assert section is not None, "Should generate section"
         assert "Utilities" in section, "Should have capability name"
         assert "Data Sources" in section["Utilities"], "Should have Data Sources subsection"
-        # Note: component name gets split on underscore, so "test_data" becomes "data"
-        assert "data" in section["Utilities"]["Data Sources"], "Should include component"
+        assert section["Utilities"]["Data Sources"] == {"test_data": "data-sources/test_data.md"}
 
     def test_generate_capability_section_functions(self, temp_directory) -> None:
         """Generate function sections."""

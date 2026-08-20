@@ -14,20 +14,25 @@ from provide.foundation import logger
 import yaml  # type: ignore[import-untyped]
 
 from plating.bundles import PlatingBundle
-from plating.core.doc_generator import group_components_by_capability
+from plating.core.doc_generator import document_filename, group_components_by_capability
 from plating.types import ComponentType
 
 
 class MkdocsNavGenerator:
     """Generate mkdocs.yml navigation structure with capability-first organization."""
 
-    def __init__(self, base_path: Path) -> None:
+    def __init__(self, base_path: Path, provider_name: str | None = None) -> None:
         """Initialize the generator.
 
         Args:
             base_path: Base directory containing mkdocs.yml
+            provider_name: Provider name, needed to derive the same filenames
+                the renderer wrote. Without it the navigation links to
+                "resources/pyvider_timed_token.md" while the document is at
+                "resources/timed_token.md".
         """
         self.base_path = base_path
+        self.provider_name = provider_name
         self.mkdocs_file = base_path / "mkdocs.yml"
 
     def generate_nav(
@@ -61,7 +66,13 @@ class MkdocsNavGenerator:
         # Generate navigation for each capability
         for capability, types_dict in grouped.items():
             capability_nav = self._generate_capability_section(capability, types_dict)
-            if capability_nav:
+            if not capability_nav:
+                continue
+            if capability is None:
+                # Uncategorized components render at the top level, matching the
+                # provider index. Nesting them produces a "null:" nav heading.
+                nav.extend({name: links} for name, links in capability_nav[capability].items())
+            else:
                 nav.append(capability_nav)
 
         return {"nav": nav}
@@ -138,10 +149,7 @@ class MkdocsNavGenerator:
         """Generate navigation section for a capability."""
         section = {}
 
-        # Order: resources, data sources, functions
-        type_order = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
-
-        for comp_type in type_order:
+        for comp_type in ComponentType.documentable():
             if comp_type.value not in types_dict:
                 continue
 
@@ -150,26 +158,15 @@ class MkdocsNavGenerator:
                 continue
 
             # Get display name for component type
-            type_display = {
-                ComponentType.RESOURCE: "Resources",
-                ComponentType.DATA_SOURCE: "Data Sources",
-                ComponentType.FUNCTION: "Functions",
-            }.get(comp_type, str(comp_type))
+            type_display = comp_type.plural_name
 
             # Create component links
             component_links = {}
             for component, _ in sorted(components, key=lambda x: x[0].name):
-                # Create display name (without provider prefix for resources/data sources)
-                display_name = component.name
-                if comp_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE]:  # noqa: SIM102
-                    # Strip provider prefix for cleaner display
-                    if "_" in display_name:
-                        parts = display_name.split("_", 1)
-                        if len(parts) == 2:
-                            display_name = parts[1]
-
-                # Create file path
-                file_path = f"{comp_type.output_subdir}/{component.name}.md"
+                # Display name and file path both drop the provider prefix, and
+                # must drop it the same way the rendered document did.
+                display_name = document_filename(component.name, comp_type, self.provider_name)
+                file_path = f"{comp_type.output_subdir}/{display_name}.md"
                 component_links[display_name] = file_path
 
             if component_links:

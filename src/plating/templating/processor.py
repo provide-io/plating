@@ -5,7 +5,7 @@
 
 """Template processing and rendering for documentation generation."""
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from jinja2 import DictLoader, Environment, select_autoescape
 from provide.foundation import pout
@@ -180,34 +180,23 @@ provider "{{ provider.short_name }}" {
         except Exception as e:
             return f"<!-- Error rendering partial {filename}: {e} -->"
 
+    # Where a component type's parsed info is kept on the generator. Every
+    # schema-backed type reads the same fields, so only the collection differs.
+    _INFO_COLLECTIONS: ClassVar[dict[str, str]] = {
+        "resource": "resources",
+        "data_source": "data_sources",
+        "ephemeral_resource": "ephemeral_resources",
+        "list_resource": "list_resources",
+        "state_store": "state_stores",
+        "action": "actions",
+    }
+
     def _get_component_info(self, bundle: "PlatingBundle") -> dict[str, Any]:
         """Get component information based on bundle type and name."""
         # Try both the bundle name as-is and with the pyvider_ prefix
         possible_names = [bundle.name, f"pyvider_{bundle.name}"]
 
-        if bundle.component_type == "resource":
-            for name in possible_names:
-                resource_info = self.generator.resources.get(name)
-                if resource_info:
-                    return {
-                        "name": resource_info.name,
-                        "type": resource_info.type,
-                        "description": resource_info.description,
-                        "schema": resource_info.schema,
-                        "schema_markdown": resource_info.schema_markdown,
-                    }
-        elif bundle.component_type == "data_source":
-            for name in possible_names:
-                ds_info = self.generator.data_sources.get(name)
-                if ds_info:
-                    return {
-                        "name": ds_info.name,
-                        "type": ds_info.type,
-                        "description": ds_info.description,
-                        "schema": ds_info.schema,
-                        "schema_markdown": ds_info.schema_markdown,
-                    }
-        elif bundle.component_type == "function":
+        if bundle.component_type == "function":
             for name in possible_names:
                 func_info = self.generator.functions.get(name)
                 if func_info:
@@ -220,6 +209,23 @@ provider "{{ provider.short_name }}" {
                         "variadic_argument_markdown": func_info.variadic_argument_markdown,
                         "has_variadic": func_info.has_variadic,
                     }
+            return {}
+
+        collection_name = self._INFO_COLLECTIONS.get(bundle.component_type)
+        if not collection_name:
+            return {}
+
+        collection = getattr(self.generator, collection_name, None) or {}
+        for name in possible_names:
+            info = collection.get(name)
+            if info:
+                return {
+                    "name": info.name,
+                    "type": info.type,
+                    "description": info.description,
+                    "schema": info.schema,
+                    "schema_markdown": info.schema_markdown,
+                }
 
         return {}
 

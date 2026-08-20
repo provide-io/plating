@@ -22,6 +22,20 @@ from plating.types import ArgumentInfo, ComponentType, PlateResult, PlatingConte
 #
 
 
+def document_filename(component_name: str, component_type: ComponentType, provider_name: str | None) -> str:
+    """The filename a component's document is written to, without extension.
+
+    Functions register under bare names; every other component type carries the
+    provider prefix, which the filename drops. Navigation and index links have
+    to agree with this or they point at files that were never written.
+    """
+    if not provider_name or component_type is ComponentType.FUNCTION:
+        return component_name
+
+    prefix = f"{provider_name}_"
+    return component_name[len(prefix) :] if component_name.startswith(prefix) else component_name
+
+
 def _extract_component_metadata(
     bundle: PlatingBundle, component_type: ComponentType, provider_name: str | None
 ) -> bool:
@@ -41,9 +55,10 @@ def _extract_component_metadata(
         if provider_name and component_name.startswith(f"{provider_name}_"):
             component_name = component_name[len(provider_name) + 1 :]
 
-        # Construct the module path
-        # For pyvider components, the pattern is: pyvider.components.{type}s.{name}
-        type_dir = f"{component_type.value}s"  # resource -> resources, data_source -> data_sources
+        # Construct the module path. The source package is not always the
+        # dimension name plus an "s": ephemeral resources live in
+        # pyvider.components.ephemerals, not .ephemeral_resources.
+        type_dir = component_type.source_package
 
         # First try using the component name directly
         module_name = f"pyvider.components.{type_dir}.{component_name}"
@@ -279,12 +294,7 @@ async def render_component_docs(  # noqa: C901
 
     for component in components:
         try:
-            # Strip provider prefix from filename if present (for resources and data sources)
-            component_name = component.name
-            if context.provider_name and component_type in [ComponentType.RESOURCE, ComponentType.DATA_SOURCE]:
-                prefix = f"{context.provider_name}_"
-                if component_name.startswith(prefix):
-                    component_name = component_name[len(prefix) :]
+            component_name = document_filename(component.name, component_type, context.provider_name)
 
             output_file = output_subdir / f"{component_name}.md"
 
@@ -489,20 +499,9 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
     # Collect all components with their types
     all_components = []
 
-    resource_components = registry.get_components_with_templates(ComponentType.RESOURCE)
-    if resource_components:
-        for component in resource_components:
-            all_components.append((component, ComponentType.RESOURCE))
-
-    data_source_components = registry.get_components_with_templates(ComponentType.DATA_SOURCE)
-    if data_source_components:
-        for component in data_source_components:
-            all_components.append((component, ComponentType.DATA_SOURCE))
-
-    function_components = registry.get_components_with_templates(ComponentType.FUNCTION)
-    if function_components:
-        for component in function_components:
-            all_components.append((component, ComponentType.FUNCTION))
+    for component_type in ComponentType.documentable():
+        for component in registry.get_components_with_templates(component_type):
+            all_components.append((component, component_type))
 
     # Group components by capability
     grouped = group_components_by_capability(all_components)
@@ -513,10 +512,7 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
         if capability is not None:
             index_content += f"## {capability}\n\n"
 
-        # Iterate through component types in order: resources, data_sources, functions
-        type_order = [ComponentType.RESOURCE, ComponentType.DATA_SOURCE, ComponentType.FUNCTION]
-
-        for comp_type in type_order:
+        for comp_type in ComponentType.documentable():
             if comp_type.value not in types_dict:
                 continue
 
@@ -525,20 +521,11 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
                 continue
 
             # Add subheader for component type (except for Test Mode which groups all types)
+            type_display = comp_type.plural_name
             if capability != "Test Mode":
-                type_display = {
-                    ComponentType.RESOURCE: "Resources",
-                    ComponentType.DATA_SOURCE: "Data Sources",
-                    ComponentType.FUNCTION: "Functions",
-                }.get(comp_type, str(comp_type))
                 index_content += f"### {type_display}\n\n"
             else:
                 # For Test Mode, show type subheaders
-                type_display = {
-                    ComponentType.RESOURCE: "Resources",
-                    ComponentType.DATA_SOURCE: "Data Sources",
-                    ComponentType.FUNCTION: "Functions",
-                }.get(comp_type, str(comp_type))
                 index_content += f"### Test {type_display}\n\n"
 
             # Add component links
