@@ -50,6 +50,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Updated component type examples with correct syntax
 - Fixed incorrect error class names in documentation
 
+## [0.5.3] - 2026-08-21
+
+### Added
+
+- **A test-only component's page says it is unreachable.** `subcategory: "Test Mode"` groups these pages in the navigation, which tells a reader they are grouped -- not that a provider started normally never publishes them. terraform-provider-pyvider shipped fourteen such components (every action, ephemeral resource, list resource and state store it had) and nothing on the page said `tofu providers schema` would show none of them. The notice is injected after the first heading, before the example a reader would otherwise copy, as a plain markdown blockquote the registry can render.
+
 ## [0.5.2] - 2026-08-21
 
 ### Fixed
