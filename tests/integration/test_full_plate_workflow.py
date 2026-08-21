@@ -14,6 +14,7 @@ from plating.bundles import PlatingBundle
 from plating.mkdocs.nav_generator import MkdocsNavGenerator
 from plating.plating import Plating
 from plating.types import ComponentType, PlatingContext
+from tests.nav_shape import as_mapping
 
 
 @pytest.mark.integration
@@ -187,7 +188,7 @@ Test mode function content
         guides_sections = [item for item in nav_items if isinstance(item, dict) and "Guides" in item]
         assert len(guides_sections) == 1, "Should have Guides section"
 
-        guides_dict = guides_sections[0]["Guides"]
+        guides_dict = as_mapping(guides_sections[0]["Guides"])
         assert "Getting Started" in guides_dict, "Should include getting_started guide"
         assert "Advanced Usage" in guides_dict, "Should include advanced_usage guide"
         assert "Troubleshooting" in guides_dict, "Should include troubleshooting guide"

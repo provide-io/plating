@@ -177,7 +177,7 @@ class MarkdownLinter:
                 report["errors_by_file"][file_path] = 0
             report["errors_by_file"][file_path] += 1
 
-        with output_file.open("w") as f:
+        with output_file.open("w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
 

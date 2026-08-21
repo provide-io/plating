@@ -6,6 +6,7 @@
 """Test module for guide discovery and rendering."""
 
 from plating.mkdocs.nav_generator import MkdocsNavGenerator
+from tests.nav_shape import as_mapping
 
 
 class TestGuideDiscovery:
@@ -36,7 +37,7 @@ class TestGuideDiscovery:
         assert len(guides_nav) == 1, "Should return one Guides section"
         assert "Guides" in guides_nav[0], "Should have Guides key"
 
-        guides_dict = guides_nav[0]["Guides"]
+        guides_dict = as_mapping(guides_nav[0]["Guides"])
         assert len(guides_dict) == 3, "Should have 3 guide entries"
 
         # Check that guides are present
@@ -57,7 +58,7 @@ class TestGuideDiscovery:
         generator = MkdocsNavGenerator(temp_directory)
         guides_nav = generator._generate_guides_nav()
 
-        guides_dict = guides_nav[0]["Guides"]
+        guides_dict = as_mapping(guides_nav[0]["Guides"])
         guide_titles = list(guides_dict.keys())
 
         assert "Getting Started" in guide_titles, "Should convert getting_started to Getting Started"
@@ -86,7 +87,7 @@ class TestGuideDiscovery:
         guides_nav = generator._generate_guides_nav()
 
         assert len(guides_nav) == 1, "Should return one Guides section"
-        guides_dict = guides_nav[0]["Guides"]
+        guides_dict = as_mapping(guides_nav[0]["Guides"])
 
         assert len(guides_dict) == 1, "Should only include .md files"
         assert "Valid Guide" in guides_dict, "Should include the markdown file"
@@ -105,7 +106,7 @@ class TestGuideDiscovery:
         generator = MkdocsNavGenerator(temp_directory)
         guides_nav = generator._generate_guides_nav()
 
-        guides_dict = guides_nav[0]["Guides"]
+        guides_dict = as_mapping(guides_nav[0]["Guides"])
         guide_titles = list(guides_dict.keys())
 
         # Check that guides are sorted alphabetically
@@ -140,7 +141,7 @@ class TestGuideDiscovery:
         generator = MkdocsNavGenerator(temp_directory)
         guides_nav = generator._generate_guides_nav()
 
-        guides_dict = guides_nav[0]["Guides"]
+        guides_dict = as_mapping(guides_nav[0]["Guides"])
 
         assert len(guides_dict) == 1, "Should only include files in root directory"
         assert "Root Guide" in guides_dict, "Should include root guide"

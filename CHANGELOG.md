@@ -50,6 +50,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Updated component type examples with correct syntax
 - Fixed incorrect error class names in documentation
 
+## [0.5.1] - 2026-08-21
+
+### Fixed
+
+- **Generated nav sections are lists, not mappings.** mkdocs takes a nav section as a list of single-key mappings; the generator emitted one mapping of many keys. It passes `Nav().validate()`, so nothing caught it, but the build refuses it -- "Expected nav to be a list, got dict with keys (...)" -- and under `--strict` that aborts. terraform-provider-pyvider could not build its documentation at all.
+- **Every file read and write names its encoding.** Without one Python uses the locale default, which is cp1252 on Windows, and plating writes documentation full of emoji -- `mkdocs.yml` could not even be read back: `UnicodeDecodeError: 'charmap' codec can't decode byte 0x8f`. Six call sites in `nav_generator`, `linting`, `types` and the two `processor` modules.
+- **`mkdocs.yml` no longer comes back with escaped non-ASCII.** The generator rewrites the caller's whole file, and `yaml.dump` escapes by default, so a copyright line reading `©2024-2025 provide.io llc<br/>🛠️ with 💚` returned as `\U0001F6E0` escapes: valid YAML, unreadable in a hand-maintained file.
+
+## [0.5.0] - 2026-08-20
+
+### Added
+
+- **Documentation for the four tfprotov6.11 component types.** Ephemeral resources, list resources, state stores and actions each get their own registry directory (`ephemeral-resources/`, `list-resources/`, `state-stores/`, `actions/`), template builder, example builder and nav section, following terraform-plugin-docs' layout.
+- `ComponentType` gained the four members plus the properties that drive them: `plural_name`, `output_subdir`, `source_package`, `example_filename`, `example_suffix`, `is_schema_backed` and `documentable()`.
+
+### Fixed
+
+- **Schema extraction produced empty pages.** The extractor called `discover_components("pyvider.components")` -- a module path where an entry-point group was wanted -- so every schema came back empty. It now drives pyvider's own `ComponentDiscovery` into a fresh registry and falls back to entry points.
+- **cty types rendered as `{}`.** Attribute types went through `attrs.asdict`, which flattens a cty type into nothing useful. They now go through `encode_cty_type_to_wire_json`, so `bool` renders as `Boolean`.
+- **`--global-partials-dir` produced one file instead of every file.** A `Path / str` TypeError was caught by an `except` too narrow to see it, and the failure was silent.
+- **`adorn` would overwrite hand-written templates.** `_is_adorned()` did not discount the provider prefix, so an existing bundle read as absent. It also reported "all components already have bundles" when the hub returned nothing at all, because an empty result short-circuited the registry fallback.
+
 ## [0.0.1000-0] - 2025-10-25
 
 ### Added
