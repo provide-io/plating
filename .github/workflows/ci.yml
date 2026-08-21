@@ -16,6 +16,10 @@ jobs:
     uses: provide-io/ci-tooling/.github/workflows/python-ci.yml@v0
     with:
       python-version: '3.11'
+      # Windows amd64. `include-windows-arm` is deliberately unset: grpcio and
+      # cryptography publish no win_arm64 wheels, so that runner cannot install
+      # the suite at all (grpc/grpc#39064).
+      include-windows: true
       coverage-threshold: 0
       run-security: true
       run-secret-scan: true
