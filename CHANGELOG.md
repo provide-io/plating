@@ -50,6 +50,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Updated component type examples with correct syntax
 - Fixed incorrect error class names in documentation
 
+## [0.5.2] - 2026-08-21
+
+### Fixed
+
+- **Provider index links the file the renderer actually wrote.** The index stripped the provider prefix itself instead of going through `document_filename`, which is right for a resource and wrong for a function that genuinely carries one: `pyvider_nested_data_processor` is written to `functions/pyvider_nested_data_processor.md` while the index pointed at `functions/nested_data_processor.md`. Under `mkdocs --strict` one such link aborts the whole build. The navigation and the renderer already shared the rule; the index was the caller that never adopted it.
+
 ## [0.5.1] - 2026-08-21
 
 ### Fixed

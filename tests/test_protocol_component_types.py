@@ -368,6 +368,60 @@ class TestNavigationLinks:
         assert document_filename("to_snake_case", ComponentType.FUNCTION, "pyvider") == "to_snake_case"
         # Without a provider name there is nothing to strip.
         assert document_filename("timed_token", ComponentType.RESOURCE, None) == "timed_token"
+        # A function that does carry the prefix keeps it, because that is the
+        # name it registers under and the name the renderer writes the file as.
+        assert (
+            document_filename("pyvider_nested_data_processor", ComponentType.FUNCTION, "pyvider")
+            == "pyvider_nested_data_processor"
+        )
+
+    def test_index_links_the_file_the_renderer_wrote(self, tmp_path: Path) -> None:
+        """Every index link must name a file the renderer actually wrote.
+
+        The index stripped the provider prefix itself rather than going through
+        `document_filename`. That is right for a resource and wrong for a
+        function that genuinely carries one: `pyvider_nested_data_processor` is
+        written to `functions/pyvider_nested_data_processor.md` while the index
+        pointed at `functions/nested_data_processor.md`, and mkdocs --strict
+        aborted the whole build over it.
+        """
+        import re
+
+        from plating.core.doc_generator import document_filename, generate_provider_index
+        from plating.types import PlateResult, PlatingContext
+
+        cases = [
+            ("pyvider_nested_data_processor", ComponentType.FUNCTION),
+            ("to_snake_case", ComponentType.FUNCTION),
+            ("pyvider_timed_token", ComponentType.RESOURCE),
+            ("pyvider_lease", ComponentType.EPHEMERAL_RESOURCE),
+        ]
+
+        class _Registry:
+            def get_components_with_templates(self, comp_type: ComponentType) -> list:
+                return [self._bundle_for(n, t) for n, t in cases if t is comp_type]
+
+            @staticmethod
+            def _bundle_for(name: str, comp_type: ComponentType) -> PlatingBundle:
+                d = tmp_path / f"{name}.plating"
+                (d / "docs").mkdir(parents=True, exist_ok=True)
+                (d / "docs" / f"{name}.tmpl.md").write_text("# x", encoding="utf-8")
+                return PlatingBundle(name=name, plating_dir=d, component_type=comp_type.value)
+
+        out = tmp_path / "docs"
+        out.mkdir()
+        generate_provider_index(
+            output_dir=out,
+            force=True,
+            result=PlateResult(),
+            context=PlatingContext(provider_name="pyvider"),
+            provider_schema={},
+            registry=_Registry(),
+        )
+
+        links = re.findall(r"\]\(\./([^)]+)\.md\)", (out / "index.md").read_text(encoding="utf-8"))
+        expected = {f"{t.output_subdir}/{document_filename(n, t, 'pyvider')}" for n, t in cases}
+        assert expected <= set(links), f"index links {sorted(links)} missing {sorted(expected)}"
 
 
 # 🍽️📖🔚

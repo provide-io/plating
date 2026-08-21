@@ -530,16 +530,23 @@ Terraform provider for {provider_name} - A Python-based Terraform provider built
 
             # Add component links
             for component, _ in sorted(components, key=lambda x: x[0].name):
-                clean_name = strip_provider_prefix(component.name, provider_name)
+                # The href comes from document_filename, the same rule the
+                # renderer and the navigation use. Stripping the prefix here
+                # instead is wrong for a function that genuinely carries one --
+                # `pyvider_nested_data_processor` is written to
+                # `functions/pyvider_nested_data_processor.md`, and the index
+                # linked to `functions/nested_data_processor.md`.
+                href = document_filename(component.name, comp_type, provider_name)
 
                 if comp_type == ComponentType.FUNCTION:
-                    # Functions don't have provider prefix in their names
-                    index_content += f"- [`{component.name}`](./{comp_type.output_subdir}/{clean_name}.md)\n"
+                    # Functions are listed under the name they register with.
+                    label = component.name
                 else:
-                    # Resources and data sources include provider prefix
-                    index_content += (
-                        f"- [`{provider_name}_{clean_name}`](./{comp_type.output_subdir}/{clean_name}.md)\n"
-                    )
+                    # Resources and data sources are listed with the prefix the
+                    # filename drops.
+                    label = f"{provider_name}_{strip_provider_prefix(component.name, provider_name)}"
+
+                index_content += f"- [`{label}`](./{comp_type.output_subdir}/{href}.md)\n"
 
             index_content += "\n"
 
