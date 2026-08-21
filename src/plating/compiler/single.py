@@ -8,12 +8,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 from attrs import define, field
 from provide.foundation import logger
 
 from plating.bundles import PlatingBundle
-from plating.core.doc_generator import _extract_component_metadata
+from plating.core.doc_generator import _bundle_component_names, _extract_component_metadata
 from plating.types import ComponentType
 
 
@@ -139,13 +140,15 @@ class SingleExampleCompiler:
         is_test_only = self._is_test_only_component(bundle, component_type)
         self._generate_provider_tf(component_dir, is_test_only)
 
-        # Generate flat .tf files in the component directory
+        # Generate flat files in the component directory
         for example_name, example_content in flat_examples.items():
             # Strip any provider blocks from the example content
             cleaned_content = self._strip_provider_blocks(example_content)
 
-            # Write as flat .tf file
-            tf_path = component_dir / f"{example_name}.tf"
+            # A list resource's query blocks are only valid in a .tfquery.hcl
+            # file; writing them as .tf makes the directory fail to parse.
+            suffix = ".tfquery.hcl" if re.search(r'\blist\s+"', cleaned_content) else ".tf"
+            tf_path = component_dir / f"{example_name}{suffix}"
             tf_path.write_text(cleaned_content, encoding="utf-8")
             result.output_files.append(tf_path)
             result.examples_generated += 1
@@ -167,17 +170,27 @@ class SingleExampleCompiler:
         if not bundle.examples_dir.exists():
             return flat_examples
 
-        # Only load flat .tf files
-        for example_file in bundle.examples_dir.glob("*.tf"):
+        # A list resource's example is a query file, not a configuration, so
+        # globbing "*.tf" alone found nothing for those bundles at all.
+        candidates = sorted(bundle.examples_dir.glob("*.tf")) + sorted(
+            bundle.examples_dir.glob("*.tfquery.hcl")
+        )
+
+        # The bundle is named after its directory, which is frequently not the
+        # component's name -- `filesystem_store.plating` documents `pyvider_fs`.
+        # Match against every name the bundle could be documenting.
+        names = _bundle_component_names(bundle, self.provider_name)
+
+        for example_file in candidates:
             try:
                 content = example_file.read_text(encoding="utf-8")
-
-                # Filter examples: only include if they reference this component
-                # Check if the component name appears in the example
-                if self._example_references_component(content, bundle.name):
-                    flat_examples[example_file.stem] = content
             except Exception:
                 continue
+
+            if any(self._example_references_component(content, name) for name in names):
+                # ".tfquery.hcl" is two suffixes, so `.stem` leaves ".tfquery".
+                stem = example_file.name.removesuffix(".tfquery.hcl").removesuffix(".tf")
+                flat_examples[stem] = content
 
         return flat_examples
 
@@ -191,13 +204,17 @@ class SingleExampleCompiler:
         Returns:
             True if the example references this component
         """
-        # Look for references to the component in resource/data source/function calls
-        # This handles: resource "component_name", data "component_name", provider::component_name()
         import re
 
-        # Match resource/data declarations: resource "name" or data "name"
-        resource_pattern = rf'(resource|data)\s+"{re.escape(component_name)}"'
-        if re.search(resource_pattern, content):
+        # Every block keyword that introduces a component by type name. The
+        # first two are all this used to know, so an action, an ephemeral
+        # resource, a list resource and a state store each looked like an
+        # example referencing nothing -- their directories were created and
+        # left empty, and `soup stir` counted them as passing because there was
+        # nothing in them to apply.
+        keywords = "resource|data|action|ephemeral|list|state_store"
+        block_pattern = rf'\b({keywords})\s+"{re.escape(component_name)}"'
+        if re.search(block_pattern, content):
             return True
 
         # Match function calls: provider::function_name()
@@ -277,13 +294,22 @@ provider "{self.provider_name}" {{
         """
         import re
 
-        # Remove terraform block with required_providers
-        content = re.sub(
-            r"terraform\s*\{[^}]*required_providers\s*\{[^}]*\}[^}]*\}\s*\n*", "", content, flags=re.DOTALL
-        )
+        # A state store is configured inside `terraform { state_store "..." {} }`,
+        # so a rule that removes terraform blocks would remove the example
+        # itself. The generated provider.tf carries the required_providers
+        # block; anything else in a terraform block here is the example.
+        if not re.search(r'\bstate_store\s+"', content):
+            content = re.sub(
+                r"terraform\s*\{[^}]*required_providers\s*\{[^}]*\}[^}]*\}\s*\n*",
+                "",
+                content,
+                flags=re.DOTALL,
+            )
 
-        # Remove provider block
-        content = re.sub(r'provider\s+"[^"]*"\s*\{[^}]*\}\s*\n*', "", content, flags=re.DOTALL)
+            # Remove provider block. Skipped for a state store for the same
+            # reason: its `provider "pyvider" {}` sits inside the state_store
+            # block and names which provider serves it.
+            content = re.sub(r'provider\s+"[^"]*"\s*\{[^}]*\}\s*\n*', "", content, flags=re.DOTALL)
 
         # Remove "Generated by Plating" comment if present
         content = re.sub(r"#\s*Generated by Plating[^\n]*\n*", "", content)
