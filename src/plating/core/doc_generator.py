@@ -187,6 +187,47 @@ def _extract_subcategory_from_template(component: PlatingBundle) -> str | None:
         return None
 
 
+TEST_MODE_NOTICE = (
+    "> **Test-mode only.** This component is registered `test_only`, so a provider\n"
+    "> started normally does not publish it: it is absent from\n"
+    "> `terraform providers schema` and cannot be referenced from a configuration.\n"
+    "> It is served only when the provider process is launched with\n"
+    "> `PYVIDER_TESTMODE=true`, which is how the conformance suite exercises it.\n"
+    "> Documented here so the behaviour it demonstrates is discoverable, not\n"
+    "> because it is available to a published provider's users."
+)
+
+
+def _inject_test_mode_notice(content: str, is_test_only: bool) -> str:
+    """Say on the page itself that a test-only component is not reachable.
+
+    `subcategory: "Test Mode"` groups these pages in the navigation, which tells
+    a reader they are grouped but not that they are unavailable. The distinction
+    matters: terraform-provider-pyvider published fourteen of them, every action,
+    ephemeral resource, list resource and state store it had, and a reader had no
+    way to learn from the documentation that `tofu providers schema` would not
+    show a single one.
+
+    The notice goes immediately after the first heading, where it is read before
+    the example a reader would otherwise copy.
+    """
+    if not is_test_only or TEST_MODE_NOTICE in content:
+        return content
+
+    lines = content.split("\n")
+    for index, line in enumerate(lines):
+        if line.startswith("# "):
+            rest = index + 1
+            # Skip the blank line the heading is followed by, so the notice does
+            # not end up glued to it.
+            while rest < len(lines) and not lines[rest].strip():
+                rest += 1
+            return "\n".join([*lines[: index + 1], "", TEST_MODE_NOTICE, "", *lines[rest:]])
+
+    # No heading to anchor to; leading position is still better than dropping it.
+    return f"{TEST_MODE_NOTICE}\n\n{content}"
+
+
 def _inject_subcategory(content: str, subcategory: str | None) -> str:
     """Inject subcategory into YAML frontmatter if needed.
 
@@ -385,6 +426,13 @@ async def render_component_docs(  # noqa: C901
             # Most subcategories come from template frontmatter; only "Test Mode" is auto-determined here
             subcategory = _determine_subcategory(schema_info, is_test_only)
             rendered_content = _inject_subcategory(rendered_content, subcategory)
+            # Same condition the subcategory uses, and for the same reason:
+            # `_extract_component_metadata` guesses a module path from the
+            # bundle's directory, which misses a component whose code lives in
+            # another type's module. The schema comes from the hub, which knows.
+            rendered_content = _inject_test_mode_notice(
+                rendered_content, is_test_only or bool(schema_info and schema_info.test_only)
+            )
 
             # Write output
             output_file.write_text(rendered_content, encoding="utf-8")
