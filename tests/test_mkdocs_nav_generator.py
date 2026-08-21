@@ -10,6 +10,7 @@ import yaml
 from plating.bundles import PlatingBundle
 from plating.mkdocs.nav_generator import MkdocsNavGenerator
 from plating.types import ComponentType
+from tests.nav_shape import as_mapping
 
 
 class TestMkdocsNavGenerator:
@@ -66,7 +67,7 @@ class TestMkdocsNavGenerator:
         guides_sections = [item for item in nav_items if isinstance(item, dict) and "Guides" in item]
         assert len(guides_sections) == 1, "Should have exactly one Guides section"
 
-        guides_section = guides_sections[0]["Guides"]
+        guides_section = as_mapping(guides_sections[0]["Guides"])
         assert "Getting Started" in guides_section, "Should include getting started guide"
 
     def test_generate_capability_section_resources(self, temp_directory) -> None:
@@ -86,10 +87,11 @@ class TestMkdocsNavGenerator:
 
         assert section is not None, "Should generate section"
         assert "Utilities" in section, "Should have capability name"
-        assert "Resources" in section["Utilities"], "Should have Resources subsection"
+        types = as_mapping(section["Utilities"])
+        assert "Resources" in types, "Should have Resources subsection"
         # With no provider name to strip, the component keeps its full name --
         # and the link has to match the file the renderer wrote.
-        assert section["Utilities"]["Resources"] == {"test_resource": "resources/test_resource.md"}
+        assert types["Resources"] == [{"test_resource": "resources/test_resource.md"}]
 
     def test_generate_capability_section_data_sources(self, temp_directory) -> None:
         """Generate data source sections."""
@@ -108,8 +110,9 @@ class TestMkdocsNavGenerator:
 
         assert section is not None, "Should generate section"
         assert "Utilities" in section, "Should have capability name"
-        assert "Data Sources" in section["Utilities"], "Should have Data Sources subsection"
-        assert section["Utilities"]["Data Sources"] == {"test_data": "data-sources/test_data.md"}
+        types = as_mapping(section["Utilities"])
+        assert "Data Sources" in types, "Should have Data Sources subsection"
+        assert types["Data Sources"] == [{"test_data": "data-sources/test_data.md"}]
 
     def test_generate_capability_section_functions(self, temp_directory) -> None:
         """Generate function sections."""
@@ -128,8 +131,9 @@ class TestMkdocsNavGenerator:
 
         assert section is not None, "Should generate section"
         assert "Utilities" in section, "Should have capability name"
-        assert "Functions" in section["Utilities"], "Should have Functions subsection"
-        assert "test_func" in section["Utilities"]["Functions"], "Should include component"
+        types = as_mapping(section["Utilities"])
+        assert "Functions" in types, "Should have Functions subsection"
+        assert "test_func" in as_mapping(types["Functions"]), "Should include component"
 
     def test_update_mkdocs_config_creates_file(self, temp_directory) -> None:
         """Create mkdocs.yml if doesn't exist."""
@@ -203,6 +207,52 @@ class TestMkdocsNavGenerator:
         guides_nav = generator._generate_guides_nav()
 
         assert guides_nav == [], "Should return empty list for empty guides directory"
+
+    def test_every_nav_section_is_a_list(self, temp_directory, sample_components_mixed_types) -> None:
+        """mkdocs takes a nav section as a list, never as a mapping.
+
+        A mapping of many keys reads the same to a human and validates in
+        `Nav().validate()`, but the build refuses it -- "Expected nav to be a
+        list, got dict with keys (...)" -- and under --strict that is fatal.
+        Nothing here caught it until a provider's whole documentation build
+        aborted with nineteen of those warnings.
+        """
+        guides_dir = temp_directory / "docs" / "guides"
+        guides_dir.mkdir(parents=True)
+        (guides_dir / "getting_started.md").write_text("# Getting Started")
+
+        generator = MkdocsNavGenerator(temp_directory)
+        nav = generator.generate_nav(sample_components_mixed_types, include_guides=True)
+
+        def walk(node: object, path: str) -> None:
+            if isinstance(node, str):
+                return
+            assert isinstance(node, list), f"nav at {path} is a {type(node).__name__}, not a list"
+            for index, entry in enumerate(node):
+                assert isinstance(entry, dict), f"nav at {path}[{index}] is not a mapping"
+                assert len(entry) == 1, f"nav at {path}[{index}] holds {len(entry)} keys, not one"
+                for title, child in entry.items():
+                    walk(child, f"{path}[{index}].{title}")
+
+        walk(nav["nav"], "nav")
+
+    def test_update_mkdocs_config_keeps_non_ascii_readable(self, temp_directory) -> None:
+        """A value the caller already had must survive a regeneration verbatim.
+
+        yaml.dump escapes non-ASCII by default, so a copyright line reading
+        "provide.io llc 🛠️ with 💚" came back as \\U0001F6E0 escapes -- valid
+        YAML, and unreadable in the file the caller maintains by hand.
+        """
+        copyright_line = "\u00a92024-2026 provide.io llc<br/>\U0001f6e0\ufe0f with \U0001f49a"
+        mkdocs_file = temp_directory / "mkdocs.yml"
+        mkdocs_file.write_text(f"site_name: Test\ncopyright: {copyright_line}\n", encoding="utf-8")
+
+        generator = MkdocsNavGenerator(temp_directory)
+        generator.update_mkdocs_config({"nav": [{"Overview": "index.md"}]})
+
+        written = mkdocs_file.read_text(encoding="utf-8")
+        assert copyright_line in written, "Non-ASCII should round-trip as itself, not as escapes"
+        assert "\\U0001" not in written, "Should not escape astral-plane characters"
 
 
 # 🍽️📖🔚

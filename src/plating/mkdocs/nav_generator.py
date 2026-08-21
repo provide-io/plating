@@ -71,7 +71,7 @@ class MkdocsNavGenerator:
             if capability is None:
                 # Uncategorized components render at the top level, matching the
                 # provider index. Nesting them produces a "null:" nav heading.
-                nav.extend({name: links} for name, links in capability_nav[capability].items())
+                nav.extend(capability_nav[capability])
             else:
                 nav.append(capability_nav)
 
@@ -131,10 +131,10 @@ class MkdocsNavGenerator:
         # Sort by guide_order, then by filename
         guides_with_order.sort(key=lambda x: (x[0], x[2]))
 
-        guides_section = {}
-        for _, title, filename in guides_with_order:
-            rel_path = f"guides/{filename}"
-            guides_section[title] = rel_path
+        # A nav section is a list of single-key mappings, not one mapping of
+        # many keys. mkdocs rejects the latter -- "Expected nav to be a list,
+        # got dict" -- and refuses the build outright under --strict.
+        guides_section = [{title: f"guides/{filename}"} for _, title, filename in guides_with_order]
 
         if guides_section:
             guides_nav.append({"Guides": guides_section})
@@ -147,7 +147,7 @@ class MkdocsNavGenerator:
         types_dict: dict[str, list[tuple[PlatingBundle, ComponentType]]],
     ) -> dict[str, Any] | None:
         """Generate navigation section for a capability."""
-        section = {}
+        section: list[dict[str, Any]] = []
 
         for comp_type in ComponentType.documentable():
             if comp_type.value not in types_dict:
@@ -161,16 +161,16 @@ class MkdocsNavGenerator:
             type_display = comp_type.plural_name
 
             # Create component links
-            component_links = {}
+            component_links = []
             for component, _ in sorted(components, key=lambda x: x[0].name):
                 # Display name and file path both drop the provider prefix, and
                 # must drop it the same way the rendered document did.
                 display_name = document_filename(component.name, comp_type, self.provider_name)
                 file_path = f"{comp_type.output_subdir}/{display_name}.md"
-                component_links[display_name] = file_path
+                component_links.append({display_name: file_path})
 
             if component_links:
-                section[type_display] = component_links
+                section.append({type_display: component_links})
 
         if section:
             return {capability: section}
@@ -195,6 +195,9 @@ class MkdocsNavGenerator:
 
         # Write back to file
         with self.mkdocs_file.open("w") as f:
-            yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+            # allow_unicode, or every emoji in a value the caller already had
+            # -- a copyright line, a site name -- comes back as \U0001F6E0
+            # escapes on the first regeneration.
+            yaml.dump(config, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
 
         logger.info(f"Updated mkdocs navigation: {self.mkdocs_file}")

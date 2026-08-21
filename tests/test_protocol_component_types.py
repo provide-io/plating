@@ -20,6 +20,7 @@ from plating.discovery import PlatingDiscovery
 from plating.schema.helpers import extract_component_schemas, get_component_schema
 from plating.templating.generator import TemplateGenerator
 from plating.types import ComponentType, SchemaInfo
+from tests.nav_shape import as_mapping
 
 PROTOCOL_TYPES = [
     ComponentType.EPHEMERAL_RESOURCE,
@@ -356,7 +357,7 @@ class TestNavigationLinks:
             "Test Mode", {component_type.value: [(self._bundle(name, component_type), component_type)]}
         )
 
-        links = section["Test Mode"][component_type.plural_name]
+        links = as_mapping(as_mapping(section["Test Mode"])[component_type.plural_name])
         assert expected in links.values()
 
     def test_filename_rule_is_shared_with_the_renderer(self) -> None:
