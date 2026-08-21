@@ -50,6 +50,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Updated component type examples with correct syntax
 - Fixed incorrect error class names in documentation
 
+## [0.5.4] - 2026-08-21
+
+### Fixed
+
+- **A generated `provider.tf` no longer guesses an argument name.** For a test-only component the compiler wrote `provider_testmode = true` into the provider block. No provider publishes an attribute by that name -- pyvider's is `pyvider_testmode` -- and Terraform refuses an entire configuration over one argument it does not recognise, so five of terraform-provider-pyvider's examples failed with "Unsupported argument" from the day they were generated and had never once run. An argument is emitted now only when the caller passes `provider_attributes` and the name is in it; otherwise the block carries a comment saying the provider must be started with `PYVIDER_TESTMODE=true`, which is the mechanism that actually works and the one the conformance suite uses.
+
 ## [0.5.3] - 2026-08-21
 
 ### Added

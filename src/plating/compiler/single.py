@@ -29,15 +29,27 @@ class SingleCompilationResult:
 class SingleExampleCompiler:
     """Compiles single-component executable Terraform examples."""
 
-    def __init__(self, provider_name: str, provider_version: str = "0.0.5") -> None:
+    def __init__(
+        self,
+        provider_name: str,
+        provider_version: str = "0.0.5",
+        provider_attributes: set[str] | None = None,
+    ) -> None:
         """Initialize the single example compiler.
 
         Args:
             provider_name: Name of the Terraform provider
             provider_version: Version of the provider
+            provider_attributes: Names the provider's configuration block
+                accepts, when the caller knows them. An argument is written
+                into `provider.tf` only if it appears here, because Terraform
+                refuses the whole configuration over one it does not recognise.
+                None means "not known", and nothing beyond the required
+                boilerplate is emitted.
         """
         self.provider_name = provider_name
         self.provider_version = provider_version
+        self.provider_attributes = provider_attributes
 
     def compile_examples(
         self,
@@ -215,11 +227,28 @@ class SingleExampleCompiler:
             component_dir: Directory for the component
             is_test_only: Whether this component requires test mode
         """
-        # Add test_mode config if needed
+        # A test-only component needs the provider to publish it, and the
+        # provider decides that from its environment before any configuration
+        # is read -- `PYVIDER_TESTMODE=true` in the process environment, which
+        # is how the conformance suite does it. Saying so in a comment is the
+        # whole of what this file can usefully do about it.
+        #
+        # It used to write `provider_testmode = true` into the block instead.
+        # No provider published an attribute by that name, so Terraform refused
+        # the configuration outright -- "Unsupported argument" -- and the five
+        # examples that got it had never once run. An argument is emitted now
+        # only when the caller has told us the provider accepts it.
         provider_config = ""
         if is_test_only:
-            provider_config = """  provider_testmode = true
-"""
+            attribute = f"{self.provider_name}_testmode"
+            if self.provider_attributes is not None and attribute in self.provider_attributes:
+                provider_config = f"  {attribute} = true\n"
+            else:
+                provider_config = (
+                    "  # This component is registered `test_only`. Start the\n"
+                    "  # provider with PYVIDER_TESTMODE=true in its environment,\n"
+                    "  # or it will not publish the component at all.\n"
+                )
 
         provider_content = f"""terraform {{
   required_providers {{

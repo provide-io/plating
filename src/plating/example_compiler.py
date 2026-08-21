@@ -38,18 +38,22 @@ class ExampleCompiler:
         self,
         provider_name: str,
         provider_version: str = "0.0.5",
+        provider_attributes: set[str] | None = None,
     ) -> None:
         """Initialize the example compiler.
 
         Args:
             provider_name: Name of the Terraform provider
             provider_version: Version of the provider
+            provider_attributes: Names the provider's configuration block
+                accepts, when the caller knows them. See SingleExampleCompiler.
         """
         self.provider_name = provider_name
         self.provider_version = provider_version
+        self.provider_attributes = provider_attributes
 
         # Initialize both compilers
-        self.single_compiler = SingleExampleCompiler(provider_name, provider_version)
+        self.single_compiler = SingleExampleCompiler(provider_name, provider_version, provider_attributes)
         self.grouped_compiler = GroupedExampleCompiler(provider_name, provider_version)
 
     def compile_examples(
