@@ -50,6 +50,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Updated component type examples with correct syntax
 - Fixed incorrect error class names in documentation
 
+## [0.5.4] - 2026-08-21
+
+### Fixed
+
+- **Every component type's examples are found and written out.** The compiler recognised two block keywords, `resource` and `data`, and globbed only `*.tf`. An action, an ephemeral resource, a list resource and a state store therefore each looked like a bundle referencing nothing: the directory was created and left empty, and `soup stir` counted it as a pass because an empty directory applies nothing. It now knows `action`, `ephemeral`, `list` and `state_store`, reads `*.tfquery.hcl` as well, matches on the component names a bundle documents rather than its directory name, keeps a state store's `terraform` block instead of stripping it, and writes a query file back with its own extension.
+- **A generated `provider.tf` no longer guesses an argument name.** For a test-only component the compiler wrote `provider_testmode = true` into the provider block. No provider publishes an attribute by that name -- pyvider's is `pyvider_testmode` -- and Terraform refuses an entire configuration over one argument it does not recognise, so five of terraform-provider-pyvider's examples failed with "Unsupported argument" from the day they were generated and had never once run. An argument is emitted now only when the caller passes `provider_attributes` and the name is in it; otherwise the block carries a comment saying the provider must be started with `PYVIDER_TESTMODE=true`, which is the mechanism that actually works and the one the conformance suite uses.
+
 ## [0.5.3] - 2026-08-21
 
 ### Added

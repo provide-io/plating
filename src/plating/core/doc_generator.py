@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +37,69 @@ def document_filename(component_name: str, component_type: ComponentType, provid
     return component_name[len(prefix) :] if component_name.startswith(prefix) else component_name
 
 
+def _bundle_component_names(bundle: PlatingBundle, provider_name: str | None) -> set[str]:
+    """Every registered name this bundle could be documenting.
+
+    A bundle is named after its directory, and a directory is not a component:
+    `filesystem_store.plating` documents `pyvider_fs`, and
+    `directory_entries.plating` documents `pyvider_directory_entry`. Matching on
+    the directory name alone therefore misses most of the tfprotov6.11 bundles,
+    with or without a provider prefix.
+
+    The template filenames are the reliable signal -- `docs/pyvider_fs.tmpl.md`
+    names the component it renders -- so they are what gets matched, with the
+    bundle's own name as a fallback for a bundle whose templates are not named
+    that way.
+    """
+    names = {bundle.name}
+    if provider_name:
+        names.add(f"{provider_name}_{bundle.name}")
+
+    docs_dir = bundle.plating_dir / "docs"
+    if docs_dir.is_dir():
+        for template in docs_dir.glob("*.tmpl.md"):
+            stem = template.name.removesuffix(".tmpl.md")
+            names.add(stem)
+            if provider_name:
+                names.add(f"{provider_name}_{stem}")
+
+    return names
+
+
+@lru_cache(maxsize=1)
+def _registered_test_only_names() -> frozenset[str]:
+    """Every registered component name whose class is marked test-only.
+
+    The hub is the thing that decides what `test_only` means, so ask it rather
+    than guessing where the code lives. `_extract_component_metadata` derives a
+    module path from the bundle's directory, which is wrong twice over: a
+    component declared in another type's module is missed entirely
+    (`pyvider_nested_resource_test` is a resource living in a data-source
+    module), and a component whose bundle directory does not match its module
+    name is missed as well.
+
+    Cached because discovery walks the whole package, and the answer cannot
+    change within a run.
+    """
+    try:
+        from plating.schema.helpers import discover_components_by_dimension
+    except ImportError:  # pragma: no cover - plating always ships this
+        return frozenset()
+
+    try:
+        discovered = discover_components_by_dimension("pyvider.components")
+    except Exception as e:
+        logger.debug(f"Could not read test-only status from the registry: {e}")
+        return frozenset()
+
+    return frozenset(
+        name
+        for components in discovered.values()
+        for name, component in components.items()
+        if getattr(component, "_is_test_only", False)
+    )
+
+
 def _extract_component_metadata(
     bundle: PlatingBundle, component_type: ComponentType, provider_name: str | None
 ) -> bool:
@@ -49,6 +113,12 @@ def _extract_component_metadata(
     Returns:
         Boolean indicating if component is test_only
     """
+    # The registry is authoritative. Only fall back to walking modules when it
+    # has nothing to say, which is the case for a non-pyvider provider.
+    test_only_names = _registered_test_only_names()
+    if test_only_names:
+        return any(name in test_only_names for name in _bundle_component_names(bundle, provider_name))
+
     try:
         # Strip provider prefix from component name if present
         component_name = bundle.name
