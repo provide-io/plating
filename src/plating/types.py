@@ -467,7 +467,7 @@ class PlatingCLIContext(CLIContext):
         """Load context from file using foundation's config management."""
         # Load the JSON data and create instance from it
         if path.exists():
-            data = json.loads(path.read_text())
+            data = json.loads(path.read_text(encoding="utf-8"))
             return cls.from_dict(data)
 
         # Return default instance if file doesn't exist

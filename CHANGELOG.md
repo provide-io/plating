@@ -55,6 +55,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Fixed
 
 - **Generated nav sections are lists, not mappings.** mkdocs takes a nav section as a list of single-key mappings; the generator emitted one mapping of many keys. It passes `Nav().validate()`, so nothing caught it, but the build refuses it -- "Expected nav to be a list, got dict with keys (...)" -- and under `--strict` that aborts. terraform-provider-pyvider could not build its documentation at all.
+- **Every file read and write names its encoding.** Without one Python uses the locale default, which is cp1252 on Windows, and plating writes documentation full of emoji -- `mkdocs.yml` could not even be read back: `UnicodeDecodeError: 'charmap' codec can't decode byte 0x8f`. Six call sites in `nav_generator`, `linting`, `types` and the two `processor` modules.
 - **`mkdocs.yml` no longer comes back with escaped non-ASCII.** The generator rewrites the caller's whole file, and `yaml.dump` escapes by default, so a copyright line reading `©2024-2025 provide.io llc<br/>🛠️ with 💚` returned as `\U0001F6E0` escapes: valid YAML, unreadable in a hand-maintained file.
 
 ## [0.5.0] - 2026-08-20

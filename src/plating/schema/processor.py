@@ -189,7 +189,7 @@ provider "{self.generator.provider_name}" {{}}
 '''
 
             tf_file = temp_dir / "main.tf"
-            tf_file.write_text(tf_config)
+            tf_file.write_text(tf_config, encoding="utf-8")
 
             # Initialize Terraform with retry
             try:

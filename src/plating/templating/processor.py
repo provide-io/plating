@@ -99,7 +99,7 @@ provider "{{ provider.short_name }}" {
             provider_schema=provider_schema,
         )
 
-        (self.generator.output_dir / "index.md").write_text(rendered)
+        (self.generator.output_dir / "index.md").write_text(rendered, encoding="utf-8")
 
     def _render_component_from_bundle(self, bundle: "PlatingBundle") -> None:
         """Render a single component using its plating bundle."""
@@ -156,7 +156,7 @@ provider "{{ provider.short_name }}" {
         # Write to output directory
         output_dir = self.generator.output_dir / f"{bundle.component_type}s"
         output_dir.mkdir(parents=True, exist_ok=True)
-        (output_dir / f"{bundle.name}.md").write_text(rendered)
+        (output_dir / f"{bundle.name}.md").write_text(rendered, encoding="utf-8")
 
     def _render_partial(
         self,

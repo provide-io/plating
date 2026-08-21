@@ -185,7 +185,7 @@ class MkdocsNavGenerator:
         """
         # Read existing mkdocs.yml if it exists
         if self.mkdocs_file.exists():
-            with self.mkdocs_file.open() as f:
+            with self.mkdocs_file.open(encoding="utf-8") as f:
                 config = yaml.safe_load(f) or {}
         else:
             config = {}
@@ -194,7 +194,7 @@ class MkdocsNavGenerator:
         config["nav"] = nav.get("nav", [])
 
         # Write back to file
-        with self.mkdocs_file.open("w") as f:
+        with self.mkdocs_file.open("w", encoding="utf-8") as f:
             # allow_unicode, or every emoji in a value the caller already had
             # -- a copyright line, a site name -- comes back as \U0001F6E0
             # escapes on the first regeneration.
