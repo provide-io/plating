@@ -426,7 +426,13 @@ async def render_component_docs(  # noqa: C901
             # Most subcategories come from template frontmatter; only "Test Mode" is auto-determined here
             subcategory = _determine_subcategory(schema_info, is_test_only)
             rendered_content = _inject_subcategory(rendered_content, subcategory)
-            rendered_content = _inject_test_mode_notice(rendered_content, is_test_only)
+            # Same condition the subcategory uses, and for the same reason:
+            # `_extract_component_metadata` guesses a module path from the
+            # bundle's directory, which misses a component whose code lives in
+            # another type's module. The schema comes from the hub, which knows.
+            rendered_content = _inject_test_mode_notice(
+                rendered_content, is_test_only or bool(schema_info and schema_info.test_only)
+            )
 
             # Write output
             output_file.write_text(rendered_content, encoding="utf-8")
