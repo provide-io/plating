@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-24
+
+### Added
+
+- **An example can declare what it needs in order to run.** `example.tf` is described by `example.meta.toml`, and requirements shared by every example in a bundle go in one `examples/_requirements.meta.toml`. Requirements are not one-dimensional -- a Terraform floor, an OpenTofu incompatibility, an extra `init` flag, an environment variable, network egress -- so a filename convention could only ever encode one of them and leave the rest undeclared. That is the state this replaces: nothing could tell `soup stir` that the filesystem state store needs `-enable-pluggable-state-storage-experiment`, and a shared-secret prerequisite survived only as hand-written prose in a doc template.
+
+  Requirements accumulate and are never cancelled: a per-example sidecar can add a constraint or extend a list, but cannot declare itself exempt from one its bundle imposes. A runner that wrongly skips loses one result; one that wrongly runs reports a failure indistinguishable from a real defect.
+
+  Sidecars are copied verbatim into the compiled example tree rather than re-serialised, because whatever runs those directories never sees the `.plating` bundle -- and a parse/dump round-trip would drop the comments explaining why each requirement exists. The suffix sits outside `EXAMPLE_FILE_PATTERNS`, so a sidecar is never mistaken for an example and a bundle holding only one still reports no examples.
+
+  Reading is deliberately forgiving: missing and malformed both mean "declares nothing". These describe an example; they are not a gate, and failing a docs build over unparseable metadata trades a small problem for a larger one.
+
 ### Added
 
 - Complete documentation overhaul with new structure:
