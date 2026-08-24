@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import tomllib
 
 from attrs import define
 
@@ -18,6 +19,18 @@ from attrs import define
 # Flat example files a bundle may hold. List resources are queried from
 # .tfquery.hcl files, which Terraform will not accept as configuration.
 EXAMPLE_FILE_PATTERNS = ("*.tf", "*.tfquery.hcl")
+
+# An example may sit beside a sidecar declaring what it needs in order to run:
+# `example.tf` is described by `example.meta.toml`. The suffix is deliberately
+# outside EXAMPLE_FILE_PATTERNS so a sidecar is never mistaken for an example.
+#
+# It exists because an example's requirements are not one-dimensional. Some need
+# a Terraform floor; some cannot run under OpenTofu at all; some need an extra
+# `init` flag; some need an environment variable or network egress. A filename
+# convention can encode one of those, and the rest end up undeclared -- which is
+# what happened, leaving `soup stir` unable to reach the state store and the docs
+# explaining a shared-secret requirement in hand-written prose.
+EXAMPLE_METADATA_SUFFIX = ".meta.toml"
 
 
 @define
@@ -62,6 +75,24 @@ class PlatingBundle:
 
         # Check for grouped examples (subdirectories with main.tf)
         return any(subdir.is_dir() and (subdir / "main.tf").exists() for subdir in self.examples_dir.iterdir())
+
+    def example_metadata(self, example_name: str) -> dict[str, object]:
+        """Requirements declared for one example, or {} when none are.
+
+        Absence is not an error: most examples run anywhere and say nothing. A
+        malformed sidecar is also not fatal here -- returning {} degrades to
+        today's behaviour rather than failing a docs build over metadata.
+        """
+        sidecar = self.examples_dir / f"{example_name}{EXAMPLE_METADATA_SUFFIX}"
+        if not sidecar.exists():
+            return {}
+        try:
+            with sidecar.open("rb") as handle:
+                parsed = tomllib.load(handle)
+        except (OSError, tomllib.TOMLDecodeError):
+            return {}
+        requirements = parsed.get("requirements", {})
+        return requirements if isinstance(requirements, dict) else {}
 
     def load_main_template(self) -> str | None:
         """Load the main template file for this component."""

@@ -14,6 +14,7 @@ from attrs import define, field
 from provide.foundation import logger
 
 from plating.bundles import PlatingBundle
+from plating.bundles.base import EXAMPLE_METADATA_SUFFIX
 from plating.core.doc_generator import _bundle_component_names, _extract_component_metadata
 from plating.types import ComponentType
 
@@ -152,6 +153,19 @@ class SingleExampleCompiler:
             tf_path.write_text(cleaned_content, encoding="utf-8")
             result.output_files.append(tf_path)
             result.examples_generated += 1
+
+            # Carry the requirements sidecar next to the example it describes.
+            # Whatever runs these directories -- `soup stir`, CI -- sees only this
+            # generated tree, never the .plating bundle, so metadata left behind
+            # here would be metadata nothing can act on.
+            sidecar = bundle.examples_dir / f"{example_name}{EXAMPLE_METADATA_SUFFIX}"
+            if sidecar.exists():
+                meta_path = component_dir / f"{example_name}{EXAMPLE_METADATA_SUFFIX}"
+                # Copied verbatim rather than re-serialised: these sidecars carry
+                # comments explaining *why* a requirement exists, and a parse/dump
+                # round-trip would silently drop every one of them.
+                meta_path.write_bytes(sidecar.read_bytes())
+                result.output_files.append(meta_path)
 
     def _load_flat_examples(self, bundle: PlatingBundle) -> dict[str, str]:
         """Load only flat .tf examples (not grouped subdirectories).
