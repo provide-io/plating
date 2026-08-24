@@ -71,6 +71,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [0.5.3] - 2026-08-21
 
+Never published. No tag, no release and no PyPI upload carries this number -- the sequence goes 0.5.2 straight to 0.5.4. The change below is not lost: it shipped inside 0.5.4, whose tag contains both `0df28a6` and `caaaf5d`. Recorded here rather than renumbered, so the history matches what was actually released.
+
 ### Added
 
 - **A test-only component's page says it is unreachable.** `subcategory: "Test Mode"` groups these pages in the navigation, which tells a reader they are grouped -- not that a provider started normally never publishes them. terraform-provider-pyvider shipped fourteen such components (every action, ephemeral resource, list resource and state store it had) and nothing on the page said `tofu providers schema` would show none of them. The notice is injected after the first heading, before the example a reader would otherwise copy, as a plain markdown blockquote the registry can render.
