@@ -121,3 +121,66 @@ def test_an_example_with_no_requirements_generates_no_sidecar(tmp_path: Path) ->
 
     component_dir = out / "state_store" / "filesystem_store"
     assert list(component_dir.glob(f"*{EXAMPLE_METADATA_SUFFIX}")) == []
+
+
+BUNDLE_SHARED = """# Every example of this component keeps encrypted private state.
+[requirements]
+env = ["PYVIDER_PRIVATE_STATE_SHARED_SECRET"]
+reason = "encrypted private state needs a configured shared secret"
+"""
+
+
+@pytest.mark.unit
+def test_bundle_requirements_apply_to_every_example(tmp_path: Path) -> None:
+    """Stating a shared requirement once beats copying it into each sidecar."""
+    from plating.bundles.base import BUNDLE_METADATA_NAME
+
+    bundle = _bundle(tmp_path, name="timed_token")
+    for name in ("basic", "cicd", "comprehensive"):
+        (bundle.examples_dir / f"{name}.tf").write_text("# example")
+    (bundle.examples_dir / BUNDLE_METADATA_NAME).write_text(BUNDLE_SHARED)
+
+    for name in ("basic", "cicd", "comprehensive"):
+        assert bundle.example_metadata(name)["env"] == ["PYVIDER_PRIVATE_STATE_SHARED_SECRET"]
+
+
+@pytest.mark.unit
+def test_an_example_adds_to_the_bundle_rather_than_replacing_it(tmp_path: Path) -> None:
+    from plating.bundles.base import BUNDLE_METADATA_NAME
+
+    bundle = _bundle(tmp_path, name="timed_token")
+    (bundle.examples_dir / "cicd.tf").write_text("# example")
+    (bundle.examples_dir / BUNDLE_METADATA_NAME).write_text(BUNDLE_SHARED)
+    (bundle.examples_dir / f"cicd{EXAMPLE_METADATA_SUFFIX}").write_text(
+        '[requirements]\nenv = ["CI_TOKEN"]\nopentofu = false\n'
+    )
+
+    requirements = bundle.example_metadata("cicd")
+
+    # The bundle's requirement survives; the example's is added to it.
+    assert requirements["env"] == ["PYVIDER_PRIVATE_STATE_SHARED_SECRET", "CI_TOKEN"]
+    assert requirements["opentofu"] is False
+
+
+@pytest.mark.unit
+def test_bundle_requirements_reach_the_generated_tree_once(tmp_path: Path) -> None:
+    from plating.bundles.base import BUNDLE_METADATA_NAME
+    from plating.compiler.single import SingleExampleCompiler
+
+    bundle = _bundle(tmp_path / "src", name="timed_token")
+    bundle = PlatingBundle(name="timed_token", plating_dir=bundle.plating_dir, component_type="resource")
+    for name in ("basic", "cicd"):
+        (bundle.examples_dir / f"{name}.tf").write_text(
+            'resource "pyvider_timed_token" "t" {\n  ttl = 60\n}\n'
+        )
+    (bundle.examples_dir / BUNDLE_METADATA_NAME).write_text(BUNDLE_SHARED)
+
+    out = tmp_path / "examples"
+    SingleExampleCompiler("pyvider").compile_examples([bundle], out)
+
+    component_dir = out / "resource" / "timed_token"
+    shared = component_dir / BUNDLE_METADATA_NAME
+    assert shared.exists(), "bundle requirements did not reach the generated tree"
+    assert shared.read_text() == BUNDLE_SHARED
+    # One shared file, not one copy per example.
+    assert len(list(component_dir.glob(f"*{EXAMPLE_METADATA_SUFFIX}"))) == 1

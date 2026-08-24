@@ -32,6 +32,14 @@ EXAMPLE_FILE_PATTERNS = ("*.tf", "*.tfquery.hcl")
 # explaining a shared-secret requirement in hand-written prose.
 EXAMPLE_METADATA_SUFFIX = ".meta.toml"
 
+# Requirements that hold for every example in a bundle go in one file rather than
+# being copied into each sidecar. Every example of a component that keeps
+# encrypted private state needs the same shared secret; stating that once per
+# example meant eight identical files, and eight places to forget when it
+# changes. The leading underscore keeps it out of the way of an example named
+# after it, and sorts it first so defaults are read before overrides.
+BUNDLE_METADATA_NAME = f"_requirements{EXAMPLE_METADATA_SUFFIX}"
+
 
 @define
 class PlatingBundle:
@@ -76,23 +84,45 @@ class PlatingBundle:
         # Check for grouped examples (subdirectories with main.tf)
         return any(subdir.is_dir() and (subdir / "main.tf").exists() for subdir in self.examples_dir.iterdir())
 
-    def example_metadata(self, example_name: str) -> dict[str, object]:
-        """Requirements declared for one example, or {} when none are.
+    def _read_requirements(self, path: Path) -> dict[str, object]:
+        """The [requirements] table of one sidecar, or {} when there is none.
 
-        Absence is not an error: most examples run anywhere and say nothing. A
-        malformed sidecar is also not fatal here -- returning {} degrades to
-        today's behaviour rather than failing a docs build over metadata.
+        A malformed sidecar is not fatal: returning {} degrades to the behaviour
+        before requirements existed, rather than failing a docs build over
+        metadata that only describes an example.
         """
-        sidecar = self.examples_dir / f"{example_name}{EXAMPLE_METADATA_SUFFIX}"
-        if not sidecar.exists():
+        if not path.exists():
             return {}
         try:
-            with sidecar.open("rb") as handle:
+            with path.open("rb") as handle:
                 parsed = tomllib.load(handle)
         except (OSError, tomllib.TOMLDecodeError):
             return {}
         requirements = parsed.get("requirements", {})
         return requirements if isinstance(requirements, dict) else {}
+
+    def bundle_metadata(self) -> dict[str, object]:
+        """Requirements shared by every example in this bundle."""
+        return self._read_requirements(self.examples_dir / BUNDLE_METADATA_NAME)
+
+    def example_metadata(self, example_name: str) -> dict[str, object]:
+        """Requirements for one example: the bundle's, plus its own.
+
+        Requirements accumulate and are never cancelled. A per-example sidecar
+        can add a constraint or extend a list, but cannot declare that this
+        example escapes one the bundle imposes -- a runner that wrongly skips
+        loses one result, where one that wrongly runs reports a failure
+        indistinguishable from a real defect.
+        """
+        merged: dict[str, object] = dict(self.bundle_metadata())
+        own = self._read_requirements(self.examples_dir / f"{example_name}{EXAMPLE_METADATA_SUFFIX}")
+        for key, value in own.items():
+            existing = merged.get(key)
+            if isinstance(existing, list) and isinstance(value, list):
+                merged[key] = existing + [item for item in value if item not in existing]
+            else:
+                merged[key] = value
+        return merged
 
     def load_main_template(self) -> str | None:
         """Load the main template file for this component."""

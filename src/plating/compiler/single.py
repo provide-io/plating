@@ -14,7 +14,7 @@ from attrs import define, field
 from provide.foundation import logger
 
 from plating.bundles import PlatingBundle
-from plating.bundles.base import EXAMPLE_METADATA_SUFFIX
+from plating.bundles.base import BUNDLE_METADATA_NAME, EXAMPLE_METADATA_SUFFIX
 from plating.core.doc_generator import _bundle_component_names, _extract_component_metadata
 from plating.types import ComponentType
 
@@ -140,6 +140,16 @@ class SingleExampleCompiler:
         )
         is_test_only = self._is_test_only_component(bundle, component_type)
         self._generate_provider_tf(component_dir, is_test_only)
+
+        # The bundle's shared requirements travel once per component directory.
+        # Whatever runs these directories merges every sidecar it finds in one, so
+        # copying this alongside the per-example files reproduces the same
+        # bundle-plus-override result without re-serialising anything.
+        bundle_requirements = bundle.examples_dir / BUNDLE_METADATA_NAME
+        if bundle_requirements.exists():
+            shared = component_dir / BUNDLE_METADATA_NAME
+            shared.write_bytes(bundle_requirements.read_bytes())
+            result.output_files.append(shared)
 
         # Generate flat files in the component directory
         for example_name, example_content in flat_examples.items():
