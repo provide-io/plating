@@ -198,12 +198,16 @@ plating plate --generate-examples \
 Configure Plating in your `pyproject.toml`:
 
 ```toml
-[tool.plating]
+[tool.pyvider]
 # Provider name (auto-detected if not specified)
-provider_name = "my_provider"
+name = "my_provider"
+# Packages to discover components in
+component_packages = ["my_provider.components"]
 ```
 
-**Note:** Currently only `provider_name` can be configured in `pyproject.toml`. Other options like `output_dir` and `component_types` must be passed as CLI flags:
+Plating reads pyvider's own section, so a provider configures its name once and both tools agree on it. `[tool.plating] provider_name` is still honoured for projects that set it, as is the top-level `[pyvider]` table, and `provider_name` is accepted wherever `name` is.
+
+**Note:** Other options like `output_dir` and `component_types` must be passed as CLI flags:
 
 ```bash
 plating plate --output-dir docs --component-type resource
