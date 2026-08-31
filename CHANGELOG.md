@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-08-31
+
+### Fixed
+
+- **Pyvider's configuration was read from the wrong table.** Plating looked for `component_packages` and the provider name in the top-level `[pyvider]` table. Both shipped provider repositories put them in `[tool.pyvider]` — the PEP 518 location, and the one pyvider's own CLI reads — so plating saw neither and fell back silently to the `[project]` name and to `[tool.plating] provider_name`. `[tool.pyvider]` is now checked first, the top-level `[pyvider]` after it, and `[tool.plating] provider_name` remains the last resort. Either `name` or `provider_name` is accepted as the key, matching the alias pyvider accepts.
+
 ## [0.6.0] - 2026-08-24
 
 ### Added
